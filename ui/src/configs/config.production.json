@@ -36,7 +36,8 @@
             }
         },
         "features": {
-            "knowledge": true
+            "knowledge": true,
+            "telemetry": true
         }
     }
 }

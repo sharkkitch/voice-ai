@@ -44,6 +44,7 @@ import { CopyCell } from '@/app/components/base/tables/copy-cell';
 import { LabelCell } from '@/app/components/base/tables/label-cell';
 import { DateCell } from '@/app/components/base/tables/date-cell';
 import { ConversationTelemetryDialog } from '@/app/components/base/modal/conversation-telemetry-modal';
+import { CONFIG } from '@/configs';
 import { AssistantConversationTelephonyEventDialog } from '@/app/components/base/modal/assistant-conversation-telephony-event-modal';
 
 interface ConversationProps {
@@ -407,23 +408,25 @@ export function Conversations({ currentAssistant }: ConversationProps) {
                           </TooltipPlus>
                         </IButton>
                       )}
-                      <IButton
-                        className="rounded-none"
-                        onClick={() => {
-                          handleTraceClick(row.getAssistantid(), row.getId());
-                        }}
-                      >
-                        <TooltipPlus
-                          className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                          popupContent={
-                            <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                              View telemetry
-                            </div>
-                          }
+                      {CONFIG.workspace.features?.telemetry !== false && (
+                        <IButton
+                          className="rounded-none"
+                          onClick={() => {
+                            handleTraceClick(row.getAssistantid(), row.getId());
+                          }}
                         >
-                          <Telescope strokeWidth={1.5} className="h-4 w-4" />
-                        </TooltipPlus>
-                      </IButton>
+                          <TooltipPlus
+                            className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+                            popupContent={
+                              <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
+                                View telemetry
+                              </div>
+                            }
+                          >
+                            <Telescope strokeWidth={1.5} className="h-4 w-4" />
+                          </TooltipPlus>
+                        </IButton>
+                      )}
                       <IButton
                         className="rounded-none"
                         onClick={event => {

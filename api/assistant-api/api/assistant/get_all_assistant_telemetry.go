@@ -104,6 +104,17 @@ func buildTelemetryQuery(assistantId uint64, criterias map[string]string, from, 
 		}
 	}
 
+	if v, ok := criterias["messageId"]; ok && v != "" {
+		// events index uses "messageId"; metrics index uses "contextId"
+		fieldName := "messageId"
+		if indexSpecificKey == "scope" {
+			fieldName = "contextId"
+		}
+		must = append(must, map[string]interface{}{
+			"term": map[string]interface{}{fieldName: v},
+		})
+	}
+
 	if v, ok := criterias[indexSpecificKey]; ok && v != "" {
 		must = append(must, map[string]interface{}{
 			"term": map[string]interface{}{indexSpecificKey: v},

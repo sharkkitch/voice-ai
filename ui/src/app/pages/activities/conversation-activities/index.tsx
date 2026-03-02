@@ -38,6 +38,7 @@ import { Helmet } from '@/app/components/helmet';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { ConversationTelemetryDialog } from '@/app/components/base/modal/conversation-telemetry-modal';
+import { CONFIG } from '@/configs';
 import { TableCell } from '@/app/components/base/tables/table-cell';
 import { CustomLink } from '@/app/components/custom-link';
 import { TableRow } from '@/app/components/base/tables/table-row';
@@ -61,11 +62,15 @@ export const ListingPage: FC<{}> = () => {
   const [isTelemetryDialogOpen, setTelemetryDialogOpen] = useState(false);
 
   const handleTraceClick = (trace: AssistantConversationMessage) => {
-    const ctr = new Criteria();
-    ctr.setKey('conversationId');
-    ctr.setLogic('match');
-    ctr.setValue(trace.getAssistantconversationid());
-    setCriterias([ctr]);
+    const convCtr = new Criteria();
+    convCtr.setKey('conversationId');
+    convCtr.setLogic('match');
+    convCtr.setValue(trace.getAssistantconversationid());
+    const msgCtr = new Criteria();
+    msgCtr.setKey('messageId');
+    msgCtr.setLogic('match');
+    msgCtr.setValue(trace.getMessageid());
+    setCriterias([convCtr, msgCtr]);
     setTelemetryAssistantId(trace.getAssistantid());
     setTelemetryDialogOpen(true);
   };
@@ -457,23 +462,25 @@ export const ListingPage: FC<{}> = () => {
                       <Eye strokeWidth={1.5} className="h-4 w-4" />
                     </TooltipPlus>
                   </IButton>
-                  <IButton
-                    className="rounded-none"
-                    onClick={event => {
-                      handleTraceClick(row);
-                    }}
-                  >
-                    <TooltipPlus
-                      className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                      popupContent={
-                        <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                          View telemetry
-                        </div>
-                      }
+                  {CONFIG.workspace.features?.telemetry !== false && (
+                    <IButton
+                      className="rounded-none"
+                      onClick={event => {
+                        handleTraceClick(row);
+                      }}
                     >
-                      <Telescope strokeWidth={1.5} className="h-4 w-4" />
-                    </TooltipPlus>
-                  </IButton>
+                      <TooltipPlus
+                        className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+                        popupContent={
+                          <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
+                            View telemetry
+                          </div>
+                        }
+                      >
+                        <Telescope strokeWidth={1.5} className="h-4 w-4" />
+                      </TooltipPlus>
+                    </IButton>
+                  )}
                   <ILinkBorderButton
                     className="rounded-none"
                     href={`/deployment/assistant/${row.getAssistantid()}/sessions/${row.getAssistantconversationid()}`}

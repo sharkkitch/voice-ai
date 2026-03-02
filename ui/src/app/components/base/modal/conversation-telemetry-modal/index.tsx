@@ -352,6 +352,12 @@ export function SentrySearch({
       placeholder: 'Enter ID…',
     },
     {
+      id: 'messageId',
+      label: 'Message ID',
+      type: 'string',
+      placeholder: 'Enter message ID…',
+    },
+    {
       id: 'name',
       label: 'Event Name',
       type: 'string',

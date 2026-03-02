@@ -222,6 +222,19 @@ func (s *azureSpeechToText) OnRecognized(event speech.SpeechRecognitionEventArgs
 		if threshold, err := s.mdlOpts.GetFloat64("listen.threshold"); err == nil {
 			if confidence < threshold {
 				s.logger.Debugf("confidence %.4f below threshold %.4f, skipping", confidence, threshold)
+				// emit event for low confidence and skip stt processing
+				s.onPacket(
+					internal_type.ConversationEventPacket{
+						Name: "stt",
+						Data: map[string]string{
+							"type":       "low_confidence",
+							"script":     text,
+							"confidence": fmt.Sprintf("%.4f", confidence),
+							"threshold":  fmt.Sprintf("%.4f", threshold),
+						},
+						Time: time.Now(),
+					},
+				)
 				return
 			}
 		}

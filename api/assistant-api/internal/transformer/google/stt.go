@@ -133,19 +133,15 @@ func (g *googleSpeechToText) speechToTextCallback(stram speechpb.Speech_Streamin
 
 					if v, err := g.mdlOpts.GetFloat64("listen.threshold"); err == nil {
 						if alt.GetConfidence() < float32(v) {
+							// confidence below threshold, emit event and skip stt processing
 							g.onPacket(
-								internal_type.SpeechToTextPacket{
-									Script:     transcript,
-									Confidence: float64(alt.GetConfidence()),
-									Language:   result.GetLanguageCode(),
-									Interim:    true,
-								},
 								internal_type.ConversationEventPacket{
 									Name: "stt",
 									Data: map[string]string{
-										"type":       "interim",
+										"type":       "low_confidence",
 										"script":     transcript,
 										"confidence": confStr,
+										"threshold":  fmt.Sprintf("%.4f", v),
 									},
 									Time: time.Now(),
 								},

@@ -34,6 +34,7 @@ export interface WorkspaceConfig {
   };
   features?: {
     knowledge?: boolean;
+    telemetry?: boolean;
   };
 }
 

@@ -56,21 +56,16 @@ func (d *deepgramSttCallback) Message(mr *msginterfaces.MessageResponse) error {
 		confStr := fmt.Sprintf("%.4f", alternative.Confidence)
 
 		if v, err := d.options.GetFloat64("listen.threshold"); err == nil {
-			if float32(alternative.Confidence) < float32(v) {
-				// Below confidence threshold — emit as interim
+			if alternative.Confidence < v {
+				// confidence below threshold, emit event and skip stt processing
 				d.onPacket(
-					internal_type.SpeechToTextPacket{
-						Script:     alternative.Transcript,
-						Confidence: alternative.Confidence,
-						Language:   lang,
-						Interim:    true,
-					},
 					internal_type.ConversationEventPacket{
 						Name: "stt",
 						Data: map[string]string{
-							"type":       "interim",
+							"type":       "low_confidence",
 							"script":     alternative.Transcript,
 							"confidence": confStr,
+							"threshold":  fmt.Sprintf("%.4f", v),
 						},
 						Time: time.Now(),
 					},

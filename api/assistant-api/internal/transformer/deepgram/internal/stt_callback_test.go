@@ -249,7 +249,7 @@ func TestMessage(t *testing.T) {
 // =============================================================================
 
 func TestMessageWithConfidenceThreshold(t *testing.T) {
-	t.Run("marks as interim when confidence below threshold", func(t *testing.T) {
+	t.Run("emits low_confidence event when confidence below threshold", func(t *testing.T) {
 		opts := utils.Option{
 			"listen.threshold": 0.9,
 		}
@@ -261,12 +261,15 @@ func TestMessageWithConfidenceThreshold(t *testing.T) {
 
 		require.NoError(t, err)
 		packets := collector.GetPackets()
-		// Below threshold: SpeechToTextPacket + ConversationEventPacket
-		require.Len(t, packets, 2)
+		// Below threshold: only ConversationEventPacket emitted
+		require.Len(t, packets, 1, "should emit only a conversation event when confidence is below threshold")
 
-		stt := packets[0].(internal_type.SpeechToTextPacket)
-		assert.True(t, stt.Interim, "should be marked as interim when confidence is below threshold")
-		assert.Equal(t, "low confidence text", stt.Script)
+		evt := packets[0].(internal_type.ConversationEventPacket)
+		assert.Equal(t, "stt", evt.Name)
+		assert.Equal(t, "low_confidence", evt.Data["type"])
+		assert.Equal(t, "low confidence text", evt.Data["script"])
+		assert.Equal(t, "0.7000", evt.Data["confidence"])
+		assert.Equal(t, "0.9000", evt.Data["threshold"])
 	})
 
 	t.Run("respects IsFinal when confidence above threshold", func(t *testing.T) {
@@ -348,17 +351,17 @@ func TestMessageWithConfidenceThreshold(t *testing.T) {
 		}
 		collector, _, callback := createTestCallback(opts)
 
-		// Any confidence below 1.0 should be marked as interim
+		// Any confidence below 1.0 should emit low_confidence event only
 		mr := createMessageResponse("max threshold text", 0.99, true, []string{"en"})
 		err := callback.Message(mr)
 
 		require.NoError(t, err)
 		packets := collector.GetPackets()
-		// Below threshold: SpeechToTextPacket + ConversationEventPacket
-		require.Len(t, packets, 2)
+		// Below threshold: only ConversationEventPacket emitted
+		require.Len(t, packets, 1, "should emit only a conversation event when confidence is below threshold")
 
-		stt := packets[0].(internal_type.SpeechToTextPacket)
-		assert.True(t, stt.Interim)
+		evt := packets[0].(internal_type.ConversationEventPacket)
+		assert.Equal(t, "low_confidence", evt.Data["type"])
 	})
 }
 
