@@ -54,9 +54,8 @@ export const SideTabLink: FC<LinkTabProps> = props => {
       to={props.to}
       className={({ isActive }) =>
         cn(
-          'group px-2 border-r-[3px] border-transparent -ms-[0.1rem] cursor-pointer font-semibold text-[13px]  whitespace-nowrap tracking-wide text-pretty',
+          'group px-2 border-r-[3px] border-transparent -ms-[0.1rem] cursor-pointer font-medium text-sm/6 whitespace-nowrap tracking-wide text-pretty',
           'flex items-center px-5 py-2 relative',
-
           isActive
             ? 'text-blue-500 bg-blue-500/10'
             : 'hover:bg-blue-500/5 hover:text-blue-500',

@@ -2467,6 +2467,9 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 5;
   }
+  .\!flex {
+    display: flex !important;
+  }
   .block {
     display: block;
   }
@@ -2514,6 +2517,12 @@
   .size-40 {
     width: calc(var(--spacing) * 40);
     height: calc(var(--spacing) * 40);
+  }
+  .\!h-dvh {
+    height: 100dvh !important;
+  }
+  .\!h-full {
+    height: 100% !important;
   }
   .h-\(--header-height\) {
     height: var(--header-height);
@@ -3529,6 +3538,9 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .\!overflow-hidden {
+    overflow: hidden !important;
+  }
   .\[overflow\:unset\]\! {
     overflow: unset !important;
   }
@@ -3847,6 +3859,9 @@
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-gray-600) 10%, transparent) !important;
     }
+  }
+  .border-gray-800 {
+    border-color: var(--color-gray-800);
   }
   .border-gray-900 {
     border-color: var(--color-gray-900);

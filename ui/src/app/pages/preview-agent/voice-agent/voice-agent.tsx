@@ -10,7 +10,7 @@ import {
 import { MessagingAction } from '@/app/pages/preview-agent/voice-agent/actions';
 import { ConversationMessages } from '@/app/pages/preview-agent/voice-agent/text/conversations';
 import { cn } from '@/utils';
-import { QuickSuggestion } from '@/app/pages/preview-agent/voice-agent/text/suggestions';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import {
   JsonTextarea,
   NumberTextarea,
@@ -305,9 +305,12 @@ export const VoiceAgent: FC<{
     : `/deployment/assistant/${assistant?.getId()}/manage/deployment/debugger`;
 
   return (
-    <div className="h-dvh flex p-8 text-sm/6 w-full gap-3 md:gap-6">
+    <PanelGroup
+      className="!h-dvh !overflow-hidden !flex"
+      direction="horizontal"
+    >
       {/* ── Left: messaging ─────────────────────────────────────────── */}
-      <div className="flex flex-col overflow-hidden h-full w-2/3 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-950">
+      <Panel className="flex flex-col h-dvh overflow-hidden w-2/3  bg-white dark:bg-gray-950">
         {/* Header */}
         <div className="shrink-0">
           {debug && (
@@ -414,10 +417,11 @@ export const VoiceAgent: FC<{
           className=" border-t"
           voiceAgent={voiceAgentContextValue}
         />
-      </div>
+      </Panel>
 
+      <PanelResizeHandle className="flex w-px! bg-gray-200 dark:bg-gray-800 hover:bg-blue-700 dark:hover:bg-blue-500 items-stretch"></PanelResizeHandle>
       {/* ── Right: assistant + metrics ──────────────────────────────── */}
-      <div className="shrink-0 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 w-1/3 rounded bg-white dark:bg-gray-950">
+      <Panel className="shrink-0 flex flex-col overflow-hidden w-1/3 ">
         <VoiceAgentDebugger
           debug={debug}
           voiceAgent={voiceAgentContextValue}
@@ -428,8 +432,8 @@ export const VoiceAgent: FC<{
             voiceAgentContextValue.agentConfiguration.addArgument(k, v)
           }
         />
-      </div>
-    </div>
+      </Panel>
+    </PanelGroup>
   );
 };
 

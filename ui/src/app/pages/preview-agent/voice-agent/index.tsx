@@ -376,7 +376,7 @@ export const PreviewPhoneAgent = () => {
       <div className="shrink-0 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 w-1/3 rounded bg-white dark:bg-gray-950">
         <PhoneAgentDebugger
           assistant={assistant}
-          deployment={deployment}
+          deployment={deployment ? deployment : undefined}
           stt={stt}
           tts={tts}
           model={model}
