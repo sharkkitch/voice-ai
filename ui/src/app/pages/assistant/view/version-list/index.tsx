@@ -4,11 +4,10 @@ import { useRapidaStore } from '@/hooks';
 import { useCredential } from '@/hooks/use-credential';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast/headless';
-import { cn } from '@/utils';
 import { Assistant, GetAllAssistantProviderResponse } from '@rapidaai/react';
 import { RevisionIndicator } from '@/app/components/indicators/revision';
 import { SectionLoader } from '@/app/components/loader/section-loader';
-import { CircleSlash } from 'lucide-react';
+import { Rocket, Upload } from 'lucide-react';
 import { TableSection } from '@/app/components/sections/table-section';
 import { ScrollableResizableTable } from '@/app/components/data-table';
 import { TableRow } from '@/app/components/base/tables/table-row';
@@ -112,13 +111,11 @@ export function Version(props: VersionProps) {
                     {assistantProviderAction.assistant?.getAssistantproviderid() !==
                     apm.getAssistantprovidermodel()?.getId() ? (
                       <IBlueBorderButton
+                        className="h-8 bg-primary/10 border-primary/30 rounded-[2px]"
                         disabled={
                           assistantProviderAction.assistant?.getAssistantproviderid() ===
                           apm.getAssistantprovidermodel()?.getId()
                         }
-                        className={cn(
-                          'shrink-0 !bg-blue-600/10 hover:!bg-blue-600 border-none h-8 ring-[0.5] ring-blue-600',
-                        )}
                         onClick={() => {
                           deployRevision(
                             'MODEL',
@@ -126,11 +123,11 @@ export function Version(props: VersionProps) {
                           );
                         }}
                       >
-                        <CircleSlash
-                          className="w-3.5 h-3.5 mr-2"
+                        <Rocket
+                          className="mr-1 w-3.5 h-3.5"
                           strokeWidth={1.5}
                         />
-                        <span>Deploy revision</span>
+                        Deploy
                       </IBlueBorderButton>
                     ) : (
                       <RevisionIndicator
@@ -174,13 +171,11 @@ export function Version(props: VersionProps) {
                     {assistantProviderAction.assistant?.getAssistantproviderid() !==
                     apm.getAssistantprovideragentkit()?.getId() ? (
                       <IBlueBorderButton
+                        className="h-8 bg-primary/10 border-primary/30 rounded-[2px]"
                         disabled={
                           assistantProviderAction.assistant?.getAssistantproviderid() ===
                           apm.getAssistantprovideragentkit()?.getId()
                         }
-                        className={cn(
-                          'shrink-0 !bg-blue-600/10 hover:!bg-blue-600 border-none h-8 ring-[0.5] ring-blue-600',
-                        )}
                         onClick={() => {
                           deployRevision(
                             'AGENTKIT',
@@ -188,11 +183,11 @@ export function Version(props: VersionProps) {
                           );
                         }}
                       >
-                        <CircleSlash
-                          className="w-3.5 h-3.5 mr-2"
+                        <Rocket
+                          className="mr-1 w-3.5 h-3.5"
                           strokeWidth={1.5}
                         />
-                        <span>Deploy revision</span>
+                        Deploy
                       </IBlueBorderButton>
                     ) : (
                       <RevisionIndicator
@@ -238,13 +233,11 @@ export function Version(props: VersionProps) {
                     {assistantProviderAction.assistant?.getAssistantproviderid() !==
                     apm.getAssistantproviderwebsocket()?.getId() ? (
                       <IBlueBorderButton
+                        className="h-8 bg-primary/10 border-primary/30 rounded-[2px]"
                         disabled={
                           assistantProviderAction.assistant?.getAssistantproviderid() ===
                           apm.getAssistantproviderwebsocket()?.getId()
                         }
-                        className={cn(
-                          'shrink-0 !bg-blue-600/10 hover:!bg-blue-600 border-none h-8',
-                        )}
                         onClick={() => {
                           deployRevision(
                             'WEBSOCKET',
@@ -252,11 +245,11 @@ export function Version(props: VersionProps) {
                           );
                         }}
                       >
-                        <CircleSlash
-                          className="w-3.5 h-3.5 mr-2"
+                        <Rocket
+                          className="mr-1 w-3.5 h-3.5"
                           strokeWidth={1.5}
                         />
-                        <span>Deploy revision</span>
+                        Deploy
                       </IBlueBorderButton>
                     ) : (
                       <RevisionIndicator

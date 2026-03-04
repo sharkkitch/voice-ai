@@ -80,18 +80,13 @@ export const AssistantConversationFilterDialog: FC<AssistantConversationFilterDi
           </ModalBody>
           <ModalFooter className="sticky bottom-0">
             <ICancelButton
-              className="px-4 rounded-[2px]"
               onClick={() => {
                 mldAttr.setModalOpen(false);
               }}
             >
               Cancel
             </ICancelButton>
-            <IBlueBGButton
-              className="px-4 rounded-[2px]"
-              type="button"
-              onClick={handleApply}
-            >
+            <IBlueBGButton type="button" onClick={handleApply}>
               Apply
             </IBlueBGButton>
           </ModalFooter>

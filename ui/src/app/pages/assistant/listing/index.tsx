@@ -13,13 +13,11 @@ import { Assistant } from '@rapidaai/react';
 import { Spinner } from '@/app/components/loader/spinner';
 import { ActionableEmptyMessage } from '@/app/components/container/message/actionable-empty-message';
 import { HowAssistantWorksDialog } from '@/app/components/base/modal/how-it-works-modal/how-assistant-works';
-import { IBlueButton, IButton } from '@/app/components/form/button';
+import { IButton } from '@/app/components/form/button';
 import { Plus, RotateCw } from 'lucide-react';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { PaginationButtonBlock } from '@/app/components/blocks/pagination-button-block';
-import { cn } from '@/utils';
-import { Popover } from '@/app/components/popover';
 
 /**
  * Assistant page
@@ -85,7 +83,6 @@ export function AssistantPage() {
 
   //
   const [hiw, sethiw] = useState(false);
-  const [createAssistantPopover, setCreateAssistantPopover] = useState(false);
   return (
     <div className="h-full flex flex-col overflow-auto flex-1">
       <Helmet title="Assistant" />
@@ -93,76 +90,70 @@ export function AssistantPage() {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Assistants</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {assistantAction.pageSize}/{assistantAction.totalCount}
-          </div>
+          </span>
         </div>
-        <div className="flex dark:divide-gray-800 divide-x">
-          <IButton
-            onClick={() => {
-              sethiw(!hiw);
-            }}
+
+        {/* ── Header actions — Carbon UI shell toolbar pattern ── */}
+        <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+          {/* Ghost action */}
+          <button
+            type="button"
+            onClick={() => sethiw(!hiw)}
+            className="flex items-center px-4 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800 transition-colors whitespace-nowrap"
           >
             How it works?
-          </IButton>
+          </button>
 
-          <div className="flex">
-            <IBlueButton
-              className={cn(
-                'px-4',
-                createAssistantPopover &&
-                  'bg-light-background!  dark:bg-gray-950!',
-              )}
-              onClick={() => {
-                setCreateAssistantPopover(true);
-              }}
+          {/* Primary CTA with hover dropdown */}
+          <div className="relative group/add flex items-stretch">
+            <button
+              type="button"
+              className="flex items-center gap-2 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
             >
               Add new assistant
-              <Plus strokeWidth={1.5} className="ml-1.5 h-4 w-4" />
-            </IBlueButton>
-            <Popover
-              align={'bottom-end'}
-              className="w-60 pb-2"
-              open={createAssistantPopover}
-              setOpen={setCreateAssistantPopover}
-            >
-              <div className="space-y-0.5 text-sm/6">
-                <p className="px-2 py-1 text-xs/5 text-muted uppercase">
+              <Plus strokeWidth={1.5} className="w-4 h-4" />
+            </button>
+
+            {/* Dropdown — IBM Carbon popover (no border, shadow-only, caret) */}
+            <div className="absolute right-0 top-full hidden group-hover/add:block z-20 min-w-52">
+              {/* Caret — rotated square; bottom half is masked by the popover body */}
+              <div className="relative h-0 overflow-visible">
+                <span className="absolute right-5 -top-[6px] w-3 h-3 rotate-45 bg-white dark:bg-gray-900 shadow-[-2px_-2px_3px_rgba(0,0,0,0.12)]" />
+              </div>
+              {/* Popover body — Carbon shadow: 0 2px 6px rgba(0,0,0,.3) */}
+              <div className="bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+                <p className="px-4 py-2 text-[10px] font-medium uppercase tracking-[0.1em] text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
                   New Assistant
                 </p>
-                <hr className="w-full h-[1px] bg-gray-800" />
-                <IButton
-                  className="w-full justify-start"
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   onClick={() =>
                     navigate('/deployment/assistant/create-assistant')
                   }
                 >
-                  <span>Create new Assistant</span>
-                </IButton>
-                {/* <IButton
-                  className="w-full justify-start"
-                  onClick={() =>
-                    navigate('/deployment/assistant/connect-websocket')
-                  }
-                >
-                  <span>Connect new Websocket</span>
-                </IButton> */}
-                <IButton
-                  className="w-full justify-start"
+                  Create new Assistant
+                </button>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   onClick={() =>
                     navigate('/deployment/assistant/connect-agentkit')
                   }
                 >
-                  <span>Connect new AgentKit</span>
-                </IButton>
+                  Connect new AgentKit
+                </button>
               </div>
-            </Popover>
+            </div>
           </div>
         </div>
       </PageHeaderBlock>
-      <BluredWrapper className="sticky top-0 bg-white dark:bg-gray-900 z-11 p-0">
-        <SearchIconInput className="bg-light-background" />
-        <PaginationButtonBlock>
+      {/* Toolbar: search + pagination */}
+      <BluredWrapper className="sticky top-0 z-11">
+        <SearchIconInput className="bg-light-background flex-1" />
+        <PaginationButtonBlock className="shrink-0">
           <TablePagination
             currentPage={assistantAction.page}
             onChangeCurrentPage={assistantAction.setPage}
@@ -170,20 +161,18 @@ export function AssistantPage() {
             pageSize={assistantAction.pageSize}
             onChangePageSize={assistantAction.setPageSize}
           />
-          <IButton
-            onClick={() => {
-              getAssistants(projectId, token, userId);
-            }}
-          >
+          <IButton onClick={() => getAssistants(projectId, token, userId)}>
             <RotateCw strokeWidth={1.5} className="h-4 w-4" />
           </IButton>
         </PaginationButtonBlock>
       </BluredWrapper>
+
+      {/* Content */}
       {assistantAction.assistants && assistantAction.assistants.length > 0 ? (
-        <section className="grid content-start grid-cols-1 gap-4 sm:grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 grow shrink-0 px-4 py-4">
-          {assistantAction.assistants.map((ast, idx) => {
-            return <SingleAssistant key={idx} assistant={ast} />;
-          })}
+        <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-[2px] grow shrink-0 m-4">
+          {assistantAction.assistants.map((ast, idx) => (
+            <SingleAssistant key={idx} assistant={ast} />
+          ))}
         </section>
       ) : assistantAction.criteria.length > 0 ? (
         <div className="h-full flex justify-center items-center">

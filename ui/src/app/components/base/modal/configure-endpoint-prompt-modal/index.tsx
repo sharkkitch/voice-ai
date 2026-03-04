@@ -8,7 +8,8 @@ import { ModalBody } from '@/app/components/base/modal/modal-body';
 import { ModalFooter } from '@/app/components/base/modal/modal-footer';
 import { cn } from '@/utils';
 import endpointTemplates from '@/prompts/endpoints/index.json';
-import { ChartColumn, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { CornerBorderOverlay } from '@/app/components/base/corner-border';
 
 interface EndpointTemplate {
   name: string;
@@ -44,83 +45,109 @@ export const ConfigureEndpointPromptDialog: FC<
 
   return (
     <GenericModal
-      className="flex"
       modalOpen={props.modalOpen}
       setModalOpen={props.setModalOpen}
     >
-      <ModalFitHeightBlock className="w-[1000px]">
-        <ModalHeader
-          onClose={() => {
-            props.setModalOpen(false);
-          }}
-          title={'Select a usecase template'}
-        >
+      <ModalFitHeightBlock
+        className="w-[900px] flex flex-col items-stretch"
+        style={{ maxHeight: '85vh' }}
+      >
+        <ModalHeader onClose={() => props.setModalOpen(false)}>
           <ModalTitleBlock>Select a usecase template</ModalTitleBlock>
         </ModalHeader>
-        <ModalBody className="overflow-auto max-h-[80dvh] px-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            {(endpointTemplates as EndpointTemplate[]).map(
-              (template, index) => (
+
+        {/* Context bar */}
+        <div className="shrink-0 px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Choose a pre-configured template to auto-fill your model, prompt,
+            and parameters. You can customise everything after selecting.
+          </p>
+        </div>
+
+        {/* Scrollable tile grid */}
+        <ModalBody className="flex-1 min-h-0 overflow-y-auto px-6 py-6 gap-0">
+          <div className="grid grid-cols-2 border-l border-t border-gray-200 dark:border-gray-800">
+            {(endpointTemplates as EndpointTemplate[]).map((template, index) => {
+              const isSelected = selectedTemplate?.name === template.name;
+              return (
                 <div
                   key={index}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedTemplate(template)}
+                  onKeyDown={e =>
+                    (e.key === 'Enter' || e.key === ' ') &&
+                    setSelectedTemplate(template)
+                  }
                   className={cn(
-                    'relative p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md bg-white dark:bg-gray-950',
-                    selectedTemplate?.name === template.name &&
-                      'border-blue-500 bg-blue-50 ring-1 ring-blue-500',
+                    'relative flex flex-col p-4 border-r border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors duration-100 select-none outline-none group',
+                    'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+                    isSelected
+                      ? 'bg-primary/5 dark:bg-primary/10'
+                      : 'bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800',
                   )}
                 >
-                  {selectedTemplate?.name === template.name && (
-                    <div className="absolute top-3 right-3 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                    </div>
-                  )}
-                  <div className="p-2 bg-gray-200 dark:bg-gray-800 w-fit rounded-md mb-3">
-                    <ChartColumn className="w-6 h-6" strokeWidth={1.5} />
+                  {/* Corner accent brackets — always visible when selected, appear on hover otherwise */}
+                  <CornerBorderOverlay className={isSelected ? 'opacity-100' : undefined} />
+
+                  {/* Carbon checkmark — top-right square badge, above corner accents */}
+                  <div
+                    className={cn(
+                      'absolute top-0 right-0 w-6 h-6 flex items-center justify-center transition-colors duration-100 z-20',
+                      isSelected ? 'bg-primary' : 'bg-transparent',
+                    )}
+                  >
+                    {isSelected && (
+                      <Check
+                        className="w-3.5 h-3.5 text-white"
+                        strokeWidth={2.5}
+                      />
+                    )}
                   </div>
-                  <h3 className="font-semibold mb-2 pr-6 text-base">
+
+                  {/* Template name */}
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-1.5 pr-6">
                     {template.name}
                   </h3>
-                  <p className="line-clamp-2 text-sm text-muted mb-3">
+
+                  {/* Description */}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2 mb-4 flex-1">
                     {template.description}
                   </p>
-                  <div className="flex flex-wrap gap-2 mt-auto">
-                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded capitalize">
+
+                  {/* Metadata tags — Carbon neutral */}
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold tracking-[0.06em] uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                       {template.provider}
                     </span>
-                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                       {template.model}
                     </span>
-                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
-                      Temp: {template.parameters.temperature}
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500">
+                      Temp&nbsp;{template.parameters.temperature}
                     </span>
                     {template.parameters.response_format && (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">
-                        JSON Schema
+                      <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500">
+                        JSON
                       </span>
                     )}
                   </div>
                 </div>
-              ),
-            )}
+              );
+            })}
           </div>
         </ModalBody>
+
         <ModalFooter>
-          <ICancelButton
-            className="px-4 rounded-[2px]"
-            onClick={() => {
-              props.setModalOpen(false);
-            }}
-          >
+          <ICancelButton onClick={() => props.setModalOpen(false)}>
             Cancel
           </ICancelButton>
           <IBlueBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             disabled={!selectedTemplate}
             onClick={handleContinue}
           >
-            Continue
+            Use template
           </IBlueBGButton>
         </ModalFooter>
       </ModalFitHeightBlock>

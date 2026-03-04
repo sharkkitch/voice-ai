@@ -12,135 +12,109 @@ export function Playground(props: {
     <PanelGroup direction="horizontal" className="grow">
       <Helmet title={props.currentEndpoint.getName()} />
       <Panel className="flex flex-1 flex-col items-stretch overflow-y-auto! bg-white dark:bg-gray-900">
-        <div className="py-8 px-4">
-          Endpoints allow you to integrate Large Language Models (LLMs) into
-          your application, providing a powerful interface for AI-driven
-          functionalities.
-        </div>
         <InputGroup
           title={
-            <div className="flex items-center space-x-2 text-sm/6">
-              <Code className="w-4 h-4" strokeWidth={1.5} />
-              <span>Integrate into your application</span>
+            <div className="flex items-center gap-2 text-muted font-normal text-sm/6">
+              Integrate into your application
             </div>
           }
         >
-          <div className=" bg-white dark:bg-gray-900">
-            <p className="text-gray-600 dark:text-gray-300">
-              Integrate this endpoint directly into your application code using
-              our SDK.
-              <a
-                target="_blank"
-                href="https://doc.rapida.ai/api-reference/endpoint/invoke"
-                className="h-7 flex items-center font-medium hover:underline ml-auto text-blue-600"
-                rel="noreferrer"
-              >
-                Read documentation
-                <ExternalLink
-                  className="shrink-0 w-4 h-4 ml-1.5"
-                  strokeWidth={1.5}
-                />
-              </a>
-            </p>
-          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
+            Integrate this endpoint directly into your application code using
+            our SDK.
+          </p>
+          <a
+            target="_blank"
+            href="https://doc.rapida.ai/api-reference/endpoint/invoke"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+            rel="noreferrer"
+          >
+            Read documentation
+            <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
+          </a>
         </InputGroup>
+
         <InputGroup
           title={
-            <div className="flex items-center space-x-2 text-sm/6">
-              <BotIcon className="w-4 h-4" strokeWidth={1.5} />
-              <span>Post conversation llm analysis</span>
+            <div className="flex items-center gap-2 text-muted font-normal text-sm/6">
+              Post conversation LLM analysis
             </div>
           }
         >
-          <div className=" bg-white dark:bg-gray-900">
-            <p className="text-base font-normal leading-relaxed pb-4">
-              Enhance your assistant's capabilities with LLM analysis using this
-              endpoint.
-            </p>
-            <ol className="space-y-3 text-base">
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  1
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+            Enhance your assistant's capabilities with LLM analysis using this
+            endpoint.
+          </p>
+          <ol className="space-y-4">
+            {[
+              <>
                 Navigate to the{' '}
-                <span className="text-blue-600 font-medium">Assistants</span>{' '}
+                <span className="text-primary font-medium">Assistants</span>{' '}
                 page
-              </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  2
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
-                Select your assistant
-              </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  3
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
-                Go to the <span className="font-medium">'Mange'</span> tab
-              </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  4
-                </div>
+              </>,
+              <>Select your assistant</>,
+              <>
+                Go to the <span className="font-medium">'Manage'</span> tab
+              </>,
+              <>
                 Add this endpoint under{' '}
                 <span className="font-medium">'Analysis'</span>
+              </>,
+            ].map((content, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+              >
+                <span className="shrink-0 w-5 h-5 bg-gray-200 dark:bg-gray-800 dark:text-white text-gray-900 flex items-center justify-center text-xs font-semibold tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="leading-snug pt-0.5">{content}</span>
               </li>
-            </ol>
-          </div>
+            ))}
+          </ol>
         </InputGroup>
+
         <InputGroup
           title={
-            <div className="flex items-center space-x-2 text-sm/6">
-              <PencilRuler className="w-4 h-4" strokeWidth={1.5} />
-              <span>
-                Tool calls to the LLM for targeted use of its capabilities
-              </span>
+            <div className="flex items-center gap-2 text-muted font-normal text-sm/6">
+              Tool calls to the LLM
             </div>
           }
         >
-          <div className="bg-white dark:bg-gray-900">
-            <p className="text-base font-normal leading-relaxed pb-4">
-              Enhance your assistant's capabilities with LLM analysis using this
-              endpoint.
-            </p>
-            <ol className="space-y-3 text-base">
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  1
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+            Enhance your assistant's capabilities with targeted LLM tool calls
+            using this endpoint.
+          </p>
+          <ol className="space-y-4">
+            {[
+              <>
                 Navigate to the{' '}
-                <span className="text-blue-600 font-medium">Assistants</span>{' '}
+                <span className="text-primary font-medium">Assistants</span>{' '}
                 page
+              </>,
+              <>Select your assistant</>,
+              <>
+                Go to the <span className="font-medium">'Manage'</span> tab
+              </>,
+              <>
+                Add this endpoint under{' '}
+                <span className="font-medium">'Tool Call — LLM Call'</span>
+              </>,
+            ].map((content, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+              >
+                <span className="shrink-0 w-5 h-5 bg-gray-200 dark:bg-gray-800 dark:text-white text-gray-900 flex items-center justify-center text-xs font-semibold tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="leading-snug pt-0.5">{content}</span>
               </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  2
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
-                Select your assistant
-              </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  3
-                </div>
-                <div className="absolute left-3 top-6 w-0.5 h-full bg-gray-200 dark:bg-gray-950"></div>
-                Go to the <span className="font-medium">'Mange'</span> tab
-              </li>
-              <li className="relative pl-10 leading-relaxed">
-                <div className="absolute left-0 top-0 w-6 h-6 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center font-semibold text-sm">
-                  4
-                </div>
-                Add this endpoint under 'Tool Call - LLM Call'
-              </li>
-            </ol>
-          </div>
+            ))}
+          </ol>
         </InputGroup>
       </Panel>
-      <PanelResizeHandle className="flex w-px! bg-gray-200 dark:bg-gray-800 hover:bg-blue-700 dark:hover:bg-blue-500 items-stretch"></PanelResizeHandle>
+      <PanelResizeHandle className="flex w-px! bg-gray-200 dark:bg-gray-800 hover:bg-primary items-stretch"></PanelResizeHandle>
       <Panel className="flex flex-col overflow-y-auto">
         <div className="flex flex-1 flex-col items-stretch overflow-hidden">
           <TryChatComplete

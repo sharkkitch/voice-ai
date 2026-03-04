@@ -62,14 +62,12 @@ export const CredentialDropdown: FC<CredentialDropdownProps> = props => {
         <FormLabel>Credential</FormLabel>
         <div
           className={cn(
-            'outline-solid outline-transparent',
-            'focus-within:outline-blue-600 focus:outline-blue-600',
-            'border-b border-gray-300 dark:border-gray-700',
-            'focus-within:border-transparent!',
-            'transition-all duration-200 ease-in-out',
+            'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+            'focus-within:outline-primary focus-within:border-primary',
+            'border-b border-gray-200 dark:border-gray-800',
+            'transition-colors duration-100',
             'flex relative items-center',
-            'bg-light-background dark:bg-gray-950 divide-x',
-            'pt-px pl-px',
+            'bg-light-background dark:bg-gray-950',
           )}
         >
           <div className="w-full relative">
@@ -133,21 +131,23 @@ export const CredentialDropdown: FC<CredentialDropdownProps> = props => {
               }}
             />
           </div>
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
           <IButton
             className="bg-light-background dark:bg-gray-950 h-10"
             onClick={() => {
               ctx.reloadProviderCredentials();
             }}
           >
-            <RotateCcw className={cn('w-4 h-4')} strokeWidth={1.5} />
+            <RotateCcw className="w-4 h-4" strokeWidth={1.5} />
           </IButton>
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
           <IButton
             className="bg-light-background dark:bg-gray-950 h-10"
             onClick={() => {
               setCreateProviderModalOpen(true);
             }}
           >
-            <Plus className={cn('w-4 h-4')} strokeWidth={1.5} />
+            <Plus className="w-4 h-4" strokeWidth={1.5} />
           </IButton>
         </div>
       </FieldSet>

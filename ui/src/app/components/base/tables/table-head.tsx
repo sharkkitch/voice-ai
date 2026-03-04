@@ -16,8 +16,7 @@ export const TableHead: FC<
             <th
               key={idx}
               className={cn(
-                'whitespace-no-wrap px-2 md:px-5 py-3 font-medium',
-                'text-sm text-left capitalize',
+                'whitespace-no-wrap p-0 m-0 md:px-5 px-2 py-2 text-left uppercase text-xs/6 font-medium tracking-wider relative text-muted',
               )}
             >
               {cl.name}

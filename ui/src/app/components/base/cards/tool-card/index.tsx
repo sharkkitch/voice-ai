@@ -1,5 +1,5 @@
 import { FC, HTMLAttributes } from 'react';
-import { Card, CardDescription, CardTitle } from '@/app/components/base/cards';
+import { BaseCard, CardDescription, CardTitle } from '@/app/components/base/cards';
 import { cn } from '@/utils';
 import { CardOptionMenu } from '@/app/components/menu';
 import { AssistantTool } from '@rapidaai/react';
@@ -29,7 +29,7 @@ export const SelectToolCard: FC<ToolCardProps> = ({
     : (tool as any).description;
 
   return (
-    <Card className={cn(className)}>
+    <BaseCard className={cn('p-4 md:p-5', className)}>
       <header className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <img
@@ -54,6 +54,6 @@ export const SelectToolCard: FC<ToolCardProps> = ({
         <CardTitle>{toolName}</CardTitle>
         <CardDescription>{toolDescription}</CardDescription>
       </div>
-    </Card>
+    </BaseCard>
   );
 };

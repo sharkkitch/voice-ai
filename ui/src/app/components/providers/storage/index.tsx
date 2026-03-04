@@ -105,7 +105,7 @@ export const CloudStorageProvider: React.FC<ProviderComponentProps> = ({
   };
   return (
     <div className={cn('px-6 pb-6 pt-2 flex gap-8 pl-8')}>
-      <div className="space-y-6 w-full max-w-6xl">
+      <div className="flex flex-col gap-6 w-full max-w-6xl">
         <FieldSet className="relative col-span-1">
           <FormLabel>Provider</FormLabel>
           <Dropdown

@@ -10,102 +10,81 @@ import { TagInput } from '@/app/components/form/tag-input';
 import { KnowledgeTags } from '@/app/components/form/tag-input/knowledge-tags';
 import { GenericModal, ModalProps } from '@/app/components/base/modal';
 import { useRapidaStore } from '@/hooks';
-import { MoveRight } from 'lucide-react';
 import React, { FC, memo, useEffect, useState } from 'react';
 
-// Define props interface for the CreateTagDialog component
 interface CreateTagDialogProps extends ModalProps {
-  title: string; // Title of the modal dialog
-  tags?: string[]; // Optional initial tags
-  allTags?: string[]; // Optional list of all tags
+  title: string;
+  tags?: string[];
+  allTags?: string[];
   onCreateTag: (
     tags: string[],
     onError: (err: string) => void,
     onSuccess: (e: Tag) => void,
-  ) => void; // Callback function for creating tags
+  ) => void;
 }
 
-// Create the CreateTagDialog functional component
 export const CreateTagDialog: FC<CreateTagDialogProps> = memo(
   ({ title, tags, allTags, onCreateTag, setModalOpen, modalOpen }) => {
-    // State for error handling
     const [error, setError] = useState('');
-    // State for managing tags
     const [_tags, _setTags] = useState<string[]>([]);
-    // Access rapidaStore from hooks
     const rapidaStore = useRapidaStore();
 
-    // Function to add a new tag
     const addTag = (tag: string) => {
       _setTags([..._tags, tag]);
     };
 
-    // Function to remove a tag by index
     const removeTag = (index: number) => {
       const newTags = [..._tags];
       newTags.splice(index, 1);
       _setTags(newTags);
     };
 
-    // Effect to initialize tags when the `tags` prop changes
     useEffect(() => {
       if (tags) _setTags(tags);
     }, [tags]);
 
-    // Function to create tags and handle success/error scenarios
     const createTag = () => {
       rapidaStore.showLoader('overlay');
       onCreateTag(
         _tags,
         (err: string) => {
           rapidaStore.hideLoader();
-          setError(err); // Set error message on failure
+          setError(err);
         },
-        (rc: Tag) => {
+        (_rc: Tag) => {
           rapidaStore.hideLoader();
-          setModalOpen(false); // Close modal on success
+          setModalOpen(false);
         },
       );
     };
 
     return (
       <GenericModal modalOpen={modalOpen} setModalOpen={setModalOpen}>
-        <ModalFitHeightBlock>
-          <ModalHeader
-            onClose={() => {
-              setModalOpen(false);
-            }}
-          >
+        <ModalFitHeightBlock className="w-[592px]">
+          <ModalHeader onClose={() => setModalOpen(false)}>
             <ModalTitleBlock>{title}</ModalTitleBlock>
           </ModalHeader>
-          <ModalBody>
-            <div className="px-4 py-6">
-              <TagInput
-                tags={_tags}
-                addTag={addTag}
-                removeTag={removeTag}
-                allTags={allTags ? allTags : KnowledgeTags} // Use KnowledgeTags as default if allTags is not provided
-              />
-              <ErrorMessage message={error} /> {/* Display error message */}
-            </div>
+
+          <ModalBody className="px-4 py-5">
+            <TagInput
+              tags={_tags}
+              addTag={addTag}
+              removeTag={removeTag}
+              allTags={allTags ?? KnowledgeTags}
+            />
+            <ErrorMessage message={error} />
           </ModalBody>
+
           <ModalFooter>
-            <ICancelButton
-              className="px-4 rounded-[2px]"
-              onClick={() => {
-                setModalOpen(false);
-              }}
-            >
+            <ICancelButton onClick={() => setModalOpen(false)}>
               Cancel
             </ICancelButton>
             <IBlueBGButton
-              className="px-4 rounded-[2px]"
               type="button"
               onClick={createTag}
               isLoading={rapidaStore.loading}
             >
-              Update Tags
-              <MoveRight className="ml-2" strokeWidth={1.5} />
+              Save tags
             </IBlueBGButton>
           </ModalFooter>
         </ModalFitHeightBlock>

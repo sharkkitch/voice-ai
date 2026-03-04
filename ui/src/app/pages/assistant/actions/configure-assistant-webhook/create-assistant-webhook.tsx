@@ -7,7 +7,6 @@ import {
   ICancelButton,
   IRedBorderButton,
 } from '@/app/components/form/button';
-import { InputGroup } from '@/app/components/input-group';
 import { cn } from '@/utils';
 import { FieldSet } from '@/app/components/form/fieldset';
 import { FormLabel } from '@/app/components/form-label';
@@ -15,7 +14,7 @@ import { Input } from '@/app/components/form/input';
 import { Select } from '@/app/components/form/select';
 import { Textarea } from '@/app/components/form/textarea';
 import { InputHelper } from '@/app/components/input-helper';
-import { ArrowRight, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Slider } from '@/app/components/form/slider';
 import { CreateWebhook } from '@rapidaai/react';
 import { useCurrentCredential } from '@/hooks/use-credential';
@@ -26,6 +25,17 @@ import { useRapidaStore } from '@/hooks';
 import { connectionConfig } from '@/configs';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
 
 const webhookEvents = [
   {
@@ -47,6 +57,7 @@ const webhookEvents = [
     category: 'Conversation',
   },
 ];
+
 export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
@@ -54,6 +65,7 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
   const { authId, token, projectId } = useCurrentCredential();
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog({});
   const { loading, showLoader, hideLoader } = useRapidaStore();
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [method, setMethod] = useState('POST');
   const [endpoint, setEndpoint] = useState('');
   const [description, setDescription] = useState('');
@@ -100,11 +112,10 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
       return false;
     }
 
-    // Check for duplicate keys
     const keys = parameters.map(param => `${param.type}.${param.key}`);
     const uniqueKeys = new Set(keys);
     if (keys.length !== uniqueKeys.size) {
-      setErrorMessage(`Duplicate parameter keys  are not allowed.`);
+      setErrorMessage(`Duplicate parameter keys are not allowed.`);
       return false;
     }
 
@@ -137,7 +148,6 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
     if (!validateForm()) return;
     showLoader();
     try {
-      // Create key-value pairs for parameters
       const parameterKeyValuePairs = parameters.map(param => ({
         key: `${param.type}.${param.key}`,
         value: param.value,
@@ -174,10 +184,6 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
                 setErrorMessage(message);
                 return;
               }
-              setErrorMessage(
-                'Unable to create assistant webhook, please check and try again.',
-              );
-              return;
             }
             setErrorMessage(
               'Unable to create assistant webhook, please check and try again.',
@@ -193,7 +199,6 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
       );
     } catch (error) {
       setErrorMessage('Failed to configure webhook. Please try again.');
-      console.error('Error configuring webhook:', error);
     }
   };
 
@@ -212,7 +217,6 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
             updatedParam.key = '';
             updatedParam.value = '';
           }
-
           return updatedParam;
         }
         return param;
@@ -224,300 +228,328 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
     <form
       onSubmit={onSubmit}
       method="POST"
-      className="relative flex flex-col flex-1 bg-white dark:bg-gray-900"
+      className="relative flex flex-col flex-1"
     >
       <ConfirmDialogComponent />
       <div className="overflow-auto flex flex-col flex-1 pb-20">
-        <PageHeaderBlock className="border-b">
-          <div className="flex items-center gap-3">
-            <PageTitleBlock>Creating new webhook</PageTitleBlock>
-          </div>
+        <PageHeaderBlock>
+          <PageTitleBlock>New Webhook</PageTitleBlock>
         </PageHeaderBlock>
-        <div
-          className={cn(
-            'px-6 pb-6 pt-2 flex flex-col gap-8 py-8 w-full max-w-6xl',
-          )}
-        >
-          <div className="flex space-x-2">
-            <FieldSet className="relative w-40">
-              <FormLabel>Method</FormLabel>
-              <Select
-                value={method}
-                onChange={e => setMethod(e.target.value)}
-                className=""
-                options={[
-                  { name: 'POST', value: 'POST' },
-                  { name: 'PUT', value: 'PUT' },
-                  { name: 'PATCH', value: 'PATCH' },
-                ]}
-              />
-            </FieldSet>
-            <FieldSet className="relative w-full">
-              <FormLabel>Server Url</FormLabel>
-              <Input
-                value={endpoint}
-                onChange={e => setEndpoint(e.target.value)}
-                placeholder="https://your-domain.com/webhook"
-                className=""
+
+        <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+          {/* Destination */}
+          <div className="flex flex-col gap-6">
+            <SectionDivider label="Destination" />
+            <div className="flex gap-2">
+              <FieldSet className="w-36 shrink-0">
+                <FormLabel>Method</FormLabel>
+                <Select
+                  value={method}
+                  onChange={e => setMethod(e.target.value)}
+                  options={[
+                    { name: 'POST', value: 'POST' },
+                    { name: 'PUT', value: 'PUT' },
+                    { name: 'PATCH', value: 'PATCH' },
+                  ]}
+                />
+              </FieldSet>
+              <FieldSet className="w-full">
+                <FormLabel>Server URL</FormLabel>
+                <Input
+                  value={endpoint}
+                  onChange={e => setEndpoint(e.target.value)}
+                  placeholder="https://your-domain.com/webhook"
+                />
+                <InputHelper>
+                  The HTTPS endpoint that will receive the webhook payload.
+                </InputHelper>
+              </FieldSet>
+            </div>
+            <FieldSet>
+              <FormLabel>Description (Optional)</FormLabel>
+              <Textarea
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="An optional description of this webhook destination..."
+                rows={2}
               />
             </FieldSet>
           </div>
-          <FieldSet className="relative w-full">
-            <FormLabel>Description</FormLabel>
-            <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className=""
-              placeholder="An optional description of the destination..."
-              rows={2}
-            />
-          </FieldSet>
-          <FieldSet>
-            <FormLabel>Headers ({headers.length})</FormLabel>
-            <div className="text-sm grid w-full ">
-              {headers.map((header, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700"
-                >
-                  <div className="flex col-span-1 items-center border-r">
-                    <Input
-                      value={header.key}
-                      onChange={e => updateHeader(index, 'key', e.target.value)}
-                      placeholder="Key"
-                      className=" w-full border-none"
-                    />
-                  </div>
-                  <div className="col-span-1 flex">
-                    <Input
-                      value={header.value}
-                      onChange={e =>
-                        updateHeader(index, 'value', e.target.value)
-                      }
-                      placeholder="Value"
-                      className=" w-full border-none"
-                    />
-                    <IRedBorderButton
-                      className="border-none outline-hidden dark:bg-gray-950 h-10"
-                      onClick={() =>
-                        setHeaders(headers.filter((_, i) => i !== index))
-                      }
-                      type="button"
-                    >
-                      <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                    </IRedBorderButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <IBlueBorderButton
-              onClick={() => setHeaders([...headers, { key: '', value: '' }])}
-              className="justify-between space-x-8"
-            >
-              <span>Add header</span> <Plus className="h-4 w-4 ml-1.5" />
-            </IBlueBorderButton>
-          </FieldSet>
 
-          <FieldSet>
-            <FormLabel>Parameters ({parameters.length})</FormLabel>
-            <div className="text-sm grid w-full ">
-              {parameters.map((params, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700"
-                >
-                  <div className="flex col-span-1 items-center">
-                    <Select
-                      value={params.type}
-                      onChange={e =>
-                        updateParameter(index, 'type', e.target.value)
-                      }
-                      className=" border-none"
-                      options={[
-                        { name: 'Event', value: 'event' },
-                        { name: 'Assistant', value: 'assistant' },
-                        { name: 'Conversation', value: 'conversation' },
-                        { name: 'Argument', value: 'argument' },
-                        { name: 'Metadata', value: 'metadata' },
-                        { name: 'Option', value: 'option' },
-                        { name: 'Analysis', value: 'analysis' },
-                        { name: 'Custom', value: 'custom' },
-                      ]}
-                    />
-                    <TypeKeySelector
-                      type={
-                        params.type as
-                          | 'event'
-                          | 'assistant'
-                          | 'conversation'
-                          | 'argument'
-                          | 'metadata'
-                          | 'option'
-                          | 'analysis'
-                          | 'custom'
-                      }
-                      key={`type-key-selector-${index}`}
-                      value={params.key}
-                      onChange={newKey => updateParameter(index, 'key', newKey)}
-                    />
-                    <div className="dark:bg-gray-950 bg-light-background h-full flex items-center justify-center">
-                      <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
+          {/* Headers */}
+          <div className="flex flex-col gap-6">
+            <SectionDivider label={`Headers (${headers.length})`} />
+            <FieldSet>
+              <div className="text-sm grid w-full">
+                {headers.map((header, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-2 border-b border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex col-span-1 items-center border-r border-gray-200 dark:border-gray-700">
+                      <Input
+                        value={header.key}
+                        onChange={e => updateHeader(index, 'key', e.target.value)}
+                        placeholder="Key"
+                        className="w-full border-none"
+                      />
+                    </div>
+                    <div className="col-span-1 flex">
+                      <Input
+                        value={header.value}
+                        onChange={e =>
+                          updateHeader(index, 'value', e.target.value)
+                        }
+                        placeholder="Value"
+                        className="w-full border-none"
+                      />
+                      <IRedBorderButton
+                        className="border-none outline-hidden dark:bg-gray-950 h-10"
+                        onClick={() =>
+                          setHeaders(headers.filter((_, i) => i !== index))
+                        }
+                        type="button"
+                      >
+                        <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                      </IRedBorderButton>
                     </div>
                   </div>
-                  <div className="col-span-1 flex">
-                    <Input
-                      value={params.value}
-                      onChange={e =>
-                        updateParameter(index, 'value', e.target.value)
-                      }
-                      placeholder="Value"
-                      className=" w-full border-none"
-                    />
-                    <IRedBorderButton
-                      className="border-none outline-hidden h-10"
-                      onClick={() =>
-                        setParameters(parameters.filter((_, i) => i !== index))
-                      }
-                      type="button"
-                    >
-                      <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                    </IRedBorderButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <IBlueBorderButton
-              onClick={() =>
-                setParameters([
-                  ...parameters,
-                  { type: 'assistant', key: '', value: '' },
-                ])
-              }
-              className="justify-between space-x-8"
-            >
-              <span>Add parameters</span> <Plus className="h-4 w-4 ml-1.5" />
-            </IBlueBorderButton>
-          </FieldSet>
-        </div>
-
-        <InputGroup title="Advanced configuration" initiallyExpanded={false}>
-          <div className={cn('px-6 pb-6 pt-2 pl-8 w-full max-w-6xl space-y-6')}>
-            <FieldSet className="relative w-60 shrink-0">
-              <FormLabel className="normal-case">Max retry count</FormLabel>
-              <Select
-                value={maxRetries.toString()}
-                onChange={e => setMaxRetries(parseInt(e.target.value))}
-                className=""
-                options={[
-                  { name: '1', value: '1' },
-                  { name: '2', value: '2' },
-                  { name: '3', value: '3' },
-                ]}
-              />
+                ))}
+              </div>
+              <IBlueBorderButton
+                onClick={() => setHeaders([...headers, { key: '', value: '' }])}
+                className="justify-between space-x-8"
+                type="button"
+              >
+                <span>Add header</span>
+                <Plus className="h-4 w-4 ml-1.5" />
+              </IBlueBorderButton>
             </FieldSet>
+          </div>
+
+          {/* Payload */}
+          <div className="flex flex-col gap-6">
+            <SectionDivider label={`Payload (${parameters.length})`} />
             <FieldSet>
-              <FormLabel className="normal-case">
-                Retry on status codes
-              </FormLabel>
-              <div className="flex flex-wrap gap-2 space-x-6">
-                {['40X', '50X'].map(status => (
-                  <label key={status} className="flex items-center space-x-2">
-                    <InputCheckbox
-                      checked={retryOnStatus.includes(status)}
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setRetryOnStatus([...retryOnStatus, status]);
-                        } else {
-                          setRetryOnStatus(
-                            retryOnStatus.filter(s => s !== status),
-                          );
+              <div className="text-sm grid w-full">
+                {parameters.map((params, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-2 border-b border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex col-span-1 items-center">
+                      <Select
+                        value={params.type}
+                        onChange={e =>
+                          updateParameter(index, 'type', e.target.value)
                         }
-                      }}
-                    />
-                    <span>{status}</span>
-                  </label>
+                        className="border-none"
+                        options={[
+                          { name: 'Event', value: 'event' },
+                          { name: 'Assistant', value: 'assistant' },
+                          { name: 'Conversation', value: 'conversation' },
+                          { name: 'Argument', value: 'argument' },
+                          { name: 'Metadata', value: 'metadata' },
+                          { name: 'Option', value: 'option' },
+                          { name: 'Analysis', value: 'analysis' },
+                          { name: 'Custom', value: 'custom' },
+                        ]}
+                      />
+                      <TypeKeySelector
+                        type={
+                          params.type as
+                            | 'event'
+                            | 'assistant'
+                            | 'conversation'
+                            | 'argument'
+                            | 'metadata'
+                            | 'option'
+                            | 'analysis'
+                            | 'custom'
+                        }
+                        key={`type-key-selector-${index}`}
+                        value={params.key}
+                        onChange={newKey =>
+                          updateParameter(index, 'key', newKey)
+                        }
+                      />
+                      <div className="bg-light-background dark:bg-gray-950 h-full flex items-center justify-center px-2">
+                        <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div className="col-span-1 flex">
+                      <Input
+                        value={params.value}
+                        onChange={e =>
+                          updateParameter(index, 'value', e.target.value)
+                        }
+                        placeholder="Value"
+                        className="w-full border-none"
+                      />
+                      <IRedBorderButton
+                        className="border-none outline-hidden h-10"
+                        onClick={() =>
+                          setParameters(parameters.filter((_, i) => i !== index))
+                        }
+                        type="button"
+                      >
+                        <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                      </IRedBorderButton>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <IBlueBorderButton
+                onClick={() =>
+                  setParameters([
+                    ...parameters,
+                    { type: 'assistant', key: '', value: '' },
+                  ])
+                }
+                className="justify-between space-x-8"
+                type="button"
+              >
+                <span>Add parameter</span>
+                <Plus className="h-4 w-4 ml-1.5" />
+              </IBlueBorderButton>
+            </FieldSet>
+          </div>
+
+          {/* Events */}
+          <div className="flex flex-col gap-6">
+            <SectionDivider label="Events" />
+            <FieldSet>
+              <div className="grid grid-cols-2 gap-4">
+                {webhookEvents.map(event => (
+                  <div key={event.id} className="flex items-start">
+                    <div className="flex h-4 items-center mt-2">
+                      <InputCheckbox
+                        id={event.id}
+                        checked={events.includes(event.id)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setEvents([...events, event.id]);
+                          } else {
+                            setEvents(events.filter(id => id !== event.id));
+                          }
+                        }}
+                      />
+                    </div>
+                    <FieldSet className="ml-3 space-y-0.5!">
+                      <FormLabel
+                        htmlFor={event.id}
+                        className="font-medium text-base dark:text-gray-400"
+                      >
+                        {event.name}
+                      </FormLabel>
+                      <InputHelper>{event.description}</InputHelper>
+                    </FieldSet>
+                  </div>
                 ))}
               </div>
             </FieldSet>
-            <FieldSet>
-              <FormLabel>Timeout (in seconds)</FormLabel>
-              <div className="flex items-center space-x-4">
-                <Slider
-                  min={180}
-                  max={300}
-                  step={1}
-                  value={requestTimeout}
-                  onSlide={value => setRequestTimeout(value)}
-                  className="w-64"
-                />
-                <Input
-                  type="number"
-                  min={180}
-                  max={300}
-                  step={1}
-                  value={requestTimeout}
-                  onChange={e => {
-                    setRequestTimeout(Number(e.target.value));
-                  }}
-                  className="w-16 ml-2 h-9 "
-                />
-              </div>
-            </FieldSet>
-            <FieldSet className="relative w-40">
-              <FormLabel>Execution Priority</FormLabel>
-              <Input
-                type="number"
-                min={0}
-                value={priority}
-                onChange={e => setPriority(Number(e.target.value))}
-                className=""
-              />
-            </FieldSet>
           </div>
-        </InputGroup>
 
-        <InputGroup title="Assistant Events">
-          <div className={cn('px-6 pb-6 pt-2 flex gap-8 pl-8')}>
-            <div className="space-y-6 w-full max-w-6xl">
+          {/* Advanced settings */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 transition-transform duration-200',
+                showAdvanced && 'rotate-180',
+              )}
+              strokeWidth={2}
+            />
+            {showAdvanced ? 'Hide' : 'Show'} advanced settings
+          </button>
+
+          {showAdvanced && (
+            <div className="flex flex-col gap-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+              <SectionDivider label="Retry" />
+              <FieldSet className="w-60 shrink-0">
+                <FormLabel>Max retry count</FormLabel>
+                <Select
+                  value={maxRetries.toString()}
+                  onChange={e => setMaxRetries(parseInt(e.target.value))}
+                  options={[
+                    { name: '1', value: '1' },
+                    { name: '2', value: '2' },
+                    { name: '3', value: '3' },
+                  ]}
+                />
+              </FieldSet>
               <FieldSet>
-                <div className="grid grid-cols-2 gap-4">
-                  {webhookEvents.map(event => (
-                    <div key={event.id} className="flex items-start">
-                      <div className="flex h-4 items-center mt-2">
-                        <InputCheckbox
-                          id={event.id}
-                          checked={events.includes(event.id)}
-                          onChange={e => {
-                            if (e.target.checked) {
-                              setEvents([...events, event.id]);
-                            } else {
-                              setEvents(events.filter(id => id !== event.id));
-                            }
-                          }}
-                          className=""
-                        />
-                      </div>
-                      <FieldSet className="ml-3 space-y-0.5!">
-                        <FormLabel
-                          htmlFor={event.id}
-                          className="font-medium text-base dark:text-gray-400"
-                        >
-                          {event.name}
-                        </FormLabel>
-                        <InputHelper>{event.description}</InputHelper>
-                      </FieldSet>
-                    </div>
+                <FormLabel>Retry on status codes</FormLabel>
+                <div className="flex flex-wrap gap-4">
+                  {['40X', '50X'].map(status => (
+                    <label key={status} className="flex items-center gap-2">
+                      <InputCheckbox
+                        checked={retryOnStatus.includes(status)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setRetryOnStatus([...retryOnStatus, status]);
+                          } else {
+                            setRetryOnStatus(
+                              retryOnStatus.filter(s => s !== status),
+                            );
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{status}</span>
+                    </label>
                   ))}
                 </div>
               </FieldSet>
+
+              <SectionDivider label="Timeout" />
+              <FieldSet>
+                <FormLabel>Timeout (seconds)</FormLabel>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    min={180}
+                    max={300}
+                    step={1}
+                    value={requestTimeout}
+                    onSlide={value => setRequestTimeout(value)}
+                    className="w-64"
+                  />
+                  <Input
+                    type="number"
+                    min={180}
+                    max={300}
+                    step={1}
+                    value={requestTimeout}
+                    onChange={e => setRequestTimeout(Number(e.target.value))}
+                    className="w-16 h-9"
+                  />
+                </div>
+              </FieldSet>
+
+              <SectionDivider label="Execution" />
+              <FieldSet className="w-40">
+                <FormLabel>Priority</FormLabel>
+                <Input
+                  type="number"
+                  min={0}
+                  value={priority}
+                  onChange={e => setPriority(Number(e.target.value))}
+                />
+                <InputHelper>
+                  Lower numbers execute first when multiple webhooks are
+                  triggered.
+                </InputHelper>
+              </FieldSet>
             </div>
-          </div>
-        </InputGroup>
+          )}
+        </div>
       </div>
 
       <PageActionButtonBlock errorMessage={errorMessage}>
         <ICancelButton
-          className="px-4 rounded-[2px]"
+          className="w-full h-full"
           onClick={() => showDialog(navigator.goBack)}
           type="button"
         >
@@ -526,7 +558,7 @@ export const CreateAssistantWebhook: FC<{ assistantId: string }> = ({
         <IBlueBGArrowButton
           isLoading={loading}
           type="submit"
-          className="px-4 rounded-[2px]"
+          className="w-full h-full"
         >
           Configure webhook
         </IBlueBGArrowButton>
@@ -543,8 +575,8 @@ export const TypeKeySelector: FC<{
     | 'argument'
     | 'metadata'
     | 'option'
-    | 'custom'
-    | 'analysis';
+    | 'analysis'
+    | 'custom';
   value: string;
   onChange: (newValue: string) => void;
 }> = ({ type, value, onChange }) => {
@@ -554,7 +586,7 @@ export const TypeKeySelector: FC<{
         <Select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className=" border-none"
+          className="border-none"
           options={[
             { name: 'Type', value: 'type' },
             { name: 'Data', value: 'data' },
@@ -566,7 +598,7 @@ export const TypeKeySelector: FC<{
         <Select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className=" border-none"
+          className="border-none"
           options={[
             { name: 'ID', value: 'id' },
             { name: 'Name', value: 'name' },
@@ -579,7 +611,7 @@ export const TypeKeySelector: FC<{
         <Select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className=" border-none"
+          className="border-none"
           options={[
             { name: 'Messages', value: 'messages' },
             { name: 'ID', value: 'id' },
@@ -592,7 +624,7 @@ export const TypeKeySelector: FC<{
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder="Key"
-          className=" w-full border-none"
+          className="w-full border-none"
         />
       );
   }

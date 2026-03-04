@@ -15,16 +15,17 @@ import { ActionableEmptyMessage } from '@/app/components/container/message/actio
 import { AuthContext } from '@/context/auth-context';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
-import { IBlueButton, IButton } from '@/app/components/form/button';
 import { ExternalLink, Info, Plus, RotateCw } from 'lucide-react';
 import { connectionConfig } from '@/configs';
 import { Eye, EyeOff, Copy, CheckCircle } from 'lucide-react';
 import { toHumanReadableDate } from '@/utils/date';
-import { Card, CardTitle } from '@/app/components/base/cards';
 import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
 import { FieldSet } from '@/app/components/form/fieldset';
 import { FormLabel } from '@/app/components/form-label';
 import { CopyButton } from '@/app/components/form/button/copy-button';
+import { IButton } from '@/app/components/form/button';
+import { BaseCard } from '@/app/components/base/cards';
+
 /**
  *
  * @returns
@@ -135,28 +136,22 @@ export function ProjectCredentialPage() {
       <PageHeaderBlock className="border-b">
         <div className="flex items-center gap-3">
           <PageTitleBlock>Project Developer Keys</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {`${ourKeys.length}/${ourKeys.length}`}
-          </div>
+          </span>
         </div>
-        <div className="flex divide-x">
-          <IButton
-            className="border-r"
-            onClick={() => {
-              shouldReload();
-            }}
-          >
-            Reload keys
-            <RotateCw className="w-4 h-4 ml-1.5" strokeWidth={1.5} />
+        <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+          <IButton onClick={shouldReload} className="h-full">
+            <RotateCw strokeWidth={1.5} className="w-4 h-4" />
           </IButton>
-          <IBlueButton
-            onClick={() => {
-              onCreateProjectCredential();
-            }}
+          <button
+            type="button"
+            onClick={onCreateProjectCredential}
+            className="flex items-center gap-2 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
-            Create new credential
-            <Plus className="w-4 h-4 ml-1.5" />
-          </IBlueButton>
+            Create credential
+            <Plus strokeWidth={1.5} className="w-4 h-4" />
+          </button>
         </div>
       </PageHeaderBlock>
       <YellowNoticeBlock className="flex items-center">
@@ -176,24 +171,18 @@ export function ProjectCredentialPage() {
         </a>
       </YellowNoticeBlock>
       {ourKeys && ourKeys.length > 0 ? (
-        <div className="grid sm:grid-cols-3 gap-3 px-4 py-4 flex-1 overflow-auto">
-          {ourKeys.map((pc, idx) => {
-            return (
-              <div key={idx}>
-                <CredentialCard credential={pc}></CredentialCard>
-              </div>
-            );
-          })}
-        </div>
+        <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[2px] grow shrink-0 m-4">
+          {ourKeys.map((pc, idx) => (
+            <CredentialCard key={idx} credential={pc} />
+          ))}
+        </section>
       ) : (
         <div className="flex-1 flex items-center justify-center">
           <ActionableEmptyMessage
             title="No credentials"
             subtitle="There are no SDK Authentication Credential found to display"
             action="Create new credential"
-            onActionClick={() => {
-              onCreateProjectCredential();
-            }}
+            onActionClick={onCreateProjectCredential}
           />
         </div>
       )}
@@ -223,36 +212,38 @@ const CredentialCard: FC<{ credential: ProjectCredential }> = ({
   };
 
   return (
-    <Card>
-      <CardTitle>
-        <div className="flex items-center gap-2 justify-between">
-          <h3 className="font-semibold  truncate">{credential.getName()}</h3>
-          <div className="flex items-center gap-1 text-sm">
+    <BaseCard>
+      {/* Card header */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+            {credential.getName()}
+          </span>
+          <span className="text-xs tabular-nums text-gray-500 dark:text-gray-400 shrink-0">
             {toHumanReadableDate(credential.getCreateddate()!)}
-          </div>
+          </span>
         </div>
-      </CardTitle>
+      </div>
 
-      <div className="border-t -mx-4 mt-4 p-4">
+      {/* Key row */}
+      <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3">
         <div className="flex items-center gap-2">
-          <code className="flex-1 dark:bg-gray-900 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
+          <code className="flex-1 bg-gray-50 dark:bg-gray-950 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden truncate">
             {isVisible
               ? credential.getKey()
               : maskCredential(credential.getKey())}
           </code>
-
-          <div className="flex shrink-0 border divide-x">
+          <div className="flex shrink-0 border border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
             <IButton
               onClick={() => setIsVisible(!isVisible)}
               title={isVisible ? 'Hide' : 'Show'}
             >
               {isVisible ? (
-                <EyeOff className="w-4 h-4 " />
+                <EyeOff className="w-4 h-4" />
               ) : (
-                <Eye className="w-4 h-4 " />
+                <Eye className="w-4 h-4" />
               )}
             </IButton>
-
             <IButton
               onClick={() => copyToClipboard(credential.getKey())}
               title="Copy"
@@ -260,13 +251,13 @@ const CredentialCard: FC<{ credential: ProjectCredential }> = ({
               {isCopied ? (
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
               ) : (
-                <Copy className="w-4 h-4 " />
+                <Copy className="w-4 h-4" />
               )}
             </IButton>
           </div>
         </div>
       </div>
-    </Card>
+    </BaseCard>
   );
 };
 
@@ -304,49 +295,55 @@ export function PersonalCredentialPage() {
           <PageTitleBlock>Personal Tokens</PageTitleBlock>
         </div>
       </PageHeaderBlock>
-      <YellowNoticeBlock>
-        These are your personal access tokens. They are used to authenticate and
-        interact with the Rapida service across all your projects.
+      <YellowNoticeBlock className="flex items-center">
+        <Info className="shrink-0 w-4 h-4" />
+        <div className="ms-3 text-sm font-medium">
+          These are your personal access tokens. They are used to authenticate
+          and interact with the Rapida service across all your projects.
+        </div>
         <a
+          target="_blank"
           href="https://doc.rapida.ai/integrations/rapida-credentials"
-          className="mx-2 hover:underline font-semibold"
+          className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+          rel="noreferrer"
         >
-          Learn more in the documentation
+          Read documentation
+          <ExternalLink className="shrink-0 w-4 h-4 ml-1.5" strokeWidth={1.5} />
         </a>
       </YellowNoticeBlock>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-4 py-4 overflow-auto">
-        <Card className="h-auto flex-none!">
-          <CardTitle>
-            <div className="flex items-center gap-2 justify-between">
-              <h3 className="font-semibold  truncate">Personal Token</h3>
-            </div>
-          </CardTitle>
+      <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[2px] grow shrink-0 m-4">
+        <BaseCard>
+          {/* Card header */}
+          <div className="px-4 pt-4 pb-3">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Personal Token
+            </span>
+          </div>
 
-          <div className="border-t -mx-4 mt-4 p-4 space-y-6">
+          {/* Fields */}
+          <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3 space-y-4">
             <FieldSet>
               <FormLabel>Authorization</FormLabel>
               <div className="flex items-center gap-2">
-                <code className="flex-1 dark:bg-gray-900 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
+                <code className="flex-1 bg-gray-50 dark:bg-gray-950 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden truncate">
                   {isVisible ? token : maskCredential(token)}
                 </code>
-
-                <div className="flex shrink-0 border divide-x">
+                <div className="flex shrink-0 border border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
                   <IButton
                     onClick={() => setIsVisible(!isVisible)}
                     title={isVisible ? 'Hide' : 'Show'}
                   >
                     {isVisible ? (
-                      <EyeOff className="w-4 h-4 " />
+                      <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Eye className="w-4 h-4 " />
+                      <Eye className="w-4 h-4" />
                     )}
                   </IButton>
-
                   <IButton onClick={() => copyToClipboard(token)} title="Copy">
                     {isCopied ? (
                       <CheckCircle className="w-4 h-4 text-emerald-400" />
                     ) : (
-                      <Copy className="w-4 h-4 " />
+                      <Copy className="w-4 h-4" />
                     )}
                   </IButton>
                 </div>
@@ -355,11 +352,10 @@ export function PersonalCredentialPage() {
             <FieldSet>
               <FormLabel>x-auth-id</FormLabel>
               <div className="flex items-center gap-2">
-                <code className="flex-1 dark:bg-gray-900 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
+                <code className="flex-1 bg-gray-50 dark:bg-gray-950 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden truncate">
                   {isVisible ? authId : maskCredential(authId)}
                 </code>
-
-                <div className="flex shrink-0 border divide-x">
+                <div className="flex shrink-0 border border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
                   <CopyButton className="h-8 w-8">{authId}</CopyButton>
                 </div>
               </div>
@@ -367,17 +363,17 @@ export function PersonalCredentialPage() {
             <FieldSet>
               <FormLabel>Project ID</FormLabel>
               <div className="flex items-center gap-2">
-                <code className="flex-1 dark:bg-gray-900 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
+                <code className="flex-1 bg-gray-50 dark:bg-gray-950 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden truncate">
                   {isVisible ? projectId : maskCredential(projectId)}
                 </code>
-                <div className="flex shrink-0 border divide-x">
+                <div className="flex shrink-0 border border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
                   <CopyButton className="h-8 w-8">{projectId}</CopyButton>
                 </div>
               </div>
             </FieldSet>
           </div>
-        </Card>
-      </div>
+        </BaseCard>
+      </section>
     </>
   );
 }

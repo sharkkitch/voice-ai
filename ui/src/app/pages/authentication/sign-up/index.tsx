@@ -106,11 +106,11 @@ export function SignUpPage() {
     return (
       <div className="flex flex-1">
         <div className="max-w-md">
-          <div className="text-5xl font-dark font-semibold">403</div>
-          <p className="text-3xl md:text-3xl leading-normal mt-4">
+          <div className="text-[32px] leading-10 text-gray-900 dark:text-gray-100">403</div>
+          <p className="text-[28px] leading-9 text-gray-900 dark:text-gray-100 mt-4">
             Sign-up not enabled
           </p>
-          <p className="mb-8 mt-2 text-muted">
+          <p className="mb-8 mt-2 text-sm text-gray-500 dark:text-gray-500">
             Sign-up is currently disabled for this workspace. Please contact
             your administrator for assistance.
           </p>
@@ -135,14 +135,14 @@ export function SignUpPage() {
         heading="Sign up"
         action={
           <a
-            className="underline leading-6 text-blue-600 hover:text-blue-500"
+            className="text-sm text-primary underline hover:text-primary/80"
             href="/auth/signin"
           >
             I already have an account
           </a>
         }
       ></FormActionHeading>
-      <form className="space-y-6 mt-6" onSubmit={handleSubmit(onRegisterUser)}>
+      <form className="flex flex-col gap-4 mt-6" onSubmit={handleSubmit(onRegisterUser)}>
         <FieldSet>
           <FormLabel>Name</FormLabel>
           <Input
@@ -192,7 +192,7 @@ export function SignUpPage() {
           Continue
         </IBlueBGArrowButton>
       </form>
-      <div className="mt-4 space-y-4">
+      <div className="mt-6 flex flex-col gap-3">
         <FieldSet className="text-sm">
           <p className="text-gray-600 dark:text-gray-400">
             By signing up, you agree to the &nbsp;

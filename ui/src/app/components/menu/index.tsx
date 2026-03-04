@@ -38,32 +38,44 @@ export const OptionMenu: FC<OptionMenuProps> = props => {
           <Transition
             as={Fragment}
             enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
+            enterFrom="opacity-0 translate-y-1"
+            enterTo="opacity-100 translate-y-0"
             leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 translate-y-1"
           >
-            <Menu.Items className="p-0.5 absolute right-0 mt-2 w-48 z-10 origin-top-right divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 focus:outline-hidden">
-              {props.options.map((opt, idx) => {
-                return (
-                  <Menu.Item key={`opt-menu-${idx}`}>
-                    {({ active }) => (
-                      <button
-                        onClick={opt.onActionClick}
-                        className={cn(
-                          'group flex w-full items-center px-2 py-2 text-sm font-medium dark:text-white',
-                          active
-                            ? 'bg-gray-100 dark:bg-gray-900/80 opacity-100'
-                            : 'opacity-80',
+            <Menu.Items className="z-20 focus:outline-none w-max min-w-48">
+              <div className="relative h-0 overflow-visible">
+                <span className="absolute right-3 -top-[6px] w-3 h-3 rotate-45 bg-white dark:bg-gray-900 shadow-[-2px_-2px_3px_rgba(0,0,0,0.12)]" />
+              </div>
+              <div className="bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+                {props.options.map((opt, idx) => {
+                  const isDanger =
+                    React.isValidElement(opt.option) &&
+                    (opt.option as React.ReactElement).type === OptionMenuItem &&
+                    (opt.option as React.ReactElement).props.type === 'danger';
+                  return (
+                    <Fragment key={`opt-menu-${idx}`}>
+                      {isDanger && (
+                        <div className="border-t border-gray-200 dark:border-gray-800" />
+                      )}
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={opt.onActionClick}
+                            className={cn(
+                              'flex w-full items-center h-10 px-4 text-sm text-gray-700 dark:text-gray-300 transition-colors',
+                              active && 'bg-gray-100 dark:bg-gray-800',
+                            )}
+                          >
+                            {opt.option}
+                          </button>
                         )}
-                      >
-                        {opt.option}
-                      </button>
-                    )}
-                  </Menu.Item>
-                );
-              })}
+                      </Menu.Item>
+                    </Fragment>
+                  );
+                })}
+              </div>
             </Menu.Items>
           </Transition>
         </Float>
@@ -79,61 +91,63 @@ export const CardOptionMenu: FC<OptionMenuProps> = props => {
         <Float placement="bottom-end" portal>
           <Menu.Button
             className={cn(
-              'flex h-9 truncate w-fit justify-center items-center',
-              'dark:text-gray-400 font-medium',
-              'py-1.5 px-2.5',
-              'bg-white dark:bg-gray-950/50 dark:hover:bg-gray-700/50 hover:bg-gray-200',
-              'button',
+              'flex h-full w-10 justify-center items-center',
+              'text-gray-500 dark:text-gray-400',
+              'hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
+              open && 'bg-gray-100 dark:bg-gray-800',
               props.classNames,
-              open && 'dark:bg-gray-900/50 bg-gray-100',
-              open && props.activeClassName,
             )}
           >
-            <span
-              className={cn(
-                'absolute w-px h-px p-0 -m-px overflow-hidden whitespace-no-wrap border-0',
-              )}
-            >
-              Menu
-            </span>
-
+            <span className="sr-only">Menu</span>
             <ChevronDown
-              className={cn(
-                'w-4 h-4 transition-all delay-100',
-                open && 'rotate-180',
-              )}
-              strokeWidth="2"
+              className={cn('w-4 h-4 transition-transform duration-150', open && 'rotate-180')}
+              strokeWidth={1.5}
             />
           </Menu.Button>
           <Transition
             as={Fragment}
             enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
+            enterFrom="opacity-0 translate-y-1"
+            enterTo="opacity-100 translate-y-0"
             leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 translate-y-1"
           >
-            <Menu.Items className="p-1 absolute right-0 mt-2 w-max z-10 origin-top-right bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 focus:outline-hidden divide-y divide-gray-200 dark:divide-gray-700">
-              {props.options.map((opt, idx) => {
-                return (
-                  <Menu.Item key={`opt-menu-${idx}`}>
-                    {({ active }) => (
-                      <button
-                        onClick={opt.onActionClick}
-                        className={cn(
-                          'group flex w-full items-center px-3 py-2.5 text-sm font-medium dark:text-white',
-                          active
-                            ? 'bg-gray-100 dark:bg-gray-900/80 opacity-100'
-                            : 'opacity-80',
+            {/* Carbon popover — caret + shadow-only, no border, no rounded */}
+            <Menu.Items className="z-20 focus:outline-none w-max min-w-48">
+              {/* Caret pointing up toward trigger */}
+              <div className="relative h-0 overflow-visible">
+                <span className="absolute right-3 -top-[6px] w-3 h-3 rotate-45 bg-white dark:bg-gray-900 shadow-[-2px_-2px_3px_rgba(0,0,0,0.12)]" />
+              </div>
+              {/* Popover body */}
+              <div className="bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+                {props.options.map((opt, idx) => {
+                  const isDanger =
+                    React.isValidElement(opt.option) &&
+                    (opt.option as React.ReactElement).type === OptionMenuItem &&
+                    (opt.option as React.ReactElement).props.type === 'danger';
+                  return (
+                    <Fragment key={`opt-menu-${idx}`}>
+                      {isDanger && (
+                        <div className="border-t border-gray-200 dark:border-gray-800" />
+                      )}
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={opt.onActionClick}
+                            className={cn(
+                              'flex w-full items-center h-10 px-4 text-sm text-gray-700 dark:text-gray-300 transition-colors',
+                              active && 'bg-gray-100 dark:bg-gray-800',
+                            )}
+                          >
+                            {opt.option}
+                          </button>
                         )}
-                      >
-                        {opt.option}
-                      </button>
-                    )}
-                  </Menu.Item>
-                );
-              })}
+                      </Menu.Item>
+                    </Fragment>
+                  );
+                })}
+              </div>
             </Menu.Items>
           </Transition>
         </Float>

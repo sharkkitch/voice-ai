@@ -32,7 +32,7 @@ export const SpeechToTextProvider: React.FC<ProviderComponentProps> = props => {
 
   return (
     <>
-      <div className="space-y-6 w-full max-w-6xl">
+      <div className="flex flex-col gap-6 w-full max-w-6xl">
         <FieldSet className="relative col-span-1">
           <FormLabel>Provider</FormLabel>
           <Dropdown

@@ -9,161 +9,126 @@ import TooltipPlus from '@/app/components/base/tooltip-plus';
 import SourceIndicator from '@/app/components/indicators/source';
 import { useGlobalNavigation } from '@/hooks/use-global-navigator';
 import { AssistantConversation } from '@rapidaai/react';
-import { IBlueBGButton } from '@/app/components/form/button';
-import { cn } from '@/utils';
+import { ArrowRight } from 'lucide-react';
+import { ActionCard } from '@/app/components/base/cards';
 
 const SingleAssistant: FC<{ assistant: Assistant }> = ({ assistant }) => {
   const gn = useGlobalNavigation();
+
+  const hasDeployment =
+    assistant.getApideployment() ||
+    assistant.getDebuggerdeployment() ||
+    assistant.getWebplugindeployment() ||
+    assistant.getPhonedeployment();
+
   return (
-    <div className="flex flex-col rounded-lg border-[0.1px] bg-white dark:bg-gray-950/20 shadow-sm transition-all hover:shadow-lg relative group">
-      <div className="flex justify-between items-start px-4 pt-3 pb-0">
-        <div className="flex items-center gap-2.5">
-          <div className="flex flex-col space-y-1 w-full relative overflow-hidden">
-            <div
-              onClick={() => {
-                gn.goToAssistant(assistant.getId());
-              }}
-              className={cn(
-                'w-full max-w-full break-words',
-                'text-base/6 font-medium leading-tight hover:text-blue-600 hover:cursor-pointer',
-              )}
-            >
-              {assistant.getName()}
-            </div>
-            <div className="text-sm/6 flex items-center text-muted space-x-2">
-              <span>
-                Sessions : {assistant.getAssistantconversationsList().length}
-              </span>
-              <div className="w-[1.7px] h-3.5 bg-gray-300 dark:bg-gray-600"></div>
-              <span>
-                Users :{' '}
-                {
-                  assistant
-                    .getAssistantconversationsList()
-                    .map(x => x.getIdentifier())
-                    .filter(
-                      (value, index, self) => self.indexOf(value) === index,
-                    ).length
-                }
-              </span>
-            </div>
-          </div>
+    <ActionCard onClick={() => gn.goToAssistant(assistant.getId())}>
+      {/* ── Card header ── */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="text-base text-gray-900 dark:text-gray-300 leading-snug mb-1.5 truncate">
+          {assistant.getName()}
         </div>
-        {/* Deployments */}
+        {/* Stats row */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <span>
+            Sessions: {assistant.getAssistantconversationsList().length}
+          </span>
+          <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
+          <span>
+            Users:{' '}
+            {
+              assistant
+                .getAssistantconversationsList()
+                .map(x => x.getIdentifier())
+                .filter((v, i, self) => self.indexOf(v) === i).length
+            }
+          </span>
+        </div>
       </div>
-      {/* CHART */}
-      <div className="flex pt-2">
-        <ConversationChart
-          conversations={assistant.getAssistantconversationsList()}
+
+      {/* ── Sparkline chart ── */}
+      <ConversationChart
+        conversations={assistant.getAssistantconversationsList()}
+      />
+
+      {/* ── Footer: deployments + open arrow ── */}
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 mb-2">
+            Deployments
+          </p>
+          {hasDeployment ? (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {assistant.getApideployment() && (
+                <DeploymentBadge
+                  source="react-sdk"
+                  tooltip={`API Deployment · ${toHumanReadableRelativeDay(assistant.getApideployment()?.getCreateddate()!)}`}
+                />
+              )}
+              {assistant.getDebuggerdeployment() && (
+                <DeploymentBadge
+                  source="debugger"
+                  tooltip={`Debugger · ${toHumanReadableRelativeDay(assistant.getDebuggerdeployment()?.getCreateddate()!)}`}
+                />
+              )}
+              {assistant.getWebplugindeployment() && (
+                <DeploymentBadge
+                  source="web-plugin"
+                  tooltip={`Web Plugin · ${toHumanReadableRelativeDay(assistant.getWebplugindeployment()?.getCreateddate()!)}`}
+                />
+              )}
+              {assistant.getPhonedeployment() && (
+                <DeploymentBadge
+                  source="twilio-call"
+                  tooltip={`Phone · ${toHumanReadableRelativeDay(assistant.getPhonedeployment()?.getCreateddate()!)}`}
+                />
+              )}
+            </div>
+          ) : (
+            // Carbon empty-state inline CTA
+            <button
+              className="flex items-center gap-1 text-xs text-primary hover:underline underline-offset-2"
+              onClick={e => {
+                e.stopPropagation();
+                gn.goToManageAssistant(assistant.getId());
+              }}
+            >
+              Set up deployment
+              <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+
+        {/* Carbon clickable-tile arrow — communicates the card is navigable */}
+        <ArrowRight
+          className="shrink-0 w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors mt-0.5"
+          strokeWidth={1.5}
         />
       </div>
-      {/* FOOTER SECTION */}
-      <div className="w-full flex justify-between items-end mt-0 px-4 py-3 rounded-b-xl">
-        {/* Crash Free Sessions */}
-        <div className="flex flex-col flex-1">
-          <span className="text-sm font-mediumdark:text-gray-400">
-            Deployments
-          </span>
-          <div className="flex flex-wrap gap-1 items-center w-full mt-2">
-            {assistant.getApideployment() && (
-              <TooltipPlus
-                className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                popupContent={
-                  <div className="px-3 py-2 text-sm">
-                    <span className="text-gray-600 dark:text-gray-500">
-                      Api Deployment created on
-                    </span>{' '}
-                    {toHumanReadableRelativeDay(
-                      assistant.getApideployment()?.getCreateddate()!,
-                    )}
-                  </div>
-                }
-              >
-                <SourceIndicator source={'react-sdk'} withLabel={false} />
-              </TooltipPlus>
-            )}
-            {assistant.getDebuggerdeployment() && (
-              <TooltipPlus
-                className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                popupContent={
-                  <div className="px-3 py-2 text-sm">
-                    <span className="text-gray-600 dark:text-gray-500">
-                      Debugger enabled on
-                    </span>{' '}
-                    {toHumanReadableRelativeDay(
-                      assistant.getDebuggerdeployment()?.getCreateddate()!,
-                    )}
-                  </div>
-                }
-              >
-                <SourceIndicator source={'debugger'} withLabel={false} />
-              </TooltipPlus>
-            )}
-            {assistant.getWebplugindeployment() && (
-              <TooltipPlus
-                className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                popupContent={
-                  <div className="px-3 py-2 text-sm">
-                    <span className="text-gray-600 dark:text-gray-500">
-                      Web plugin Deployment created on
-                    </span>{' '}
-                    {toHumanReadableRelativeDay(
-                      assistant.getWebplugindeployment()?.getCreateddate()!,
-                    )}
-                  </div>
-                }
-              >
-                <SourceIndicator source={'web-plugin'} withLabel={false} />
-              </TooltipPlus>
-            )}
-            {assistant.getPhonedeployment() && (
-              <TooltipPlus
-                className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                popupContent={
-                  <div className="px-3 py-2 text-sm">
-                    <span className="text-gray-600 dark:text-gray-500">
-                      Phone Deployment created on
-                    </span>{' '}
-                    {toHumanReadableRelativeDay(
-                      assistant.getPhonedeployment()?.getCreateddate()!,
-                    )}
-                  </div>
-                }
-              >
-                <SourceIndicator source={'twilio-call'} withLabel={false} />
-              </TooltipPlus>
-            )}
-            {!assistant.getApideployment() &&
-              !assistant.getDebuggerdeployment() &&
-              !assistant.getWebplugindeployment() &&
-              !assistant.getPhonedeployment() && (
-                <div className="flex justify-between w-full items-center">
-                  <span className="text-gray-600 dark:text-gray-500 text-sm">
-                    No deployment
-                  </span>
-                  <IBlueBGButton
-                    className="invisible group-hover:visible h-8 text-sm rounded-[2px]"
-                    onClick={event => {
-                      event.stopPropagation();
-                      gn.goToManageAssistant(assistant.getId());
-                    }}
-                  >
-                    Configure
-                  </IBlueBGButton>
-                </div>
-              )}
-          </div>
-        </div>
-        {/* Latest Deploys */}
-      </div>
-    </div>
+    </ActionCard>
   );
 };
+
+/** Deployment badge with tooltip */
+const DeploymentBadge: FC<{ source: string; tooltip: string }> = ({
+  source,
+  tooltip,
+}) => (
+  <TooltipPlus
+    className="bg-white dark:bg-gray-950 border rounded-none px-0 py-0"
+    popupContent={
+      <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+        {tooltip}
+      </div>
+    }
+  >
+    <SourceIndicator source={source} withLabel={false} size="small" />
+  </TooltipPlus>
+);
 
 const ConversationChart: FC<{
   conversations: Array<AssistantConversation>;
 }> = ({ conversations }) => {
-  // Group conversations by date and calculate metrics
   const groupedData = conversations.reduce(
     (acc, conversation) => {
       const date = toHumanReadableDate(conversation.getCreateddate()!);
@@ -177,21 +142,18 @@ const ConversationChart: FC<{
     {} as Record<string, { activeUsers: Set<string>; totalSessions: number }>,
   );
 
-  // Create an array of the last 30 days
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - i);
     return toHumanReadableDateFromDate(date);
   }).reverse();
 
-  // Create initial data array with all dates
   const dataArray = last30Days.map(date => ({
     date,
     activeUsers: 0,
     totalSessions: 0,
   }));
 
-  // Update dataArray with grouped data
   Object.entries(groupedData).forEach(([date, data]) => {
     const index = dataArray.findIndex(d => d.date === date);
     if (index !== -1) {
@@ -201,58 +163,51 @@ const ConversationChart: FC<{
   });
 
   const maxSessions = Math.max(...dataArray.map(d => d.totalSessions));
-  const maxHeight = 50; // Maximum height of the bar in pixels
+  const maxHeight = 48;
 
   return (
-    <div className="relative w-full h-24 bg-blue-300/10 dark:bg-blue-600/10">
-      <div className="absolute top-1/2 left-0 right-0 h-full flex flex-col justify-between z-0">
-        <div className="w-full border-t border-dashed border-blue-300/10 opacity-50" />
-      </div>
+    <div className="relative w-full h-16 bg-gray-50 dark:bg-gray-950/70">
       {dataArray.length > 0 && (
-        <div className="absolute z-10 left-0 right-0 top-0 bottom-0 flex items-end">
+        <div className="absolute inset-0 flex items-end px-px">
           {dataArray.map((data, i) => {
             const barHeight =
-              (data.totalSessions / maxSessions) * maxHeight || 5;
+              (data.totalSessions / maxSessions) * maxHeight || 3;
 
             return (
               <div key={i} className="flex-1 px-px">
                 <TooltipPlus
-                  className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0 w-64"
+                  className="bg-white dark:bg-gray-950 border rounded-none px-0 py-0 w-56"
                   popupContent={
-                    <div className="divide-y text-sm dark:text-gray-400 text-gray-700">
-                      <div className="px-3 py-3 space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
-                            <div className="w-2 h-2 bg-gray-300 rounded-[2px]"></div>
-                            <span className="font-medium">Active Users</span>
-                          </div>
+                    <div className="divide-y text-xs dark:text-gray-400 text-gray-700">
+                      <div className="px-3 py-2 space-y-1">
+                        <div className="flex justify-between">
+                          <span>Active Users</span>
                           <span className="font-semibold">
                             {data.activeUsers}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
-                            <div className="w-2 h-2 bg-blue-400 rounded-[2px]"></div>
-                            <span className="font-medium">Total Sessions</span>
-                          </div>
+                        <div className="flex justify-between">
+                          <span>Sessions</span>
                           <span className="font-semibold">
                             {data.totalSessions}
                           </span>
                         </div>
                       </div>
-                      <div className="px-3 py-2">{data.date}</div>
+                      <div className="px-3 py-1.5 text-gray-400">
+                        {data.date}
+                      </div>
                     </div>
                   }
                 >
-                  <div className="h-full grow flex items-end">
+                  <div className="h-full flex items-end">
                     <div
-                      className="bg-blue-600 w-full"
+                      className="bg-primary w-full"
                       style={{
                         height: `${barHeight}px`,
                         opacity:
                           data.totalSessions === 0
-                            ? 0.25
-                            : 0.25 + (data.totalSessions / maxSessions) * 0.75,
+                            ? 0.15
+                            : 0.2 + (data.totalSessions / maxSessions) * 0.8,
                       }}
                     />
                   </div>
@@ -265,4 +220,5 @@ const ConversationChart: FC<{
     </div>
   );
 };
+
 export default React.memo(SingleAssistant);

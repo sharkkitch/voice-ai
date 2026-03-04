@@ -275,6 +275,7 @@ export const useEndpointPageStore = create<EndpointType>((set, get) => ({
   columns: [
     { name: 'Endpoint Status', key: 'getStatus', visible: true },
     { name: 'Endpoint', key: 'getName', visible: true },
+    { name: 'Action', key: 'action', visible: true },
     { name: 'Current Version', key: 'getVersion', visible: false },
     { name: 'Tags', key: 'getTags', visible: true },
     { name: 'Run Count (7D)', key: 'getCount', visible: true },

@@ -39,6 +39,18 @@ import { InputHelper } from '@/app/components/input-helper';
 import { CodeEditor } from '@/app/components/form/editor/code-editor';
 import toast from 'react-hot-toast/headless';
 
+/** Section divider — matches the one in create-endpoint */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
+
 export function CreateAgentKit() {
   const { authId, token, projectId } = useCurrentCredential();
   const {
@@ -178,7 +190,7 @@ export function CreateAgentKit() {
       <Helmet title="Create an assistant"></Helmet>
       <ConfirmDialogComponent />
       <TabForm
-        formHeading="Complete all steps to connect new AgentKit"
+        formHeading="Complete all steps to connect a new AgentKit."
         activeTab={activeTab}
         onChangeActiveTab={() => {}}
         errorMessage={errorMessage}
@@ -186,78 +198,92 @@ export function CreateAgentKit() {
           {
             code: 'configure-agentkit',
             name: 'Configuration',
-            description: 'Configure and connect the agent using a agentKit',
+            description:
+              'Configure and connect the agent using an AgentKit endpoint.',
             body: (
-              <div className="">
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" />
-                  <div className="ms-3 text-sm font-medium font-sans">
+              <>
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
+                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
+                  <p className="text-sm flex-1">
                     Deploy your agent on-premises with the Rapida orchestration
                     engine via AgentkitConnection.
-                  </div>
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/assistants/overview"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
+                    Read docs
                     <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
+                      className="shrink-0 w-3.5 h-3.5"
                       strokeWidth={1.5}
                     />
                   </a>
                 </YellowNoticeBlock>
-                <div className="space-y-6 px-8 py-8 max-w-4xl">
-                  <FieldSet className="relative w-full">
-                    <FormLabel>AgentKit Endpoint</FormLabel>
-                    <Input
-                      placeholder="agent.your-domain.com:5051"
-                      value={agentKitUrl}
-                      onChange={v => {
-                        setAgentKitUrl(v.target.value);
-                      }}
-                    />
-                    <InputHelper>
-                      The gRPC server address where your Rapida AgentKit is
-                      running.
-                    </InputHelper>
-                  </FieldSet>
-                  <FieldSet>
-                    <FormLabel>TLS Certificate (Optional)</FormLabel>
-                    <CodeEditor
-                      placeholder="
+                <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Connection section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Connection" />
+                    <FieldSet className="relative w-full">
+                      <FormLabel>AgentKit Endpoint</FormLabel>
+                      <Input
+                        placeholder="agent.your-domain.com:5051"
+                        value={agentKitUrl}
+                        onChange={v => {
+                          setAgentKitUrl(v.target.value);
+                        }}
+                      />
+                      <InputHelper>
+                        The gRPC server address where your Rapida AgentKit is
+                        running.
+                      </InputHelper>
+                    </FieldSet>
+                  </div>
+
+                  {/* Security section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Security" />
+                    <FieldSet>
+                      <FormLabel>TLS Certificate (Optional)</FormLabel>
+                      <CodeEditor
+                        placeholder="
                       -----BEGIN CERTIFICATE-----
 ...
 -----END CERTIFICATE-----"
-                      value={certificate}
-                      onChange={value => {
-                        setCertificate(value);
-                      }}
-                      className="min-h-40 max-h-dvh "
-                    />
-                    <InputHelper>
-                      Custom CA certificate for server verification (optional,
-                      leave empty for system defaults)
-                    </InputHelper>
-                  </FieldSet>
-                  <FieldSet>
-                    <FormLabel>Metadata</FormLabel>
-                    <APiParameter
-                      actionButtonLabel="Add Metadata"
-                      setParameterValue={p => {
-                        setParameters(p);
-                      }}
-                      initialValues={parameters}
-                      inputClass="bg-light-background dark:bg-gray-950"
-                    />
-                  </FieldSet>
+                        value={certificate}
+                        onChange={value => {
+                          setCertificate(value);
+                        }}
+                        className="min-h-40 max-h-dvh "
+                      />
+                      <InputHelper>
+                        Custom CA certificate for server verification (optional,
+                        leave empty for system defaults)
+                      </InputHelper>
+                    </FieldSet>
+                  </div>
+
+                  {/* Metadata section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Metadata" />
+                    <FieldSet>
+                      <APiParameter
+                        actionButtonLabel="Add Metadata"
+                        setParameterValue={p => {
+                          setParameters(p);
+                        }}
+                        initialValues={parameters}
+                        inputClass="bg-light-background dark:bg-gray-950"
+                      />
+                    </FieldSet>
+                  </div>
                 </div>
-              </div>
+              </>
             ),
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -265,7 +291,7 @@ export function CreateAgentKit() {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => {
                   if (validateAgentkit()) setActiveTab('define-assistant');
                 }}
@@ -282,7 +308,7 @@ export function CreateAgentKit() {
               'Provide the name, a brief description, and relevant tags for your assistant to help identify and categorize it.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -291,42 +317,72 @@ export function CreateAgentKit() {
                 isLoading={loading}
                 type="button"
                 onClick={createAssistant}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Continue
               </IBlueBGArrowButton>,
             ],
             body: (
-              <div className="space-y-6 px-8 py-8 max-w-4xl">
-                <div className="h-fit pt-4 rounded-[2px] space-y-4">
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                {/* Identity section */}
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Identity" />
+
                   <FieldSet>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel
+                      htmlFor="agent_name"
+                      className="text-xs tracking-wide uppercase"
+                    >
+                      Name{' '}
+                      <span className="text-red-500 ml-0.5 normal-case">*</span>
+                    </FormLabel>
                     <Input
                       name="agent_name"
                       onChange={e => {
                         setName(e.target.value);
                       }}
                       value={name}
-                      className="form-input"
-                      placeholder="eg: your emotion detector"
-                    ></Input>
+                      placeholder="e.g. customer-support-assistant"
+                    />
+                    <InputHelper>
+                      Provide a name that will appear in the assistant list and
+                      help identify it.
+                    </InputHelper>
                   </FieldSet>
 
                   <FieldSet>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel
+                      htmlFor="description"
+                      className="text-xs tracking-wide uppercase"
+                    >
+                      Description (Optional)
+                    </FormLabel>
                     <Textarea
-                      row={5}
+                      row={4}
                       value={description}
-                      placeholder={"What's the purpose of the assistant?"}
+                      placeholder="What's the purpose of the assistant?"
                       onChange={t => setDescription(t.target.value)}
                     />
+                    <InputHelper>
+                      Provide a description to explain what this assistant is
+                      about.
+                    </InputHelper>
                   </FieldSet>
+                </div>
+
+                {/* Labels section */}
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Labels" />
                   <TagInput
                     tags={tags}
                     addTag={onAddTag}
                     removeTag={onRemoveTag}
                     allTags={AssistantTag}
                   />
+                  <InputHelper>
+                    Tags help you organize and filter assistants across your
+                    workspace.
+                  </InputHelper>
                 </div>
               </div>
             ),
@@ -334,10 +390,10 @@ export function CreateAgentKit() {
           {
             code: 'deployment',
             name: 'Deployment',
-            description: 'Enable assistant to start engaging with user',
+            description: 'Enable the assistant to start engaging with users.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => {
                   if (assistant) goToAssistant(assistant.getId());
                 }}
@@ -347,7 +403,7 @@ export function CreateAgentKit() {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => {
                   if (assistant) goToAssistant(assistant.getId());
                 }}
@@ -356,203 +412,186 @@ export function CreateAgentKit() {
               </IBlueBGArrowButton>,
             ],
             body: (
-              <div className="">
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" />
-                  <div className="ms-3 text-sm font-medium">
-                    Choose how you’d like to start engaging with users and add
-                    advanced features to customize user's experience.
-                  </div>
+              <>
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
+                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
+                  <p className="text-sm flex-1">
+                    Choose how you'd like to start engaging with users and add
+                    advanced features to customize the user's experience.
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/assistants/overview"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
+                    Read docs
                     <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
+                      className="shrink-0 w-3.5 h-3.5"
                       strokeWidth={1.5}
                     />
                   </a>
                 </YellowNoticeBlock>
-                <div className="border-gray-500">
-                  <div className="grid grid-cols-1 gap-10">
-                    <div className="group">
-                      <h3 className="px-4 py-2 sm:px-2 font-medium text-pretty text-gray-600 dark:text-gray-400">
-                        Deployments
-                      </h3>
-                      <dl className="bg-white dark:bg-gray-950">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 divide-x">
-                          <div className="border-y border-gray-300 dark:border-gray-800 grid grid-rows-[1fr_auto] max-md:border-t max-xl:last:hidden max-lg:nth-[3]:hidden last:border-r-0 max-xl:nth-[3]:border-r-0 max-lg:nth-[2]:border-r-0">
-                            <div className="grid grid-cols-1 items-center">
-                              <div className="px-4 py-2 sm:px-2">
-                                <PhoneCall
-                                  className="w-6 h-6 opacity-70 mt-4"
-                                  strokeWidth={1.5}
-                                />
-                                <div className="flex items-center gap-2 mt-4">
-                                  <h3 className="text-base/7 font-semibold">
-                                    Phone call
-                                  </h3>
-                                </div>
-                                <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
-                                  Enable voice conversations over phone call
-                                </p>
-                              </div>
+                <div className="px-8 pt-6 pb-8 flex flex-col gap-8">
+                  {/* Deployments section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Deployments" />
+                    <dl className="bg-white dark:bg-gray-950">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 divide-x divide-gray-200 dark:divide-gray-800">
+                        <div className="border-y border-gray-200 dark:border-gray-800 grid grid-rows-[1fr_auto]">
+                          <div className="px-4 py-2">
+                            <PhoneCall
+                              className="w-6 h-6 opacity-70 mt-4"
+                              strokeWidth={1.5}
+                            />
+                            <div className="flex items-center gap-2 mt-4">
+                              <h3 className="text-base/7 font-semibold">
+                                Phone call
+                              </h3>
                             </div>
-                            <button
-                              onClick={() => {
-                                if (assistant)
-                                  goToConfigureCall(assistant.getId());
-                              }}
-                              className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 max-md:border-y sm:px-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
-                            >
-                              Enable phone call
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
+                            <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
+                              Enable voice conversations over phone call
+                            </p>
                           </div>
-                          {/*  */}
-                          <div className="border-y border-gray-300 dark:border-gray-800 grid grid-rows-[1fr_auto] max-md:border-t max-xl:last:hidden max-lg:nth-[3]:hidden last:border-r-0 max-xl:nth-[3]:border-r-0 max-lg:nth-[2]:border-r-0">
-                            <div className="grid grid-cols-1 items-center">
-                              <div className="px-4 py-2 sm:px-2">
-                                <Code
-                                  className="w-6 h-6 opacity-70 mt-4"
-                                  strokeWidth={1.5}
-                                />
-                                <div className="flex items-center gap-2 mt-4">
-                                  <h3 className="text-base/7 font-semibold">
-                                    API
-                                  </h3>
-                                </div>
-                                <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
-                                  Integrate into your application using sdks
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                if (assistant)
-                                  goToConfigureApi(assistant.getId());
-                              }}
-                              className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 max-md:border-y sm:px-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
-                            >
-                              Enable Api
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          {/*  */}
-                          <div className="border-y border-gray-300 dark:border-gray-800 grid grid-rows-[1fr_auto] max-md:border-t max-xl:last:hidden max-lg:nth-[3]:hidden last:border-r-0 max-xl:nth-[3]:border-r-0 max-lg:nth-[2]:border-r-0">
-                            <div className="grid grid-cols-1 items-center">
-                              <div className="px-4 py-2 sm:px-2">
-                                <Globe
-                                  className="w-6 h-6 opacity-70 mt-4"
-                                  strokeWidth={1.5}
-                                />
-                                <div className="flex items-center gap-2 mt-4">
-                                  <h3 className="text-base/7 font-semibold">
-                                    Web Widget
-                                  </h3>
-                                </div>
-                                <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
-                                  Embed on your website to handle text and voice
-                                  customer query.
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                if (assistant)
-                                  goToConfigureWeb(assistant.getId());
-                              }}
-                              className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 max-md:border-y sm:px-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
-                            >
-                              Deploy to Web Widget
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {/* Web Widget */}
-
-                          <div className="border-y border-gray-300 dark:border-gray-800 grid grid-rows-[1fr_auto] max-md:border-t max-xl:last:hidden max-lg:nth-[3]:hidden last:border-r-0 max-xl:nth-[3]:border-r-0 max-lg:nth-[2]:border-r-0">
-                            <div className="grid grid-cols-1 items-center">
-                              <div className="px-4 py-2 sm:px-2">
-                                <Bug
-                                  className="w-6 h-6 opacity-70 mt-4"
-                                  strokeWidth={1.5}
-                                />
-                                <div className="flex items-center gap-2 mt-4">
-                                  <h3 className="text-base/7 font-semibold">
-                                    Debugger / Testing
-                                  </h3>
-                                </div>
-                                <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
-                                  Deploy the agent for testing and debugging.
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                if (assistant)
-                                  goToConfigureDebugger(assistant.getId());
-                              }}
-                              className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 max-md:border-y sm:px-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
-                            >
-                              Deploy to Debugger / Testing
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {/* Debugger / Testing */}
+                          <button
+                            onClick={() => {
+                              if (assistant)
+                                goToConfigureCall(assistant.getId());
+                            }}
+                            className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
+                          >
+                            Enable phone call
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
                         </div>
-                        {/*  */}
-                      </dl>
-                    </div>
-                    <div className="group">
-                      <h3 className="px-4 py-2 sm:px-2 font-medium text-pretty text-gray-600 dark:text-gray-400">
-                        Analysis
-                      </h3>
-                      <div
-                        className="bg-white dark:bg-gray-950"
-                        onClick={() => {
-                          if (assistant)
-                            goToCreateAssistantAnalysis(assistant.getId());
-                        }}
-                      >
-                        <div className="flex w-full cursor-pointer justify-between gap-4 select-none border-y px-4 py-3 sm:px-2">
-                          <div className="text-left text-sm/7 font-semibold text-pretty">
-                            Gain insights from every interaction eg: Automatic
-                            conversation transcripts Quality, sentiment, and SOP
-                            adherence analysis Custom reporting and dashboards
+
+                        <div className="border-y border-gray-200 dark:border-gray-800 grid grid-rows-[1fr_auto]">
+                          <div className="px-4 py-2">
+                            <Code
+                              className="w-6 h-6 opacity-70 mt-4"
+                              strokeWidth={1.5}
+                            />
+                            <div className="flex items-center gap-2 mt-4">
+                              <h3 className="text-base/7 font-semibold">API</h3>
+                            </div>
+                            <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
+                              Integrate into your application using SDKs
+                            </p>
                           </div>
-                          <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
+                          <button
+                            onClick={() => {
+                              if (assistant)
+                                goToConfigureApi(assistant.getId());
+                            }}
+                            className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
+                          >
+                            Enable API
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="border-y border-gray-200 dark:border-gray-800 grid grid-rows-[1fr_auto]">
+                          <div className="px-4 py-2">
+                            <Globe
+                              className="w-6 h-6 opacity-70 mt-4"
+                              strokeWidth={1.5}
+                            />
+                            <div className="flex items-center gap-2 mt-4">
+                              <h3 className="text-base/7 font-semibold">
+                                Web Widget
+                              </h3>
+                            </div>
+                            <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
+                              Embed on your website to handle text and voice
+                              customer queries.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (assistant)
+                                goToConfigureWeb(assistant.getId());
+                            }}
+                            className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
+                          >
+                            Deploy to Web Widget
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="border-y border-gray-200 dark:border-gray-800 grid grid-rows-[1fr_auto]">
+                          <div className="px-4 py-2">
+                            <Bug
+                              className="w-6 h-6 opacity-70 mt-4"
+                              strokeWidth={1.5}
+                            />
+                            <div className="flex items-center gap-2 mt-4">
+                              <h3 className="text-base/7 font-semibold">
+                                Debugger / Testing
+                              </h3>
+                            </div>
+                            <p className="text-sm/6 text-gray-600 md:max-w-2xs dark:text-gray-400">
+                              Deploy the agent for testing and debugging.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (assistant)
+                                goToConfigureDebugger(assistant.getId());
+                            }}
+                            className="cursor-pointer flex justify-between items-center border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-sm/6 text-blue-500 hover:bg-blue-600 hover:text-white transition-all delay-200"
+                          >
+                            Deploy to Debugger / Testing
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                    </div>
-                    <div className="group">
-                      <h3 className="px-4 py-2 sm:px-2  font-medium text-pretty  text-gray-600 dark:text-gray-400">
-                        Webhook & Integration
-                      </h3>
-                      <div
-                        className="bg-white dark:bg-gray-950"
-                        onClick={() => {
-                          if (assistant)
-                            goToCreateAssistantWebhook(assistant.getId());
-                        }}
-                      >
-                        <div className="flex w-full cursor-pointer justify-between gap-4 select-none border-y px-4 py-3 sm:px-2">
-                          <div className="text-left text-sm/7 font-semibold text-pretty">
-                            Keep your workflows connected by triggering events
-                            when key actions happen: eg: Conversation started /
-                            ended Escalation to a human agent Custom events for
-                            analytics or CRM sync
-                          </div>
-                          <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
+                    </dl>
+                  </div>
+
+                  {/* Analysis section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Analysis" />
+                    <div
+                      className="bg-white dark:bg-gray-950 cursor-pointer"
+                      onClick={() => {
+                        if (assistant)
+                          goToCreateAssistantAnalysis(assistant.getId());
+                      }}
+                    >
+                      <div className="flex w-full justify-between gap-4 select-none border-y border-gray-200 dark:border-gray-800 px-4 py-3">
+                        <div className="text-left text-sm/7 font-semibold text-pretty">
+                          Gain insights from every interaction — automatic
+                          conversation transcripts, quality, sentiment, and SOP
+                          adherence analysis, custom reporting and dashboards.
                         </div>
+                        <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Webhook & Integration section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Webhook & Integration" />
+                    <div
+                      className="bg-white dark:bg-gray-950 cursor-pointer"
+                      onClick={() => {
+                        if (assistant)
+                          goToCreateAssistantWebhook(assistant.getId());
+                      }}
+                    >
+                      <div className="flex w-full justify-between gap-4 select-none border-y border-gray-200 dark:border-gray-800 px-4 py-3">
+                        <div className="text-left text-sm/7 font-semibold text-pretty">
+                          Keep your workflows connected by triggering events
+                          when key actions happen — conversation started / ended,
+                          escalation to a human agent, custom events for
+                          analytics or CRM sync.
+                        </div>
+                        <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </>
             ),
           },
         ]}

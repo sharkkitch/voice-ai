@@ -18,14 +18,14 @@ export function MissionBox(props: { children?: any }) {
       <SidebarProvider>
         <div className="flex h-[100dvh] relative w-[100dvw]">
           <SidebarNavigation />
-          <main className="antialiased text-base text-gray-700 dark:text-gray-400 relative bg-[linear-gradient(103deg,var(--tw-gradient-stops))] from-custom-gray via-custom-pink to-custom-blue font-sans flex-1 flex w-full overflow-hidden">
+          <main className="antialiased text-sm text-gray-700 dark:text-gray-400 relative bg-gray-100 dark:bg-gray-950 font-sans flex-1 flex w-full overflow-hidden">
             <div className="flex w-full absolute top-0 left-0 right-0 z-10">
               <Loader />
             </div>
 
-            <div className="w-full">
+            <div className="w-full flex flex-col h-full">
               <ActionableHeader />
-              <div className="relative h-[calc(100dvh-3rem)] overflow-hidden dark:bg-gray-900 bg-light-background rounded-tl-md border-t border-l flex-1 flex flex-col">
+              <div className="relative flex-1 overflow-hidden dark:bg-gray-900 bg-light-background flex flex-col">
                 <Toast />
                 {props.children}
               </div>

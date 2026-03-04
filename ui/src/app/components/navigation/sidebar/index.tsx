@@ -4,7 +4,6 @@ import { Dashboard } from '@/app/components/navigation/sidebar/dashboard';
 import { Team } from '@/app/components/navigation/sidebar/team';
 import { Project } from '@/app/components/navigation/sidebar/project';
 import { Vault } from '@/app/components/navigation/sidebar/vault';
-import { SidebarLabel } from '@/app/components/navigation/sidebar/sidebar-label';
 import { Knowledge } from '@/app/components/navigation/sidebar/knowledge';
 import { Aside } from '@/app/components/aside';
 import { ExternalTool } from '@/app/components/navigation/sidebar/external-tools';
@@ -12,110 +11,144 @@ import { useWorkspace } from '@/workspace';
 import { RapidaIcon } from '@/app/components/Icon/Rapida';
 import { RapidaTextIcon } from '@/app/components/Icon/RapidaText';
 import { ChevronsLeft } from 'lucide-react';
-import { Tooltip } from '@/app/components/tooltip';
 import { useSidebar } from '@/context/sidebar-context';
 import { cn } from '../../../../utils/index';
 
 /**
- *
- * @param props
- * @returns
+ * Carbon UI Shell — Side Navigation
+ * Spec: h-8 nav items, 4px left accent on active, 48px logo header,
+ *       label-01 group headers, lock/collapse button in footer.
  */
 export function SidebarNavigation(props: {}) {
   const workspace = useWorkspace();
   const { locked, setLocked, open } = useSidebar();
+
   return (
-    <Aside className="space-y-2 relative shrink-0">
-      <div className="flex rounded-[2px] my-2 text-blue-600 items-center">
-        <div className="pl-[0.8rem] py-2.5 shrink-0">
-          {workspace.logo ? (
-            <>
-              <img
-                src={workspace.logo.light}
-                alt={workspace.title}
-                className="h-8 block dark:hidden"
-              />
-              <img
-                src={workspace.logo.dark}
-                alt={workspace.title}
-                className="h-8 hidden dark:block"
-              />
-            </>
-          ) : (
-            <div className="flex items-center shrink-0 space-x-1.5 ml-1 text-blue-600 dark:text-blue-500">
-              <RapidaIcon className="h-8 w-8" />
-              <RapidaTextIcon className="h-5" />
-            </div>
-          )}
-        </div>
+    <Aside className="relative shrink-0 flex flex-col">
+      {/* ── Logo row — Carbon UI Shell header: h-12, border-b ── */}
+      <div className="h-12 flex items-center border-b border-gray-200 dark:border-gray-800 px-3 shrink-0">
+        {workspace.logo ? (
+          <>
+            <img
+              src={workspace.logo.light}
+              alt={workspace.title}
+              className="h-6 block dark:hidden"
+            />
+            <img
+              src={workspace.logo.dark}
+              alt={workspace.title}
+              className="h-6 hidden dark:block"
+            />
+          </>
+        ) : (
+          <div className="flex items-center gap-2 text-primary">
+            <RapidaIcon className="h-6 w-6 shrink-0" />
+            <RapidaTextIcon
+              className={cn(
+                'h-4 transition-all duration-200',
+                open ? 'opacity-100' : 'opacity-0 w-0',
+              )}
+            />
+          </div>
+        )}
       </div>
-      <div className="space-y-4">
-        <ul className="space-y-1">
+
+      {/* ── Nav groups — scrollable ── */}
+      <nav className="flex-1 overflow-y-auto no-scrollbar py-2">
+        {/* Group 1 — primary nav */}
+        <ul>
           <Dashboard />
           <Deployment />
           {workspace.features?.knowledge !== false && <Knowledge />}
         </ul>
-        <div className="space-y-3">
-          <SidebarLabel
+
+        {/* Group 2 — Observability */}
+        <div className="border-t border-gray-200 dark:border-gray-800 mt-2 pt-2">
+          <span
             className={cn(
-              'uppercase truncate pl-3 text-xs opacity-0',
-              open ? 'opacity-100' : 'opacity-0',
+              // Carbon label-01: 10px, uppercase, tracking
+              'block text-[10px] font-medium uppercase tracking-[0.1em]',
+              'text-gray-500 dark:text-gray-400',
+              'px-4 py-2 transition-all duration-200',
+              open ? 'opacity-100' : 'opacity-0 h-0 py-0 overflow-hidden',
             )}
           >
             Observability
-          </SidebarLabel>
-          <ul className="space-y-1 mt-2">
+          </span>
+          <ul>
             <Observability />
           </ul>
         </div>
-        <div className="space-y-3">
-          <SidebarLabel
+
+        {/* Group 3 — Integrations */}
+        <div className="border-t border-gray-200 dark:border-gray-800 mt-2 pt-2">
+          <span
             className={cn(
-              'uppercase truncate pl-3 text-xs opacity-0',
-              open ? 'opacity-100' : 'opacity-0',
+              'block text-[10px] font-medium uppercase tracking-[0.1em]',
+              'text-gray-500 dark:text-gray-400',
+              'px-4 py-2 transition-all duration-200',
+              open ? 'opacity-100' : 'opacity-0 h-0 py-0 overflow-hidden',
             )}
           >
             Integrations
-          </SidebarLabel>
-          <ul className="space-y-1 mt-2">
+          </span>
+          <ul>
             <ExternalTool />
             <Vault />
           </ul>
         </div>
-        <div className="space-y-3">
-          <SidebarLabel
+
+        {/* Group 4 — Organizations */}
+        <div className="border-t border-gray-200 dark:border-gray-800 mt-2 pt-2">
+          <span
             className={cn(
-              'uppercase truncate pl-3 text-xs opacity-0',
-              open ? 'opacity-100' : 'opacity-0',
+              'block text-[10px] font-medium uppercase tracking-[0.1em]',
+              'text-gray-500 dark:text-gray-400',
+              'px-4 py-2 transition-all duration-200',
+              open ? 'opacity-100' : 'opacity-0 h-0 py-0 overflow-hidden',
             )}
           >
             Organizations
-          </SidebarLabel>
-          <ul className="space-y-1  mt-2">
+          </span>
+          <ul>
             <Team />
             <Project />
           </ul>
         </div>
-      </div>
-      <div
-        className="absolute bottom-0 right-0 w-10 h-10"
-        onClick={() => setLocked(!locked)}
-      >
-        <Tooltip
-          icon={
+      </nav>
+
+      {/* ── Footer — lock/collapse button ── */}
+      <div className="shrink-0 border-t border-gray-200 dark:border-gray-800">
+        <button
+          type="button"
+          onClick={() => setLocked(!locked)}
+          className={cn(
+            'relative flex items-center h-8 w-full cursor-pointer',
+            'text-gray-500 dark:text-gray-400',
+            'hover:bg-gray-100 dark:hover:bg-gray-800',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+          )}
+          aria-label={locked ? 'Unlock sidebar' : 'Lock sidebar open'}
+        >
+          {/* Icon cell — same 48px column as all nav icons */}
+          <span className="flex-shrink-0 flex items-center justify-center w-12 h-8">
             <ChevronsLeft
               className={cn(
-                'w-6 h-6 transition-all delay-200',
+                'w-4 h-4 transition-transform duration-200',
                 !locked && 'rotate-180',
               )}
               strokeWidth={1.5}
             />
-          }
-        >
-          <span className="text-gray-600 dark:text-gray-300">
-            Lock sidebar open
           </span>
-        </Tooltip>
+          <span
+            className={cn(
+              'text-sm leading-none truncate flex-1 transition-all duration-200',
+              open ? 'opacity-100' : 'opacity-0 w-0',
+            )}
+          >
+            {locked ? 'Collapse sidebar' : 'Lock sidebar open'}
+          </span>
+        </button>
       </div>
     </Aside>
   );

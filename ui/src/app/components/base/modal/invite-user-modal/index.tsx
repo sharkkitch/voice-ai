@@ -165,7 +165,6 @@ export function InviteUserDialog(props: InviteUserDialogProps) {
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
@@ -173,7 +172,6 @@ export function InviteUserDialog(props: InviteUserDialogProps) {
             Cancel
           </ICancelButton>
           <IBlueBGArrowButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={addUserToProject}
             isLoading={loading}

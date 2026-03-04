@@ -10,7 +10,7 @@ import { BluredWrapper } from '@/app/components/wrapper/blured-wrapper';
 import { Spinner } from '@/app/components/loader/spinner';
 import { ScrollableResizableTable } from '@/app/components/data-table';
 import { IButton } from '@/app/components/form/button';
-import { RotateCw } from 'lucide-react';
+import { Eye, RotateCw } from 'lucide-react';
 import { TableCell } from '@/app/components/base/tables/table-cell';
 import { TableRow } from '@/app/components/base/tables/table-row';
 import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
@@ -19,30 +19,19 @@ import { Endpoint, EndpointLog } from '@rapidaai/react';
 import { SourceIndicator } from '@/app/components/indicators/source';
 import { StatusIndicator } from '@/app/components/indicators/status';
 import { toHumanReadableDateTime, toDateString } from '@/utils/date';
-import { cn } from '@/utils';
 import { getTimeTakenMetric, getTotalTokenMetric } from '@/utils/metadata';
-import { ChevronRight } from 'lucide-react';
-import { SideTab } from '@/app/components/tab';
-import { EndpointMetrics } from '@/app/pages/endpoint/view/traces/endpoint-metrics';
-import { EndpointMetadatas } from '@/app/pages/endpoint/view/traces/endpoint-metadatas';
-import { EndpointArguments } from '@/app/pages/endpoint/view/traces/endpoint-arguments';
-import { EndpointOptions } from '@/app/pages/endpoint/view/traces/endpoint-options';
+import { EndpointTraceModal } from '@/app/components/base/modal/endpoint-trace-modal';
+import TooltipPlus from '@/app/components/base/tooltip-plus';
 
 /**
  * Listing all the audit log for the user organization and selected project
- * @returns
  */
-
 export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
-  /**
-   * set loading context
-   */
   const { loading, showLoader, hideLoader } = useRapidaStore();
-
-  /**
-   * user credentials
-   */
   const [userId, token, projectId] = useCredential();
+
+  const [currentTrace, setCurrentTrace] = useState<EndpointLog | null>(null);
+  const [showTraceModal, setShowTraceModal] = useState(false);
 
   const {
     getLogs,
@@ -66,9 +55,6 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
     ]);
   };
 
-  /**
-   *
-   */
   useEffect(() => {
     onGetAllEndpointLogs();
   }, [
@@ -96,11 +82,19 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
       },
     );
   };
+
   return (
     <div className="flex flex-1 flex-col">
       <Helmet title="Endpoint Logs" />
-      <BluredWrapper className="p-0 border-t-0">
-        <div className="flex justify-center items-center">
+
+      <EndpointTraceModal
+        modalOpen={showTraceModal}
+        setModalOpen={setShowTraceModal}
+        currentTrace={currentTrace}
+      />
+
+      <BluredWrapper className="p-0">
+        <div className="flex items-stretch divide-x divide-gray-200 dark:divide-gray-800">
           <SearchIconInput className="bg-light-background" />
           <Datepicker
             align="right"
@@ -108,8 +102,7 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
             onDateSelect={onDateSelect}
           />
         </div>
-
-        <div className="flex flex-row divide-x dark:divide-gray-800">
+        <div className="flex items-stretch divide-x divide-gray-200 dark:divide-gray-800">
           <TablePagination
             columns={columns}
             currentPage={page}
@@ -119,11 +112,7 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
             onChangePageSize={setPageSize}
             onChangeColumns={setColumns}
           />
-          <IButton
-            onClick={() => {
-              onGetAllEndpointLogs();
-            }}
-          >
+          <IButton onClick={onGetAllEndpointLogs}>
             <RotateCw strokeWidth={1.5} className="h-4 w-4" />
           </IButton>
         </div>
@@ -132,27 +121,26 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
       {endpointLogs && endpointLogs.length > 0 ? (
         <ScrollableResizableTable
           className="border-t-0"
-          isExpandable={true}
+          isExpandable={false}
           isActionable={false}
-          clms={columns.filter(x => {
-            return x.visible;
-          })}
+          clms={columns.filter(x => x.visible)}
         >
-          {endpointLogs.map((at, idx) => {
-            return <SingleTrace key={idx} row={at} idx={idx} />;
-          })}
-          {/* </TBody> */}
+          {endpointLogs.map((at, idx) => (
+            <SingleTrace
+              key={idx}
+              row={at}
+              idx={idx}
+              onViewTrace={trace => {
+                setCurrentTrace(trace);
+                setShowTraceModal(true);
+              }}
+            />
+          ))}
         </ScrollableResizableTable>
-      ) : endpointLogs.length > 0 ? (
-        <YellowNoticeBlock>
-          <span className="font-semibold">No activity found</span>, There are no
-          activities matching with your criteria..
-        </YellowNoticeBlock>
       ) : !loading ? (
         <YellowNoticeBlock>
-          <span className="font-semibold">No activity found</span>, There is no
-          activities found for your account and project, Any activity made to
-          webhooks will be listed here.
+          <span className="font-semibold">No activity found</span>, There are no
+          activities found for this endpoint.
         </YellowNoticeBlock>
       ) : (
         <div className="h-full flex justify-center items-center grow">
@@ -166,121 +154,89 @@ export const EndpointTraces: FC<{ currentEndpoint: Endpoint }> = props => {
 interface SingleTraceProps {
   row: EndpointLog;
   idx: number;
+  onViewTrace: (trace: EndpointLog) => void;
 }
 
-export const SingleTrace: React.FC<SingleTraceProps> = ({ row, idx }) => {
+export const SingleTrace: React.FC<SingleTraceProps> = ({
+  row,
+  idx,
+  onViewTrace,
+}) => {
   const endpointAction = useEndpointLogPage();
-  const [info, setInfo] = useState(false);
+
   return (
-    <>
-      <TableRow
-        key={idx}
-        data-id={row.getId()}
-        onClick={event => {
-          event.stopPropagation();
-          setInfo(!info);
-        }}
-      >
-        <TableCell className="py-0 px-0">
-          <ChevronRight
-            className={cn(
-              'w-5 h-5 transition-all duration-200',
-              info && 'rotate-90',
-            )}
-          />
+    <TableRow key={idx} data-id={row.getId()}>
+      {endpointAction.visibleColumn('id') && (
+        <TableCell>{row.getId()}</TableCell>
+      )}
+      {endpointAction.visibleColumn('version') && (
+        <TableCell>
+          <span className="font-mono text-xs">
+            vrsn_{row.getEndpointprovidermodelid()}
+          </span>
         </TableCell>
-        {endpointAction.visibleColumn('id') && (
-          <TableCell>{row.getId()}</TableCell>
-        )}
-        {endpointAction.visibleColumn('version') && (
-          <TableCell>vrsn_{row.getEndpointprovidermodelid()}</TableCell>
-        )}
-
-        {endpointAction.visibleColumn('source') && (
-          <TableCell>
-            <SourceIndicator source={row.getSource()} />
-          </TableCell>
-        )}
-
-        {endpointAction.visibleColumn('status') && (
-          <TableCell>
-            <StatusIndicator state={row.getStatus()} />
-          </TableCell>
-        )}
-
-        {endpointAction.visibleColumn('timetaken') && (
-          <TableCell>{Number(row.getTimetaken()) / 1000000}ms</TableCell>
-        )}
-
-        {endpointAction.visibleColumn('total_token') && (
-          <TableCell>{getTotalTokenMetric(row.getMetricsList())}</TableCell>
-        )}
-
-        {endpointAction.visibleColumn('time_taken') && (
-          <TableCell>
-            {getTimeTakenMetric(row.getMetricsList()) / 1000000}ms
-          </TableCell>
-        )}
-
-        {endpointAction.visibleColumn('created_date') && (
-          <TableCell>
-            {row.getCreateddate() &&
-              toHumanReadableDateTime(row.getCreateddate()!)}
-          </TableCell>
-        )}
-      </TableRow>
-
-      <TableRow
-        className={cn(
-          'transition-all duration-200',
-          info ? ' visible' : 'collapse pointer-events-none',
-        )}
-      >
-        <TableCell
-          className="px-0! py-0!"
-          colSpan={endpointAction.columns.filter(x => x.visible).length + 1}
-        >
-          <div className="flex p-3.5 dark:bg-gray-950 bg-gray-100">
-            <div className="flex h-full w-full border dark:bg-gray-900 bg-white">
-              <SideTab
-                strict={false}
-                active="metrics"
-                className={cn('w-56')}
-                tabs={[
-                  {
-                    label: 'metrics',
-                    element: <EndpointMetrics metrics={row.getMetricsList()} />,
-                  },
-                  {
-                    label: 'metadata',
-                    element: (
-                      <div className="gap-4">
-                        <EndpointMetadatas metadata={row.getMetadataList()} />
-                      </div>
-                    ),
-                  },
-                  {
-                    label: 'options',
-                    element: (
-                      <div className="gap-4">
-                        <EndpointOptions options={row.getOptionsList()} />
-                      </div>
-                    ),
-                  },
-                  {
-                    label: 'arguments',
-                    element: (
-                      <div className="gap-4">
-                        <EndpointArguments args={row.getArgumentsList()} />
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-            </div>
+      )}
+      {endpointAction.visibleColumn('source') && (
+        <TableCell>
+          <SourceIndicator source={row.getSource()} size="small" />
+        </TableCell>
+      )}
+      {endpointAction.visibleColumn('status') && (
+        <TableCell>
+          <StatusIndicator state={row.getStatus()} size="small" />
+        </TableCell>
+      )}
+      {endpointAction.visibleColumn('action') && (
+        <TableCell>
+          <div className="divide-x divide-gray-200 dark:divide-gray-800 flex border border-gray-200 dark:border-gray-800 w-fit">
+            <IButton
+              className="rounded-none"
+              onClick={event => {
+                event.stopPropagation();
+                onViewTrace(row);
+              }}
+            >
+              <TooltipPlus
+                className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+                popupContent={
+                  <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+                    View detail
+                  </div>
+                }
+              >
+                <Eye strokeWidth={1.5} className="h-4 w-4" />
+              </TooltipPlus>
+            </IButton>
           </div>
         </TableCell>
-      </TableRow>
-    </>
+      )}
+      {endpointAction.visibleColumn('timetaken') && (
+        <TableCell>
+          <span className="tabular-nums">
+            {Number(row.getTimetaken()) / 1000000}ms
+          </span>
+        </TableCell>
+      )}
+      {endpointAction.visibleColumn('total_token') && (
+        <TableCell>
+          <span className="tabular-nums">
+            {getTotalTokenMetric(row.getMetricsList())}
+          </span>
+        </TableCell>
+      )}
+      {endpointAction.visibleColumn('time_taken') && (
+        <TableCell>
+          <span className="tabular-nums">
+            {getTimeTakenMetric(row.getMetricsList()) / 1000000}ms
+          </span>
+        </TableCell>
+      )}
+      {endpointAction.visibleColumn('created_date') && (
+        <TableCell>
+          {row.getCreateddate() &&
+            toHumanReadableDateTime(row.getCreateddate()!)}
+        </TableCell>
+      )}
+    </TableRow>
   );
 };

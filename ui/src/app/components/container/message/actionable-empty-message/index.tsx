@@ -16,7 +16,7 @@ export const ActionableEmptyMessage: FC<{
       {action && (
         <IBlueBorderPlusButton
           onClick={onActionClick}
-          className="mt-3 bg-white"
+          className="mt-3 bg-white dark:bg-gray-950"
         >
           {action}
         </IBlueBorderPlusButton>

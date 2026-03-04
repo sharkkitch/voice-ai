@@ -57,14 +57,17 @@ export function Dropdown(props: DropdownProps<any>) {
               className={cn(
                 'w-full',
                 'h-10 cursor-default relative',
-                'py-2 pl-3 pr-10 text-left',
-                'outline-solid outline-transparent border-collapse',
-                'focus-within:outline-blue-600 focus:outline-blue-600 ',
-                'border-b border-gray-300 dark:border-gray-700',
-                'dark:focus:border-blue-600 focus:border-blue-600',
-                'transition-all duration-200 ease-in-out',
-                'dark:text-gray-300 text-gray-600',
-                'focus:ring-0',
+                'py-2 pl-4 pr-10 text-left',
+                // Carbon field background
+                'bg-light-background dark:bg-gray-950',
+                // Carbon inset focus outline — matches Input/Select
+                'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+                'focus:outline-primary focus:border-primary dark:focus:border-primary',
+                // Carbon bottom border only
+                'border-0 border-b border-gray-300 dark:border-gray-700',
+                'transition-colors duration-100',
+                'dark:text-gray-300 text-gray-700',
+                'rounded-none',
                 'flex items-center',
                 props.disable && 'cursor-not-allowed!',
                 props.className,
@@ -105,16 +108,18 @@ export function Dropdown(props: DropdownProps<any>) {
             >
               <ListboxOptions
                 className={cn(
-                  'shadow-lg relative',
-                  'z-50 max-h-96 w-full border overflow-y-scroll',
-                  'bg-light-background dark:bg-gray-900 dark:border-gray-800',
-                  'dark:text-gray-300 text-gray-600',
+                  'shadow-lg',
+                  'z-50 max-h-96 w-full overflow-y-auto',
+                  // Carbon $border-strong-01 border around the floating panel
+                  'border border-gray-300 dark:border-gray-700',
+                  'bg-light-background dark:bg-gray-900',
+                  'dark:text-gray-300 text-gray-700',
                   'divide-y divide-gray-200 dark:divide-gray-800',
-                  'outline-hidden',
+                  'outline-hidden rounded-none',
                 )}
               >
                 {props.searchable && (
-                  <div className="px-3 py-3 sticky top-0 bg-light-background dark:bg-gray-900 z-10  border-b">
+                  <div className="px-4 py-3 sticky top-0 bg-light-background dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-800">
                     <SearchIconInput
                       className="bg-white dark:bg-gray-950"
                       wrapperClassName="w-full!"
@@ -130,17 +135,19 @@ export function Dropdown(props: DropdownProps<any>) {
                       key={idx}
                       value={mp}
                       className={cn(
-                        'inline-flex py-2 px-3 w-full relative',
-                        'items-center leading-6',
-                        'transition-colors ease justify-between truncate',
-                        'dark:hover:bg-gray-950 hover:bg-white',
+                        // Carbon dropdown item: h-10 (40px), px-4 ($spacing-05)
+                        'inline-flex min-h-10 py-2.5 px-4 w-full relative',
+                        'items-center leading-5',
+                        'transition-colors ease justify-between',
+                        // Carbon $layer-hover
+                        'hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer',
                       )}
                     >
                       {({ selected }) => (
                         <>
                           {props.option && props.option(mp, selected)}
                           {selected && (
-                            <span className="h-4 w-4 rounded-[2px] bg-blue-600 p-[2px] ml-auto flex items-center justify-center">
+                            <span className="h-4 w-4 rounded-[2px] bg-primary p-[2px] ml-auto flex items-center justify-center shrink-0">
                               <Check className="text-white" />
                             </span>
                           )}

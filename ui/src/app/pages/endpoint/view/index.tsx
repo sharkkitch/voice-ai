@@ -99,7 +99,7 @@ export function ViewEndpointPage() {
   }, [endpointId, endpointProviderId]);
 
   return (
-    <>
+    <div className="h-full flex flex-col overflow-auto flex-1">
       <EndpointInstructionDialog
         className="w-1/2"
         modalOpen={instructionVisible}
@@ -109,7 +109,7 @@ export function ViewEndpointPage() {
       />
 
       <UpdateDescriptionDialog
-        title="Update endpoint detail"
+        title="Edit details"
         name={currentEndpoint?.getName()}
         modalOpen={updateDetailVisible}
         setModalOpen={onHideUpdateDetailVisible}
@@ -141,7 +141,7 @@ export function ViewEndpointPage() {
       />
 
       <CreateTagDialog
-        title="Update endpoint tags"
+        title="Edit tags"
         tags={currentEndpoint?.getEndpointtag()?.getTagList()}
         modalOpen={editTagVisible}
         allTags={EndpointTag}
@@ -173,65 +173,60 @@ export function ViewEndpointPage() {
         }}
       />
 
-      <div className="flex flex-col h-full relative flex-1 overflow-auto">
-        <Helmet title="Hosted endpoints" />
-        <PageHeaderBlock>
-          <div className="flex items-center gap-3">
-            <PageTitleBlock>
-              Endpoint<span className="px-1">/</span>
-              {currentEndpoint?.getName()}
-            </PageTitleBlock>
-            <div className="text-xs opacity-75">
-              {currentEndpoint?.getEndpointprovidermodel()?.getCreateddate() &&
-                toHumanReadableRelativeTime(
-                  currentEndpoint
-                    ?.getEndpointprovidermodel()
-                    ?.getCreateddate()!,
-                )}
-            </div>
-          </div>
-          <div className="flex">
-            {currentEndpoint && (
-              <EndpointAction currentEndpoint={currentEndpoint} />
-            )}
-          </div>
-        </PageHeaderBlock>
-
-        {currentEndpointProviderModel && currentEndpoint && (
-          <Tab
-            strict
-            active="overview"
-            className={cn(
-              'sticky top-0 z-1',
-              'bg-white border-t border-b dark:bg-gray-900 dark:border-gray-800',
-            )}
-            tabs={[
-              {
-                label: 'overview',
-                element: (
-                  <Playground
-                    currentEndpoint={currentEndpoint}
-                    currentEndpointProviderModel={currentEndpointProviderModel}
-                  />
-                ),
-              },
-              {
-                label: 'Traces',
-                element: <EndpointTraces currentEndpoint={currentEndpoint} />,
-              },
-              {
-                label: 'versions',
-                element: (
-                  <Version
-                    currentEndpoint={currentEndpoint}
-                    onReload={onReload}
-                  />
-                ),
-              },
-            ]}
-          />
+      <Helmet title="Hosted endpoints" />
+      <PageHeaderBlock>
+        <div className="flex items-center gap-3">
+          <PageTitleBlock>
+            <span className="text-gray-400 dark:text-gray-500 font-normal">
+              Endpoint
+            </span>
+            <span className="px-2 text-gray-300 dark:text-gray-600">/</span>
+            {currentEndpoint?.getName()}
+          </PageTitleBlock>
+          {currentEndpoint?.getEndpointprovidermodel()?.getCreateddate() && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+              {toHumanReadableRelativeTime(
+                currentEndpoint.getEndpointprovidermodel()?.getCreateddate()!,
+              )}
+            </span>
+          )}
+        </div>
+        {currentEndpoint && (
+          <EndpointAction currentEndpoint={currentEndpoint} />
         )}
-      </div>
-    </>
+      </PageHeaderBlock>
+
+      {currentEndpointProviderModel && currentEndpoint && (
+        <Tab
+          strict
+          active="overview"
+          className={cn('sticky top-0 z-1', 'bg-white dark:bg-gray-900')}
+          tabs={[
+            {
+              label: 'overview',
+              element: (
+                <Playground
+                  currentEndpoint={currentEndpoint}
+                  currentEndpointProviderModel={currentEndpointProviderModel}
+                />
+              ),
+            },
+            {
+              label: 'Traces',
+              element: <EndpointTraces currentEndpoint={currentEndpoint} />,
+            },
+            {
+              label: 'versions',
+              element: (
+                <Version
+                  currentEndpoint={currentEndpoint}
+                  onReload={onReload}
+                />
+              ),
+            },
+          ]}
+        />
+      )}
+    </div>
   );
 }

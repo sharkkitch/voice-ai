@@ -33,24 +33,20 @@ export const TagInput: FC<TagInputProps> = ({
   //
   return (
     <div>
-      <div className="mb-4 gap-2 flex">
-        {tags.map((t, idx) => {
-          return (
-            <div
-              key={idx}
-              className="rounded-[2px] px-2 flex w-fit items-center justify-center shrink-0 border-[0.5px]! dark:border-gray-700 py-1 bg-gray-200 hover:border-blue-600 dark:hover:border-blue-600 dark:bg-gray-900"
-            >
-              <span className="ml-1.5 mr-1.5 text-sm">{t}</span>
-              <CloseIcon
-                className="h-3.5 w-3.5 cursor-pointer opacity-60 hover:opacity-90"
-                stroke="currentColor"
-                onClick={() => {
-                  removeTag(t);
-                }}
-              />
-            </div>
-          );
-        })}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {tags.map((t, idx) => (
+          <span
+            key={idx}
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
+          >
+            {t}
+            <CloseIcon
+              className="h-3 w-3 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              stroke="currentColor"
+              onClick={() => removeTag(t)}
+            />
+          </span>
+        ))}
       </div>
       <FieldSet>
         <FormLabel>Tags (Optional)</FormLabel>

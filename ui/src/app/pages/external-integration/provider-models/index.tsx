@@ -23,18 +23,18 @@ export function ProviderModelPage() {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Providers and Models</PageTitleBlock>
-          <div className="text-xs opacity-75">
-            ({`${INTEGRATION_PROVIDER.length}/${INTEGRATION_PROVIDER.length}`})
-          </div>
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+            {`${INTEGRATION_PROVIDER.length}/${INTEGRATION_PROVIDER.length}`}
+          </span>
         </div>
       </PageHeaderBlock>
-      <BluredWrapper className="p-0">
+      <BluredWrapper className="sticky top-0 z-11">
         <SearchIconInput
-          className="bg-light-background"
+          className="bg-light-background flex-1"
           onChange={e => setSearchTerm(e.target.value)}
         />
       </BluredWrapper>
-      <div className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 grid p-4">
+      <section className="grid content-start grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[2px] grow shrink-0 m-4">
         {filteredProviders.map((mp, idx) => {
           return (
             <ProviderCard
@@ -44,7 +44,7 @@ export function ProviderModelPage() {
             />
           );
         })}
-      </div>
+      </section>
     </div>
   );
 }

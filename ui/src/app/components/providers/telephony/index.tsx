@@ -132,7 +132,7 @@ export const TelephonyProvider: React.FC<ProviderComponentProps> = props => {
 
   return (
     <InputGroup title="Telephony" className="bg-white dark:bg-gray-900 ">
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col gap-6">
         <FieldSet>
           <FormLabel>Telephony provider</FormLabel>
           <Dropdown

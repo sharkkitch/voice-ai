@@ -1,4 +1,3 @@
-import { IButton } from '@/app/components/form/button';
 import { cn } from '@/utils';
 import { X } from 'lucide-react';
 import { FC, HTMLAttributes } from 'react';
@@ -8,15 +7,24 @@ export const ModalHeader: FC<
     onClose: () => void;
   }
 > = props => {
+  const { onClose, className, children, ...rest } = props;
   return (
     <div
-      className={cn('flex flex-col relative pt-6 pb-3 px-6', props.className)}
-      {...props}
+      className={cn(
+        'relative flex items-center h-16 pl-4 pr-12 border-b border-gray-200 dark:border-gray-800 shrink-0',
+        className,
+      )}
+      {...rest}
     >
-      {props.children}
-      <IButton onClick={props.onClose} className="absolute top-0 right-0">
-        <X className="w-5 h-5" />
-      </IButton>
+      {children}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-0 top-0 h-16 w-12 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+        aria-label="Close"
+      >
+        <X className="w-4 h-4" />
+      </button>
     </div>
   );
 };

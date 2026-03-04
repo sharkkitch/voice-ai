@@ -117,11 +117,11 @@ export function KnowledgePage() {
 
       {knowledgeActions.knowledgeBases &&
       knowledgeActions.knowledgeBases.length > 0 ? (
-        <div className="sm:grid content-start grid-cols-1 gap-4 sm:grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 grow shrink-0 px-4 py-4">
-          {knowledgeActions.knowledgeBases.map((kf, idx) => {
-            return <ClickableKnowledgeCard key={idx} knowledge={kf} />;
-          })}
-        </div>
+        <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-px bg-gray-200 dark:bg-gray-800 grow shrink-0 m-4">
+          {knowledgeActions.knowledgeBases.map((kf, idx) => (
+            <ClickableKnowledgeCard key={idx} knowledge={kf} />
+          ))}
+        </section>
       ) : knowledgeActions.criteria.length > 0 ? (
         <div className="flex flex-col h-full flex-1 items-center justify-center">
           <ActionableEmptyMessage

@@ -71,7 +71,7 @@ export function ForgotPasswordPage() {
       <Helmet title="Forgot your password"></Helmet>
       <FormActionHeading heading="Forgot Password"></FormActionHeading>
       <form
-        className="space-y-6 mt-6"
+        className="flex flex-col gap-4 mt-6"
         onSubmit={handleSubmit(onForgotPassword)}
       >
         <FieldSet>
@@ -96,9 +96,9 @@ export function ForgotPasswordPage() {
           Send Email
         </IBlueBGArrowButton>
       </form>
-      <p className="mt-4 text-center text-gray-500">
+      <p className="mt-6 text-center">
         <a
-          className="leading-6 text-blue-600 hover:text-blue-500 underline"
+          className="text-sm text-primary underline hover:text-primary/80"
           href="/auth/signin"
         >
           Back to sign in?

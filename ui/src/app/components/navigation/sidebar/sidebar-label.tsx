@@ -7,8 +7,10 @@ export function SidebarLabel(props: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={cn(
-        'text-sm truncate inline-block transition-all duration-200 text-gray-900 dark:text-gray-100',
-        open ? 'opacity-100' : 'opacity-0',
+        // Carbon body-short-01 — 14px, single line
+        'text-sm truncate flex-1 transition-all duration-200',
+        'text-gray-700 dark:text-gray-300',
+        open ? 'opacity-100' : 'opacity-0 w-0',
         props.className,
       )}
       {...props}

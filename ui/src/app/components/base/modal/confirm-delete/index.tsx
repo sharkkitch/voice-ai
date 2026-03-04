@@ -53,11 +53,8 @@ export const ConfirmDeleteDialog: FC<ConfirmDeleteDialogProps> = ({
           />
         </div>
         <ModalFooter>
-          <ICancelButton className="px-4 rounded-[2px]" onClick={onCancel}>
-            {cancelText}
-          </ICancelButton>
+          <ICancelButton onClick={onCancel}>{cancelText}</ICancelButton>
           <IRedBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={handleConfirm}
             disabled={inputName !== objectName}

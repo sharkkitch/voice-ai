@@ -1,41 +1,55 @@
 import { cn } from '@/utils';
-import { CheckIcon } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes } from 'react';
+
 interface InputCheckboxProps extends InputHTMLAttributes<HTMLInputElement> {}
 
 /**
+ * Carbon checkbox — 16×16px square, zero border-radius.
+ * States: enabled → hover → checked (primary fill) → focus (inset outline) → disabled.
  *
+ * Accessibility: native input kept in DOM via sr-only (not display:none)
+ * so screen readers and keyboard nav work correctly.
  */
 export const InputCheckbox = forwardRef<HTMLInputElement, InputCheckboxProps>(
-  (props: InputCheckboxProps, ref) => {
-    /**
-     * when any request is going disable all the input boxes
-     */
+  (props, ref) => {
+    const { className, ...inputProps } = props;
+
     return (
-      <label className="cursor-pointer inline-flex items-center">
-        <input
-          ref={ref}
-          {...props}
-          type="checkbox"
-          className={cn('peer hidden')}
-        />
-        <div
+      <label className="cursor-pointer inline-flex items-center gap-2">
+        {/* Native input — visually hidden but accessible */}
+        <input ref={ref} {...inputProps} type="checkbox" className="peer sr-only" />
+
+        {/* Visual checkbox — 16×16, square, fills primary on checked */}
+        <span
           className={cn(
-            'outline-solid outline-[1.5px] outline-transparent',
-            'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
-            'border-[0.5px] border-gray-400 dark:border-gray-700',
-            'dark:focus:border-blue-600 focus:border-blue-600',
-            'dark:hover:border-blue-600 hover:border-blue-600',
-            'transition-all duration-200 ease-in-out',
-            'peer-checked:text-white! text-transparent!',
-            'peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500',
-            'h-4 w-4 rounded-none flex items-center justify-center transition',
+            // Size — Carbon: 16×16px
+            'relative flex-shrink-0 w-4 h-4',
+            // Shape — Carbon: zero border-radius
+            'rounded-none',
+            // Border — 1px, gray when unchecked
+            'border border-gray-500 dark:border-gray-400',
+            // Background — white by default, primary when checked
             'bg-white dark:bg-gray-950',
-            props.className,
+            'peer-checked:bg-primary peer-checked:border-primary',
+            // Text color propagates to Check icon
+            'text-transparent peer-checked:text-white',
+            // Hover
+            'peer-hover:border-primary',
+            // Disabled
+            'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed',
+            // Focus — inset outline on the visual element
+            'peer-focus-visible:outline peer-focus-visible:outline-2',
+            'peer-focus-visible:outline-primary peer-focus-visible:outline-offset-[-2px]',
+            // Layout
+            'flex items-center justify-center',
+            'transition-colors duration-100',
+            className,
           )}
         >
-          <CheckIcon className="" />
-        </div>
+          {/* Carbon uses a ~9px check inside a 16px box */}
+          <Check className="w-3 h-3" strokeWidth={2.5} />
+        </span>
       </label>
     );
   },

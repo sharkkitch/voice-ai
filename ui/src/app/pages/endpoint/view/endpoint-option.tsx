@@ -23,21 +23,19 @@ export function EndpointOptions(props: EndpointOptionProps) {
    */
   const options = [
     {
-      option: 'Integration instruction',
+      option: 'Integration guide',
       onActionClick: () => {
         endpointActions.onShowInstruction();
       },
     },
-
     {
-      option: 'Update endpoint tags',
+      option: 'Edit tags',
       onActionClick: () => {
         endpointActions.onShowEditTagVisible(props.endpoint);
       },
     },
-
     {
-      option: 'Update endpoint detail',
+      option: 'Edit details',
       onActionClick: () => {
         endpointActions.onShowUpdateDetailVisible(props.endpoint);
       },

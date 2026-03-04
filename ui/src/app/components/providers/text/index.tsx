@@ -186,15 +186,13 @@ export const TextProvider: React.FC<ProviderComponentProps> = props => {
         <FormLabel>Provider Model</FormLabel>
         <div
           className={cn(
-            'outline-solid outline-transparent',
-            'focus-within:outline-blue-600 focus:outline-blue-600 -outline-offset-1',
+            'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+            'focus-within:outline-primary focus-within:border-primary',
             'border-b border-gray-300 dark:border-gray-700',
-            'dark:focus-within:border-blue-600 focus-within:border-blue-600',
-            'transition-all duration-200 ease-in-out',
+            'transition-colors duration-100',
             'flex relative',
             'bg-light-background dark:bg-gray-950',
-            'divide-x',
-            'pt-px pl-px',
+            'divide-x divide-gray-300 dark:divide-gray-700',
           )}
         >
           <div className="w-44 relative">

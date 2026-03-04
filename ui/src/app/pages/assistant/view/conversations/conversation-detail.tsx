@@ -14,37 +14,37 @@ import { useParams } from 'react-router-dom';
 import { useCurrentCredential } from '@/hooks/use-credential';
 import { AssistantConversation } from '@rapidaai/react';
 import { useRapidaStore } from '@/hooks';
-import { SideTab } from '@/app/components/tab-link';
 import { PageLoader } from '@/app/components/loader/page-loader';
-import {
-  Activity,
-  BookText,
-  ChartArea,
-  ChevronLeft,
-  DownloadIcon,
-  MessagesSquare,
-  Parentheses,
-  RotateCw,
-} from 'lucide-react';
+import { ChevronLeft, RotateCw } from 'lucide-react';
 import { useGlobalNavigation } from '@/hooks/use-global-navigator';
-import { IBlueButton } from '@/app/components/form/button';
+import { IButton } from '@/app/components/form/button';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
-import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
+import { Tab } from '@/app/components/tab-link';
 import { Table } from '@/app/components/base/tables/table';
 import { TableHead } from '@/app/components/base/tables/table-head';
 import { TableBody } from '@/app/components/base/tables/table-body';
 import { TableRow } from '@/app/components/base/tables/table-row';
 import { TableCell } from '@/app/components/base/tables/table-cell';
 import { BlueNoticeBlock } from '@/app/components/container/message/notice-block';
-import { PaginationButtonBlock } from '@/app/components/blocks/pagination-button-block';
 import { ActionableEmptyMessage } from '@/app/components/container/message/actionable-empty-message';
 import { connectionConfig } from '@/configs';
+import { cn } from '@/utils';
+import { StatusIndicator } from '@/app/components/indicators/status';
+import { getStatusMetric } from '@/utils/metadata';
 
-/**
- *
- * @param param0
- * @returns
- */
+// ── Tab definitions ───────────────────────────────────────────────────────────
+
+const TABS = [
+  { key: 'messages',  label: 'Messages' },
+  { key: 'context',   label: 'Context' },
+  { key: 'arguments', label: 'Arguments' },
+  { key: 'analysis',  label: 'Analysis' },
+  { key: 'metrics',   label: 'Metrics' },
+] as const;
+
+type TabKey = (typeof TABS)[number]['key'];
+
+// ── Page component ────────────────────────────────────────────────────────────
 
 export function ConversationDetailPage() {
   const { assistantId, sessionId } = useParams();
@@ -54,8 +54,7 @@ export function ConversationDetailPage() {
   const navigator = useGlobalNavigation();
   const [currentConversation, setCurrentConversation] =
     useState<AssistantConversation | null>(null);
-
-  const [activeTab, setActiveTab] = useState('messages');
+  const [activeTab, setActiveTab] = useState<TabKey>('messages');
 
   const get = () => {
     showLoader();
@@ -80,12 +79,11 @@ export function ConversationDetailPage() {
           setCurrentConversation(response.getData()!);
         }
       })
-      .catch(err => {
+      .catch(() => {
         hideLoader();
       });
   };
 
-  //
   useEffect(() => {
     if (!assistantId || !sessionId) return;
     get();
@@ -94,144 +92,76 @@ export function ConversationDetailPage() {
   if (loading || currentConversation == null) {
     return <PageLoader />;
   }
+
   const renderContent = () => {
     switch (activeTab) {
-      case 'analysis':
-        return (
-          <div className="flex-1 flex flex-col h-full relative">
-            <PageHeaderBlock className="border-b h-10">
-              <PageTitleBlock>Analysis</PageTitleBlock>
-              <PaginationButtonBlock>
-                <IBlueButton onClick={() => {}}>
-                  <DownloadIcon strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-                <IBlueButton
-                  onClick={() => {
-                    get();
-                  }}
-                >
-                  <RotateCw strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-              </PaginationButtonBlock>
-            </PageHeaderBlock>
-
-            {currentConversation
-              .getMetadataList()
-              .filter(x => x.getKey().startsWith('analysis.')).length === 0 ? (
-              <div className="my-auto mx-auto flex flex-1">
-                <ActionableEmptyMessage
-                  title="No Analysis"
-                  subtitle="There are no analysis yet done for the conversation"
-                />
+      case 'analysis': {
+        const items = currentConversation
+          .getMetadataList()
+          .filter(x => x.getKey().startsWith('analysis.'));
+        return items.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <ActionableEmptyMessage
+              title="No Analysis"
+              subtitle="There is no analysis yet for this conversation"
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+            {items.map((x, idx) => (
+              <div key={idx} className="px-6 py-4 space-y-3 bg-white dark:bg-gray-900">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+                  {x.getKey().replace('.', ' › ')}
+                </p>
+                <JsonViewer data={x.getValue()} />
               </div>
-            ) : (
-              <div className="flex flex-1 p-3 flex-col space-y-4 divide-y-2">
-                {currentConversation
-                  .getMetadataList()
-                  .filter(x => x.getKey().startsWith('analysis.'))
-                  .map((x, idx) => (
-                    <div
-                      key={idx}
-                      className="space-y-3 px-4 py-3 bg-white dark:bg-gray-950"
-                    >
-                      <div className="capitalize font-medium text-base">
-                        {x.getKey().replace('.', ' > ')}
-                      </div>
-                      <JsonViewer data={x.getValue()} />
-                    </div>
-                  ))}
-              </div>
-            )}
+            ))}
           </div>
         );
+      }
 
-      case 'context':
-        return (
-          <div className="flex-1 flex flex-col h-full relative">
-            <PageHeaderBlock className="border-b h-10">
-              <PageTitleBlock>Knowledge Contexts</PageTitleBlock>
-              <PaginationButtonBlock>
-                <IBlueButton onClick={() => {}}>
-                  <DownloadIcon strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-                <IBlueButton
-                  onClick={() => {
-                    get();
-                  }}
-                >
-                  <RotateCw strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-              </PaginationButtonBlock>
-            </PageHeaderBlock>
-
-            {currentConversation.getContextsList().length === 0 ? (
-              <div className="my-auto mx-auto flex flex-1">
-                <ActionableEmptyMessage
-                  title="No Context"
-                  subtitle="There are no context yet for the conversation"
+      case 'context': {
+        const contexts = currentConversation.getContextsList();
+        return contexts.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <ActionableEmptyMessage
+              title="No Context"
+              subtitle="No knowledge context was retrieved for this conversation"
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+            {contexts.map((x, idx) => (
+              <div key={idx} className="px-6 py-5 space-y-4">
+                <DataField
+                  label="Query"
+                  value={x.getQuery()?.getFieldsMap().get('query')?.getStringValue()}
+                />
+                <DataField
+                  label="Additional Filter"
+                  value={JSON.stringify(
+                    x.getQuery()?.getFieldsMap().get('additionalData')?.getStructValue()?.toJavaScript(),
+                  )}
+                />
+                <DataField
+                  label={`Content${
+                    x.getResult()?.getFieldsMap().get('score')?.getNumberValue() != null
+                      ? ` · score ${x.getResult()?.getFieldsMap().get('score')?.getNumberValue()}`
+                      : ''
+                  }`}
+                  value={x.getResult()?.getFieldsMap().get('content')?.getStringValue()}
+                />
+                <DataField
+                  label="Document"
+                  value={JSON.stringify(x.getMetadata()?.toJavaScript(), null, 2)}
+                  mono
                 />
               </div>
-            ) : (
-              <div className="flex flex-1 p-3 flex-col space-y-4 divide-y-2">
-                {currentConversation.getContextsList().map((x, idx) => (
-                  <div key={idx} className="space-y-3 px-4 py-3">
-                    {/* Query */}
-                    <div>
-                      <h3 className="font-semibold mb-2">Query</h3>
-                      <p className="opacity-80 leading-relaxed text-sm">
-                        {x
-                          .getQuery()
-                          ?.getFieldsMap()
-                          .get('query')
-                          ?.getStringValue()}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Additional Filter</h3>
-                      <p className="opacity-80 leading-relaxed text-sm">
-                        {JSON.stringify(
-                          x
-                            .getQuery()
-                            ?.getFieldsMap()
-                            .get('additionalData')
-                            ?.getStructValue()
-                            ?.toJavaScript(),
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">
-                        Content
-                        <small>
-                          {x
-                            .getResult()
-                            ?.getFieldsMap()
-                            .get('score')
-                            ?.getNumberValue()}
-                        </small>
-                      </h3>
-                      <p className="opacity-80 leading-relaxed text-sm mb-2">
-                        {x
-                          .getResult()
-                          ?.getFieldsMap()
-                          .get('content')
-                          ?.getStringValue()}
-                      </p>
-                      <h3 className="font-semibold mb-2">Document</h3>
-                      <p className="opacity-80 leading-relaxed text-sm">
-                        {JSON.stringify(
-                          x.getMetadata()?.toJavaScript(),
-                          null,
-                          2,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         );
+      }
+
       case 'messages':
         return (
           <AssistantChatContext.Provider value={actions}>
@@ -242,212 +172,140 @@ export function ConversationDetailPage() {
             />
           </AssistantChatContext.Provider>
         );
+
       case 'metrics':
-        return (
-          <>
-            <PageHeaderBlock className="border-b h-10">
-              <PageTitleBlock>Metrics</PageTitleBlock>
-              <PaginationButtonBlock>
-                <IBlueButton onClick={() => {}}>
-                  <DownloadIcon strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-                <IBlueButton
-                  onClick={() => {
-                    get();
-                  }}
-                >
-                  <RotateCw strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-              </PaginationButtonBlock>
-            </PageHeaderBlock>
-            {currentConversation.getMetricsList() &&
-            currentConversation.getMetricsList().length > 0 ? (
-              <Table className="w-full bg-white dark:bg-gray-900">
-                <TableHead
-                  columns={[
-                    { name: 'Name', key: 'Name' },
-                    { name: 'Value', key: 'Value' },
-                    { name: 'Description', key: 'Description' },
-                  ]}
-                />
-                <TableBody>
-                  {currentConversation
-                    .getMetricsList()
-                    .map((metadata, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>{metadata.getName()}</TableCell>
-                          <TableCell className="break-words break-all">
-                            {metadata.getValue()}
-                          </TableCell>
-                          <TableCell className="break-words break-all">
-                            {metadata.getDescription()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            ) : (
-              <BlueNoticeBlock>
-                No metadata has been captured for this conversation.
-              </BlueNoticeBlock>
-            )}
-          </>
+        return currentConversation.getMetricsList().length > 0 ? (
+          <Table className="w-full bg-white dark:bg-gray-900">
+            <TableHead
+              columns={[
+                { name: 'Name', key: 'Name' },
+                { name: 'Value', key: 'Value' },
+                { name: 'Description', key: 'Description' },
+              ]}
+            />
+            <TableBody>
+              {currentConversation.getMetricsList().map((m, i) => (
+                <TableRow key={i}>
+                  <TableCell>{m.getName()}</TableCell>
+                  <TableCell className="break-words break-all">{m.getValue()}</TableCell>
+                  <TableCell className="break-words break-all">{m.getDescription()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <BlueNoticeBlock>No metrics have been captured for this conversation.</BlueNoticeBlock>
         );
+
       case 'arguments':
         return (
-          <div className="flex flex-col w-full divide-x flex-1">
-            <PageHeaderBlock className="border-b h-10">
-              <PageTitleBlock>Arguments and Parameters</PageTitleBlock>
-              <PaginationButtonBlock>
-                <IBlueButton onClick={() => {}}>
-                  <DownloadIcon strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-                <IBlueButton
-                  onClick={() => {
-                    get();
-                  }}
-                >
-                  <RotateCw strokeWidth={1.5} className="h-4 w-4" />
-                </IBlueButton>
-              </PaginationButtonBlock>
-            </PageHeaderBlock>
-            <Table className="bg-white dark:bg-gray-900">
-              <TableHead
-                columns={[
-                  { name: 'Type', key: 'Type' },
-                  { name: 'Name', key: 'Name' },
-                  { name: 'Value', key: 'Value' },
-                ]}
-              />
-              <TableBody>
-                {currentConversation
-                  ?.getArgumentsList()
-                  .map((metadata, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>Argument</TableCell>
-                        <TableCell>{metadata.getName()}</TableCell>
-                        <TableCell>{metadata.getValue()}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                {currentConversation
-                  ?.getOptionsList()
-                  .map((metadata, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>Option</TableCell>
-                        <TableCell>{metadata.getKey()}</TableCell>
-                        <TableCell>{metadata.getValue()}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                {currentConversation
-                  ?.getMetadataList()
-                  .map((metadata, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>Metadata</TableCell>
-                        <TableCell>{metadata.getKey()}</TableCell>
-                        <TableCell className="break-words break-all">
-                          {metadata.getValue()}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          </div>
+          <Table className="bg-white dark:bg-gray-900">
+            <TableHead
+              columns={[
+                { name: 'Type', key: 'Type' },
+                { name: 'Name', key: 'Name' },
+                { name: 'Value', key: 'Value' },
+              ]}
+            />
+            <TableBody>
+              {currentConversation.getArgumentsList().map((m, i) => (
+                <TableRow key={`arg-${i}`}>
+                  <TableCell>Argument</TableCell>
+                  <TableCell>{m.getName()}</TableCell>
+                  <TableCell>{m.getValue()}</TableCell>
+                </TableRow>
+              ))}
+              {currentConversation.getOptionsList().map((m, i) => (
+                <TableRow key={`opt-${i}`}>
+                  <TableCell>Option</TableCell>
+                  <TableCell>{m.getKey()}</TableCell>
+                  <TableCell>{m.getValue()}</TableCell>
+                </TableRow>
+              ))}
+              {currentConversation.getMetadataList().map((m, i) => (
+                <TableRow key={`meta-${i}`}>
+                  <TableCell>Metadata</TableCell>
+                  <TableCell>{m.getKey()}</TableCell>
+                  <TableCell className="break-words break-all">{m.getValue()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         );
     }
   };
 
   return (
     <>
-      {' '}
-      <PageHeaderBlock className="border-b text-sm/6">
-        <div
-          onClick={() => navigator.goToAssistantSessionList(assistantId!)}
-          className="flex items-center gap-3 hover:text-red-600 hover:cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5 mr-1" strokeWidth={1.5} />
-          <PageTitleBlock>Back to Assistant</PageTitleBlock>
+      {/* ── Page header: breadcrumb + status + refresh ── */}
+      <PageHeaderBlock>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div
+            onClick={() => navigator.goToAssistantSessionList(assistantId!)}
+            className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-primary transition-colors cursor-pointer shrink-0"
+          >
+            <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+            <span className="text-sm font-medium">Sessions</span>
+          </div>
+          <span className="px-1 text-gray-300 dark:text-gray-600 shrink-0">/</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono truncate">
+            {sessionId}
+          </span>
+        </div>
+        <div className="flex items-stretch h-full">
+          <div className="border-l border-gray-200 dark:border-gray-800 flex items-center px-4">
+            <StatusIndicator
+              state={getStatusMetric(currentConversation.getMetricsList())}
+            />
+          </div>
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
+          <IButton onClick={get}>
+            <RotateCw strokeWidth={1.5} className="h-4 w-4" />
+          </IButton>
         </div>
       </PageHeaderBlock>
-      <div className="flex-1 flex relative grow h-full overflow-hidden">
-        <aside
-          className="w-80 border-r bg-white dark:bg-gray-900 z-1 overflow-auto shrink-0"
-          aria-label="Sidebar"
-        >
-          <div className="h-full space-y-3">
-            <ul className="p-1 space-y-1">
-              <li>
-                <SideTab
-                  to="#"
-                  className="h-11"
-                  isActive={activeTab === 'messages'}
-                  onClick={() => setActiveTab('messages')}
-                >
-                  <MessagesSquare className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                  <span className="">Messages</span>
-                </SideTab>
-              </li>
-              <li>
-                <SideTab
-                  to="#"
-                  className="h-11"
-                  isActive={activeTab === 'context'}
-                  onClick={() => setActiveTab('context')}
-                >
-                  <BookText className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                  <span className="">Context</span>
-                </SideTab>
-              </li>
-              <li>
-                <SideTab
-                  to="#"
-                  className="h-11"
-                  isActive={activeTab === 'arguments'}
-                  onClick={() => setActiveTab('arguments')}
-                >
-                  <Parentheses className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                  <span className="">Arguments</span>
-                </SideTab>
-              </li>
-              <li>
-                <SideTab
-                  to="#"
-                  className="h-11"
-                  isActive={activeTab === 'analysis'}
-                  onClick={() => setActiveTab('analysis')}
-                >
-                  <ChartArea className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                  <span className="">Analysis</span>
-                </SideTab>
-              </li>
-              <li>
-                <SideTab
-                  to="#"
-                  className="h-11"
-                  isActive={activeTab === 'metrics'}
-                  onClick={() => setActiveTab('metrics')}
-                >
-                  <Activity className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                  <span className="">Metrics</span>
-                </SideTab>
-              </li>
-            </ul>
-          </div>
-        </aside>
-        <div className="flex-1 overflow-auto flex flex-col">
-          {renderContent()}
-        </div>
+
+      {/* ── Horizontal tab bar ── */}
+      <div className="flex items-stretch border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 overflow-x-auto">
+        {TABS.map(({ key, label }) => (
+          <Tab
+            key={key}
+            isActive={activeTab === key}
+            onClick={() => setActiveTab(key)}
+          >
+            {label}
+          </Tab>
+        ))}
+      </div>
+
+      {/* ── Content area ── */}
+      <div className="flex-1 overflow-auto flex flex-col">
+        {renderContent()}
       </div>
     </>
   );
 }
+
+// ── Helper components ─────────────────────────────────────────────────────────
+
+const DataField = ({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value?: string | null;
+  mono?: boolean;
+}) => (
+  <div>
+    <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 mb-1">
+      {label}
+    </p>
+    <p className={cn('text-sm text-gray-900 dark:text-gray-100 leading-relaxed', mono && 'font-mono')}>
+      {value ?? '—'}
+    </p>
+  </div>
+);
 
 interface JsonViewerProps {
   data: string | any;
@@ -455,17 +313,14 @@ interface JsonViewerProps {
 }
 
 const JsonViewer = ({ data, preview = false }: JsonViewerProps) => {
-  // Parse JSON string if data is a string
   const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-  // Check if it's a simple result structure
   const isSimpleResult =
     parsedData &&
     typeof parsedData === 'object' &&
     parsedData.result &&
     Object.keys(parsedData).length === 1;
 
-  // Extract key insights for business display
   const extractInsights = (
     obj: any,
   ): { key: string; value: any; type: string }[] => {
@@ -475,7 +330,6 @@ const JsonViewer = ({ data, preview = false }: JsonViewerProps) => {
       if (typeof object === 'object' && object !== null) {
         Object.entries(object).forEach(([key, value]) => {
           const formattedKey = prefix ? `${prefix}.${key}` : key;
-
           if (
             typeof value === 'object' &&
             value !== null &&
@@ -498,49 +352,35 @@ const JsonViewer = ({ data, preview = false }: JsonViewerProps) => {
   };
 
   const insights = extractInsights(parsedData);
-  const shouldTruncate = preview && insights.length > 3;
-  const displayInsights = shouldTruncate ? insights.slice(0, 3) : insights;
+  const displayInsights =
+    preview && insights.length > 3 ? insights.slice(0, 3) : insights;
 
   const formatValue = (value: any, type: string) => {
-    if (type === 'array') {
-      return Array.isArray(value) ? value.join(', ') : String(value);
-    }
-    if (type === 'number') {
-      return typeof value === 'number'
-        ? `${Math.round(value * 100)}%`
-        : String(value);
-    }
+    if (type === 'array') return Array.isArray(value) ? value.join(', ') : String(value);
+    if (type === 'number')
+      return typeof value === 'number' ? `${Math.round(value * 100)}%` : String(value);
     return String(value);
   };
 
-  // Simple result display
   if (isSimpleResult) {
     return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          {/* <Badge variant="outline" className="text-xs"> */}
-          Analysis Result
-          {/* </Badge> */}
-        </div>
-        <p className="text-foreground leading-relaxed">{parsedData.result}</p>
-      </div>
+      <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+        {parsedData.result}
+      </p>
     );
   }
 
-  // Complex data display
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {displayInsights.map((insight, index) => (
         <div
           key={index}
-          className="border-l-2 border-primary bg-blue-600/5 pl-4 py-2"
+          className="border-l-2 border-primary bg-primary/5 pl-4 py-2"
         >
-          <div className="mb-2">
-            <h4 className="font-medium text-sm text-foreground capitalize leading-tight">
-              {insight.key}
-            </h4>
-          </div>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 mb-1 capitalize">
+            {insight.key}
+          </p>
+          <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
             {formatValue(insight.value, insight.type)}
           </p>
         </div>

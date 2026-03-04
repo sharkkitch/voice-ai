@@ -152,6 +152,7 @@ export const useEndpointLogPage = create<EndpointLogType>((set, get) => ({
     { name: 'Version', key: 'version', visible: true },
     { name: 'Source', key: 'source', visible: true },
     { name: 'Status', key: 'status', visible: true },
+    { name: 'Action', key: 'action', visible: true },
     { name: 'Total Time Taken', key: 'timetaken', visible: true },
     { name: 'LLM Total Token', key: 'total_token', visible: true },
     { name: 'LLM Time Taken', key: 'time_taken', visible: true },

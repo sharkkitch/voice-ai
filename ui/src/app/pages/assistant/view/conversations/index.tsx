@@ -255,30 +255,30 @@ export function Conversations({ currentAssistant }: ConversationProps) {
         events={telephonyEvents}
       />
 
-      <BluredWrapper className="border-none p-0">
+      <BluredWrapper>
         <SearchIconInput />
-        <div className="divide-x dark:divide-gray-800 flex">
-          <TablePagination
-            columns={assistantConversationListAction.columns}
-            currentPage={assistantConversationListAction.page}
-            onChangeCurrentPage={assistantConversationListAction.setPage}
-            totalItem={assistantConversationListAction.totalCount}
-            pageSize={assistantConversationListAction.pageSize}
-            onChangePageSize={assistantConversationListAction.setPageSize}
-            onChangeColumns={assistantConversationListAction.setColumns}
-          />
+        <div className="flex items-stretch border-l border-gray-200 dark:border-gray-800">
+          <div className="border-r border-gray-200 dark:border-gray-800 flex items-center">
+            <TablePagination
+              columns={assistantConversationListAction.columns}
+              currentPage={assistantConversationListAction.page}
+              onChangeCurrentPage={assistantConversationListAction.setPage}
+              totalItem={assistantConversationListAction.totalCount}
+              pageSize={assistantConversationListAction.pageSize}
+              onChangePageSize={assistantConversationListAction.setPageSize}
+              onChangeColumns={assistantConversationListAction.setColumns}
+            />
+          </div>
 
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
           <IButton
             type="button"
-            className="rounded-none"
-            onClick={() => {
-              setFilterOpen();
-            }}
+            onClick={() => setFilterOpen()}
           >
             <TooltipPlus
-              className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-0 py-0"
               popupContent={
-                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
+                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
                   Filter
                 </div>
               }
@@ -286,35 +286,29 @@ export function Conversations({ currentAssistant }: ConversationProps) {
               <ListFilterPlus className="w-4 h-4" strokeWidth={1.5} />
             </TooltipPlus>
           </IButton>
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
           <IButton
-            className="rounded-none"
             type="button"
             disabled={downloading}
-            onClick={() => {
-              onDownloadAllConversation();
-            }}
+            onClick={() => onDownloadAllConversation()}
           >
             <TooltipPlus
-              className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-0 py-0"
               popupContent={
-                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                  Export as report
+                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+                  Export as CSV
                 </div>
               }
             >
               {downloading ? (
-                <Spinner size="sm"></Spinner>
+                <Spinner size="sm" />
               ) : (
                 <Download className="w-4 h-4" strokeWidth={1.5} />
               )}
             </TooltipPlus>
           </IButton>
-          <IButton
-            className="rounded-none"
-            onClick={() => {
-              get();
-            }}
-          >
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
+          <IButton onClick={() => get()}>
             <RotateCw strokeWidth={1.5} className="h-4 w-4" />
           </IButton>
         </div>
@@ -334,7 +328,7 @@ export function Conversations({ currentAssistant }: ConversationProps) {
                     <TableCell>
                       <CustomLink
                         to={`/deployment/assistant/${row.getAssistantid()}/sessions/${row.getId()}`}
-                        className="font-normal dark:text-blue-500 text-blue-600 hover:underline cursor-pointer text-left flex items-center space-x-1"
+                        className="font-normal text-primary hover:underline cursor-pointer text-left flex items-center gap-1"
                       >
                         <span>{row.getId()}</span>
                         <ExternalLink className="w-3 h-3" />
@@ -386,49 +380,49 @@ export function Conversations({ currentAssistant }: ConversationProps) {
                     </LabelCell>
                   )}
                   <TableCell>
-                    <div className="divide-x dark:divide-gray-800 flex border w-fit">
+                    <div className="flex border border-gray-200 dark:border-gray-800 w-fit">
                       {row.getTelephonyeventsList().length > 0 && (
-                        <IButton
-                          className="rounded-none"
-                          onClick={() => {
-                            setTelephonyEvents(row.getTelephonyeventsList());
-                            setTelephonyStatusOpen(true);
-                            //
-                          }}
-                        >
-                          <TooltipPlus
-                            className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                            popupContent={
-                              <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                                View status
-                              </div>
-                            }
+                        <>
+                          <IButton
+                            onClick={() => {
+                              setTelephonyEvents(row.getTelephonyeventsList());
+                              setTelephonyStatusOpen(true);
+                            }}
                           >
-                            <PhoneCall strokeWidth={1.5} className="h-4 w-4" />
-                          </TooltipPlus>
-                        </IButton>
+                            <TooltipPlus
+                              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-0 py-0"
+                              popupContent={
+                                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+                                  View status
+                                </div>
+                              }
+                            >
+                              <PhoneCall strokeWidth={1.5} className="h-4 w-4" />
+                            </TooltipPlus>
+                          </IButton>
+                          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
+                        </>
                       )}
                       {CONFIG.workspace.features?.telemetry !== false && (
-                        <IButton
-                          className="rounded-none"
-                          onClick={() => {
-                            handleTraceClick(row.getAssistantid(), row.getId());
-                          }}
-                        >
-                          <TooltipPlus
-                            className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                            popupContent={
-                              <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                                View telemetry
-                              </div>
-                            }
+                        <>
+                          <IButton
+                            onClick={() => handleTraceClick(row.getAssistantid(), row.getId())}
                           >
-                            <Telescope strokeWidth={1.5} className="h-4 w-4" />
-                          </TooltipPlus>
-                        </IButton>
+                            <TooltipPlus
+                              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-0 py-0"
+                              popupContent={
+                                <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+                                  View telemetry
+                                </div>
+                              }
+                            >
+                              <Telescope strokeWidth={1.5} className="h-4 w-4" />
+                            </TooltipPlus>
+                          </IButton>
+                          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
+                        </>
                       )}
                       <IButton
-                        className="rounded-none"
                         onClick={event => {
                           event.stopPropagation();
                           navigation.goToAssistantSession(
@@ -438,9 +432,9 @@ export function Conversations({ currentAssistant }: ConversationProps) {
                         }}
                       >
                         <TooltipPlus
-                          className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+                          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-0 py-0"
                           popupContent={
-                            <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
+                            <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
                               View conversation
                             </div>
                           }

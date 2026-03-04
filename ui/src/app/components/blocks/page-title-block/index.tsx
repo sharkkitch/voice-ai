@@ -3,6 +3,8 @@ import { cn } from '@/utils';
 
 export const PageTitleBlock: FC<HTMLAttributes<HTMLDivElement>> = props => {
   return (
-    <div className={cn('font-medium', props.className)}>{props.children}</div>
+    <div className={cn('text-base text-gray-900 dark:text-gray-100', props.className)}>
+      {props.children}
+    </div>
   );
 };

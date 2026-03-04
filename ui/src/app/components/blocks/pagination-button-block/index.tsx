@@ -7,7 +7,7 @@ export const PaginationButtonBlock: FC<
   return (
     <div
       className={cn(
-        'flex flex-row divide-x dark:divide-gray-800',
+        'flex flex-row divide-x divide-gray-200 dark:divide-gray-800',
         props.className,
       )}
     >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { OptionMenu } from '@/app/components/menu';
+import { CardOptionMenu } from '@/app/components/menu';
 import { OptionMenuItem } from '@/app/components/menu/index';
 
 /**
@@ -9,7 +9,7 @@ import { OptionMenuItem } from '@/app/components/menu/index';
  */
 export function UserOption(props: { id: string }) {
   return (
-    <OptionMenu
+    <CardOptionMenu
       options={[
         {
           option: 'Edit user',

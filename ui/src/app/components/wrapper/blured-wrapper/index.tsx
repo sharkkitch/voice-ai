@@ -5,7 +5,8 @@ export function BluredWrapper(props: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        'flex justify-between items-center border-b border-t dark:border-gray-800 bg-white dark:bg-gray-900',
+        // Carbon toolbar row: border-b only (page header already provides top border)
+        'flex justify-between items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900',
         props.className,
       )}
     >

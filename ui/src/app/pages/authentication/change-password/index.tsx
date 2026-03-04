@@ -78,7 +78,7 @@ export function ChangePasswordPage() {
         subheading="You’ve requested to change your password. Please enter your new password below to secure your account. Once updated, you can use your new password to sign in."
       ></DescriptiveHeading>
       <form
-        className="space-y-6 mt-6"
+        className="flex flex-col gap-4 mt-6"
         onSubmit={handleSubmit(onCreatePassword)}
       >
         <FieldSet>

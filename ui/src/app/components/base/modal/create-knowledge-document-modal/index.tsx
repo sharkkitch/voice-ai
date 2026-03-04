@@ -101,7 +101,6 @@ export const CreateKnowledgeDocumentDialog: FC<
         </ModalBody>
         <ModalFooter errorMessage={errorMessage}>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
@@ -109,7 +108,6 @@ export const CreateKnowledgeDocumentDialog: FC<
             Cancel
           </ICancelButton>
           <IBlueBGArrowButton
-            className="px-4 rounded-[2px]"
             type="button"
             isLoading={loading}
             onClick={onCreateKnowledgeDocument}

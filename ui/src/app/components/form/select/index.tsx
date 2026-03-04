@@ -1,4 +1,5 @@
 import { cn } from '@/utils';
+import { ChevronDown } from 'lucide-react';
 import { forwardRef } from 'react';
 
 export type SelectionOption = {
@@ -12,59 +13,58 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: SelectionOption[];
 }
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  (props: SelectProps, ref) => {
-    return (
-      <div className="relative w-full">
-        <select
-          ref={ref}
-          id={props.name}
-          name={props.name}
-          {...props}
-          required={props.required}
-          value={props.value}
-          onChange={props.onChange}
-          className={cn(
-            'block appearance-none',
-            'w-full',
-            'h-10',
-            'form-input',
-            'dark:disabled:placeholder-gray-600 disabled:placeholder-gray-400',
-            'dark:text-gray-300 text-gray-600',
-            'outline-solid outline-[1.5px] outline-transparent',
-            'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
-            'border-b border-gray-300 dark:border-gray-700',
-            'dark:focus:border-blue-600 focus:border-blue-600',
-            'transition-all duration-200 ease-in-out',
-            'relative',
-            'bg-light-background dark:bg-gray-950',
-            'ring-0',
-            'px-2 py-1.5 pl-3',
-            props.className,
-          )}
-        >
+/**
+ * Carbon select — default style.
+ * Same visual treatment as Input: bottom border, field background, inset focus.
+ * Custom ChevronDown icon replaces the native browser arrow.
+ */
+export const Select = forwardRef<HTMLSelectElement, SelectProps>((props, ref) => {
+  return (
+    <div className="relative w-full">
+      <select
+        ref={ref}
+        id={props.name}
+        name={props.name}
+        {...props}
+        className={cn(
+          // Layout — Carbon md height = 40px, right padding for chevron
+          'block w-full h-10 pl-4 pr-10 appearance-none',
+          // Carbon field background
+          'bg-light-background dark:bg-gray-950',
+          // Typography — Carbon body-short-01
+          'text-sm text-gray-900 dark:text-gray-100',
+          // Disabled placeholder
+          'disabled:text-gray-400 dark:disabled:text-gray-600',
+          // Border — bottom only
+          'border-0 border-b border-gray-300 dark:border-gray-700',
+          // Focus — inset outline
+          'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+          'focus:outline-primary focus:border-primary dark:focus:border-primary',
+          // Shape
+          'rounded-none cursor-pointer',
+          // Disabled
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          'transition-colors duration-100',
+          props.className,
+        )}
+      >
+        {props.placeholder && (
           <option value="" disabled>
             {props.placeholder}
           </option>
-          {props.options.map((e, idx) => {
-            return (
-              <option value={e.value} key={idx}>
-                {e.name}
-              </option>
-            );
-          })}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-          <svg
-            className="fill-current h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            strokeWidth={0.5}
-          >
-            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-          </svg>
-        </div>
-      </div>
-    );
-  },
-);
+        )}
+        {props.options.map((e, idx) => (
+          <option value={e.value} key={idx}>
+            {e.name}
+          </option>
+        ))}
+      </select>
+
+      {/* Carbon chevron — 16px, non-interactive, right-aligned */}
+      <ChevronDown
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400"
+        strokeWidth={1.5}
+      />
+    </div>
+  );
+});

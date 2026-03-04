@@ -17,7 +17,7 @@ export function SocialButtonGroup(props: {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-2">
       {props.linkedin && (
         <SocialButton
           icon={
@@ -97,26 +97,19 @@ function SocialButton(props: {
   return (
     <button
       className={cn(
-        'flex cursor-pointer flex-row items-center w-full space-x-3 px-4 h-10 ring-1 ring-gray-900/10 hover:ring-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-xs  dark:bg-gray-800 dark:ring-0 dark:text-gray-300 dark:highlight-white/5 dark:hover:bg-gray-700 dark:hover:text-gray-300 scale-100 hover:scale-105 ease-in duration-200',
+        'flex cursor-pointer flex-row items-center w-full gap-3 px-4 h-10',
+        'bg-light-background dark:bg-gray-950',
+        'border-0 border-b border-gray-300 dark:border-gray-700',
+        'text-sm text-gray-900 dark:text-gray-100',
+        'rounded-none',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+        'transition-colors duration-100',
       )}
       onClick={props.onClick}
     >
       {props.icon}
-      <span className="flex-auto">{props.label}</span>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="w-4 h-4"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M8.25 4.5l7.5 7.5-7.5 7.5"
-        />
-      </svg>
+      <span className="flex-1 text-left">{props.label}</span>
     </button>
   );
 }

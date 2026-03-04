@@ -16,12 +16,12 @@ import { FieldSet } from '@/app/components/form/fieldset';
 import { Input } from '@/app/components/form/input';
 import { CopyInput } from '@/app/components/form/input/copy-input';
 import { Textarea } from '@/app/components/form/textarea';
-import { InputGroup } from '@/app/components/input-group';
 import { InputHelper } from '@/app/components/input-helper';
 import { useDeleteConfirmDialog } from '@/app/pages/assistant/actions/hooks/use-delete-confirmation';
 import { useRapidaStore } from '@/hooks';
 import { useCurrentCredential } from '@/hooks/use-credential';
 import { useGlobalNavigation } from '@/hooks/use-global-navigator';
+import { AlertTriangle } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import toast from 'react-hot-toast/headless';
 import { useParams } from 'react-router-dom';
@@ -30,9 +30,6 @@ import { connectionConfig } from '@/configs';
 import { ErrorMessage } from '@/app/components/form/error-message';
 
 export function EditAssistantPage() {
-  /**
-   * get all the models when type change
-   */
   const { assistantId } = useParams();
   const { goToAssistantListing } = useGlobalNavigation();
 
@@ -51,6 +48,7 @@ export function EditAssistantPage() {
 
   return <EditAssistant assistantId={assistantId!} />;
 }
+
 export const EditAssistant: FC<{ assistantId: string }> = ({ assistantId }) => {
   const { authId, token, projectId } = useCurrentCredential();
   const { loading, showLoader, hideLoader } = useRapidaStore();
@@ -136,7 +134,6 @@ export const EditAssistant: FC<{ assistantId: string }> = ({ assistantId }) => {
     );
   };
 
-  // call it when you want to delete the assistant
   const Deletion = useDeleteConfirmDialog({
     onConfirm: () => {
       showLoader('block');
@@ -167,15 +164,22 @@ export const EditAssistant: FC<{ assistantId: string }> = ({ assistantId }) => {
     name: name,
   });
 
-  //
   return (
     <div className="w-full flex flex-col flex-1">
       <Deletion.ConfirmDeleteDialogComponent />
-      <PageHeaderBlock className="border-b">
+      <PageHeaderBlock>
         <PageTitleBlock>General Settings</PageTitleBlock>
       </PageHeaderBlock>
-      <div className="overflow-auto flex flex-col flex-1 pb-20 bg-white dark:bg-gray-900">
-        <div className="p-5 space-y-6">
+
+      <div className="overflow-auto flex flex-col flex-1 bg-white dark:bg-gray-900">
+        {/* Assistant Identity */}
+        <div className="p-5 border-b border-gray-200 dark:border-gray-800">
+          <div className="max-w-2xl mb-4 space-y-1">
+            <h2 className="text-sm font-semibold">Assistant Identity</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Your assistant's unique identifier. This cannot be changed.
+            </p>
+          </div>
           <FieldSet className="max-w-md">
             <FormLabel>Assistant ID</FormLabel>
             <CopyInput
@@ -184,25 +188,35 @@ export const EditAssistant: FC<{ assistantId: string }> = ({ assistantId }) => {
               value={assistantId}
               className="bg-white dark:bg-gray-900 border-dashed"
               placeholder="eg: your emotion detector"
-            ></CopyInput>
+            />
           </FieldSet>
+        </div>
+
+        {/* General Information */}
+        <div className="p-5 border-b border-gray-200 dark:border-gray-800 space-y-5">
+          <div className="max-w-2xl space-y-1">
+            <h2 className="text-sm font-semibold">General Information</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Update your assistant's display name and purpose description.
+            </p>
+          </div>
           <FieldSet>
             <FormLabel>Name</FormLabel>
             <Input
               name="usecase"
-              className="bg-light-background max-w-md"
+              className="max-w-md"
               onChange={e => {
                 setName(e.target.value);
               }}
               value={name}
               placeholder="eg: your emotion detector"
-            ></Input>
+            />
           </FieldSet>
           <FieldSet className="col-span-2">
             <FormLabel>Description</FormLabel>
             <Textarea
               row={5}
-              className="bg-light-background max-w-xl"
+              className="max-w-xl"
               value={description}
               placeholder={"What's the purpose of the assistant?"}
               onChange={t => setDescription(t.target.value)}
@@ -213,30 +227,40 @@ export const EditAssistant: FC<{ assistantId: string }> = ({ assistantId }) => {
             type="button"
             isLoading={loading}
             onClick={onUpdateAssistantDetail}
-            className="px-4 rounded-[2px]"
+            className="px-4"
           >
             Update Assistant
           </IBlueBGButton>
         </div>
-        <InputGroup title="Permanent Actions" initiallyExpanded={false}>
-          <div className="flex flex-row items-center justify-between">
-            <FieldSet>
-              <p className="font-semibold">Delete this assistant</p>
-              <InputHelper>
-                Once you delete a assistant, there is no going back. Active
-                connections will be terminated immediately, and the data will be
-                permanently deleted after the rolling period.
-              </InputHelper>
-            </FieldSet>
-            <IRedBGButton
-              className="rounded-[2px]"
-              isLoading={loading}
-              onClick={Deletion.showDialog}
-            >
-              Yes, delete the assistant
-            </IRedBGButton>
+
+        {/* Danger Zone */}
+        <div className="p-5">
+          <div className="max-w-2xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+            <div className="px-4 py-3 bg-red-50 dark:bg-red-950/20 border-b border-red-200 dark:border-red-900/50">
+              <h2 className="text-sm font-semibold text-red-700 dark:text-red-400 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" strokeWidth={1.5} />
+                Danger Zone
+              </h2>
+            </div>
+            <div className="p-4 flex flex-row items-start justify-between gap-6">
+              <div className="space-y-1.5">
+                <p className="text-sm font-semibold">Delete this assistant</p>
+                <InputHelper>
+                  Once you delete an assistant, there is no going back. Active
+                  connections will be terminated immediately, and the data will
+                  be permanently deleted after the rolling period.
+                </InputHelper>
+              </div>
+              <IRedBGButton
+                className="shrink-0"
+                isLoading={loading}
+                onClick={Deletion.showDialog}
+              >
+                Delete assistant
+              </IRedBGButton>
+            </div>
           </div>
-        </InputGroup>
+        </div>
       </div>
     </div>
   );

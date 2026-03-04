@@ -187,18 +187,13 @@ export function ColumnPreferencesDialog(props: TablePreferenceModalProps) {
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setOpen(false);
             }}
           >
             Cancel
           </ICancelButton>
-          <IBlueBGButton
-            className="px-4 rounded-[2px]"
-            type="button"
-            onClick={onAction}
-          >
+          <IBlueBGButton type="button" onClick={onAction}>
             Save Preference
           </IBlueBGButton>
         </ModalFooter>

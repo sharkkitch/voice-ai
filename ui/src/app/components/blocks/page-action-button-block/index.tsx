@@ -8,15 +8,15 @@ export const PageActionButtonBlock: FC<
   } & HTMLAttributes<HTMLDivElement>
 > = ({ errorMessage, children }) => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 ">
+    <div className="shrink-0 w-full">
       {errorMessage && (
-        <RedNoticeBlock className="flex items-center space-x-2 ">
+        <RedNoticeBlock className="flex items-center space-x-2">
           <AlertTriangle className="w-4 h-4 text-red-600" />
           <span>{errorMessage}</span>
         </RedNoticeBlock>
       )}
-      <div className="flex items-center justify-end border-t dark:bg-gray-900 bg-white">
-        <div className="flex space-x-2 py-2 px-4">{children}</div>
+      <div className="flex h-12 border-t border-gray-200 dark:border-gray-800">
+        {children}
       </div>
     </div>
   );

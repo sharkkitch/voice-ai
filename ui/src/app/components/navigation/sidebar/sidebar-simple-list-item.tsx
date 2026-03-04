@@ -15,8 +15,16 @@ export function SidebarSimpleListItem(props: SidebarLinkItemProps) {
       <div
         {...dProps}
         className={cn(
-          'flex items-center mx-2 hover:bg-gray-200 dark:hover:bg-gray-950 cursor-pointer',
-          active && 'bg-gray-200 dark:bg-gray-950 text-blue-600',
+          // Carbon UI Shell nav item: h-10, full-width, no horizontal margin
+          'relative flex items-center h-10 w-full cursor-pointer',
+          // Default state
+          'text-gray-700 dark:text-gray-300',
+          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          // Active state — 4px left accent bar + highlighted background
+          active && [
+            'bg-gray-100 dark:bg-gray-800 text-primary',
+            'before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-primary before:content-[""]',
+          ],
           props.className,
         )}
       >

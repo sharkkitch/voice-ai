@@ -32,6 +32,18 @@ import { InputHelper } from '@/app/components/input-helper';
 import { CodeEditor } from '@/app/components/form/editor/code-editor';
 import toast from 'react-hot-toast/headless';
 
+/** Section divider — matches the one in create-endpoint */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
+
 export function CreateAgentKitVersion() {
   /**
    * get all the models when type change
@@ -54,6 +66,7 @@ export function CreateAgentKitVersion() {
 
   return <CreateNewVersion assistantId={assistantId!} />;
 }
+
 /**
  *
  * @param props
@@ -79,6 +92,7 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
       value: string;
     }[]
   >([]);
+
   const validateAgentKit = (): boolean => {
     const grpcUrlPattern = /^[a-zA-Z0-9.-]+(:\d+)?$/; // Matches "hostname" or "hostname:port"
     const sslCertPattern =
@@ -212,8 +226,7 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
       <ConfirmDialogComponent />
       <Helmet title="Connect AgentKit"></Helmet>
       <TabForm
-        formHeading="Complete all steps to connect AgentKit."
-        className="bg-linear-to-r from-white hover:shadow-alternate to-violet-500/5 dark:from-gray-950/30 dark:via-gray-950/10 dark:to-violet-950/20"
+        formHeading="Create a new version of this AgentKit connection."
         activeTab={activeTab}
         onChangeActiveTab={() => {}}
         errorMessage={errorMessage}
@@ -225,7 +238,7 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
               'Provide the connection configuration for your Rapida AgentKit setup.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -238,87 +251,100 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
                     setActiveTab('commit-assistant');
                   }
                 }}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Continue
               </IBlueBGArrowButton>,
             ],
             body: (
               <>
-                <YellowNoticeBlock className="flex items-center">
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
                   <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the assistant will not be
-                    deployed automatically.
-                  </div>
+                  <p className="text-sm flex-1">
+                    New versions of the assistant will not be deployed
+                    automatically. You must promote them manually.
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/assistant/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
+                    Read docs
                     <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
+                      className="shrink-0 w-3.5 h-3.5"
                       strokeWidth={1.5}
                     />
                   </a>
                 </YellowNoticeBlock>
-                <div className="space-y-6 px-8 max-w-4xl">
-                  <FieldSet className="relative w-full">
-                    <FormLabel>AgentKit Endpoint</FormLabel>
-                    <Input
-                      placeholder="agent.your-domain.com:5051"
-                      value={agentKitUrl}
-                      onChange={v => {
-                        setAgentKitUrl(v.target.value);
-                      }}
-                    />
-                    <InputHelper>
-                      The gRPC server address where your Rapida AgentKit is
-                      running.
-                    </InputHelper>
-                  </FieldSet>
-                  <FieldSet>
-                    <FormLabel>TLS Certificate (Optional)</FormLabel>
-                    <CodeEditor
-                      placeholder="-----BEGIN CERTIFICATE-----
+                <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Connection section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Connection" />
+                    <FieldSet className="relative w-full">
+                      <FormLabel>AgentKit Endpoint</FormLabel>
+                      <Input
+                        placeholder="agent.your-domain.com:5051"
+                        value={agentKitUrl}
+                        onChange={v => {
+                          setAgentKitUrl(v.target.value);
+                        }}
+                      />
+                      <InputHelper>
+                        The gRPC server address where your Rapida AgentKit is
+                        running.
+                      </InputHelper>
+                    </FieldSet>
+                  </div>
+
+                  {/* Security section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Security" />
+                    <FieldSet>
+                      <FormLabel>TLS Certificate (Optional)</FormLabel>
+                      <CodeEditor
+                        placeholder="-----BEGIN CERTIFICATE-----
 ...
 -----END CERTIFICATE-----"
-                      value={certificate}
-                      onChange={value => {
-                        setCertificate(value);
-                      }}
-                      className="min-h-40 max-h-dvh "
-                    />
-                    <InputHelper>
-                      Custom CA certificate for server verification (optional,
-                      leave empty for system defaults)
-                    </InputHelper>
-                  </FieldSet>
-                  <FieldSet>
-                    <FormLabel>Metadata</FormLabel>
-                    <APiParameter
-                      actionButtonLabel="Add Metadata"
-                      setParameterValue={parameters => {
-                        setParameters(parameters);
-                      }}
-                      initialValues={parameters}
-                      inputClass="bg-light-background dark:bg-gray-950"
-                    />
-                  </FieldSet>
+                        value={certificate}
+                        onChange={value => {
+                          setCertificate(value);
+                        }}
+                        className="min-h-40 max-h-dvh "
+                      />
+                      <InputHelper>
+                        Custom CA certificate for server verification (optional,
+                        leave empty for system defaults)
+                      </InputHelper>
+                    </FieldSet>
+                  </div>
+
+                  {/* Metadata section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Metadata" />
+                    <FieldSet>
+                      <APiParameter
+                        actionButtonLabel="Add Metadata"
+                        setParameterValue={parameters => {
+                          setParameters(parameters);
+                        }}
+                        initialValues={parameters}
+                        inputClass="bg-light-background dark:bg-gray-950"
+                      />
+                    </FieldSet>
+                  </div>
                 </div>
               </>
             ),
           },
           {
             code: 'commit-assistant',
-            name: 'Change definition',
+            name: 'Version note',
             description:
-              'Provide a change definition that helps people understand what has changed in this version.',
+              'Write a brief note describing what changed in this version.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -329,44 +355,31 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
                 onClick={() => {
                   createProviderModel();
                 }}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Create new version
               </IBlueBGArrowButton>,
             ],
             body: (
-              <>
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the assistant will not be
-                    deployed automatically.
-                  </div>
-                  <a
-                    target="_blank"
-                    href="https://doc.rapida.ai/assistant/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
-                    rel="noreferrer"
-                  >
-                    Read documentation
-                    <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
-                      strokeWidth={1.5}
-                    />
-                  </a>
-                </YellowNoticeBlock>
-                <div className="space-y-6 px-8 max-w-4xl">
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Version Description" />
                   <FieldSet>
-                    <FormLabel>Change description</FormLabel>
+                    <FormLabel>Version note</FormLabel>
                     <Textarea
                       row={5}
                       value={versionMessage}
-                      placeholder={'Describe the changes made in this version'}
+                      placeholder="Provide a clear and detailed explanation of the changes made to this AgentKit connection."
                       onChange={t => setVersionMessage(t.target.value)}
                     />
+                    <InputHelper>
+                      Summarize the changes made to the connection, highlight
+                      key updates, and specify why these modifications are
+                      necessary.
+                    </InputHelper>
                   </FieldSet>
                 </div>
-              </>
+              </div>
             ),
           },
         ]}

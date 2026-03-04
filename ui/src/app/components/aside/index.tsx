@@ -8,14 +8,13 @@ export const Aside: FC<AsideProps> = (props: AsideProps) => {
   return (
     <div
       className={cn(
-        'flex flex-col z-12',
-        //  top-0 bottom-0
-        'no-scrollbar',
-        'backdrop-blur-2xl',
+        'flex flex-col shrink-0 z-12',
+        'bg-white dark:bg-gray-900',
+        'border-r border-gray-200 dark:border-gray-800',
+        'no-scrollbar overflow-y-auto',
         'group',
-        'overflow-y-scroll',
-        open ? 'w-80' : 'w-14',
-        'h-full duration-200 pb-10 hover:bg-white dark:hover:bg-gray-900',
+        open ? 'w-64' : 'w-12',
+        'h-full transition-[width] duration-200 ease-in-out',
         props.className,
       )}
       onMouseEnter={() => {

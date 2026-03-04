@@ -118,13 +118,13 @@ export function SignInPage() {
   return (
     <>
       <Helmet title="Signin to your account"></Helmet>
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-medium leading-9 tracking-tight">
+      <div className="flex justify-between items-baseline">
+        <h2 className="text-[28px] leading-9 text-gray-900 dark:text-gray-100">
           Sign in
         </h2>
         {workspace.authentication.signUp.enable && (
           <a
-            className="underline leading-6 text-blue-600 hover:text-blue-500"
+            className="text-sm text-primary underline hover:text-primary/80"
             href="/auth/signup"
           >
             I don't have an account
@@ -132,7 +132,7 @@ export function SignInPage() {
         )}
       </div>
 
-      <form className="space-y-6 mt-6" onSubmit={handleSubmit(onAuthenticate)}>
+      <form className="flex flex-col gap-4 mt-6" onSubmit={handleSubmit(onAuthenticate)}>
         <FieldSet>
           <FormLabel>Email Address</FormLabel>
           <Input
@@ -164,10 +164,10 @@ export function SignInPage() {
           Continue
         </IBlueBGArrowButton>
       </form>
-      <div className="mt-4 space-y-4">
-        <p className="text-center text-gray-500">
+      <div className="mt-6 flex flex-col gap-3">
+        <p className="text-center">
           <a
-            className="leading-6 text-blue-600 hover:text-blue-500 underline"
+            className="text-sm text-primary underline hover:text-primary/80"
             href="/auth/forgot-password"
           >
             Can't sign in?

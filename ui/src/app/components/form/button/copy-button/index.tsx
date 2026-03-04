@@ -7,7 +7,7 @@ import { useState } from 'react';
 export function CopyButton(props: ButtonProps) {
   const [isChecked, setIsChecked] = useState(false);
 
-  const copyItem = (item: string) => {
+  const copyItem = (item: any) => {
     setIsChecked(true);
     navigator.clipboard.writeText(item);
     setTimeout(() => {

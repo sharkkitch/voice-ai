@@ -190,7 +190,6 @@ export const ConfigureAssistantNextDialog: FC<
         </ModalBody>
         <ModalFooter errorMessage={''}>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               setModalOpen(false);
             }}
@@ -198,7 +197,6 @@ export const ConfigureAssistantNextDialog: FC<
             Cancel
           </ICancelButton>
           <IBlueBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={() => {
               goToAssistantPreview(assistant.getId());

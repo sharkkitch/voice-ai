@@ -10,8 +10,9 @@ import { useRapidaStore } from '@/hooks';
 import { BluredWrapper } from '@/app/components/wrapper/blured-wrapper';
 import { useUserPageStore } from '@/hooks';
 import { SingleUser } from '@/app/pages/workspace/user/single-user';
-import { IBlueButton, IButton } from '@/app/components/form/button';
+import { IButton } from '@/app/components/form/button';
 import { Plus, RotateCw } from 'lucide-react';
+import { PaginationButtonBlock } from '@/app/components/blocks/pagination-button-block';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { TableSection } from '@/app/components/sections/table-section';
@@ -66,40 +67,37 @@ export function UserPage() {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Users</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {`${userActions.users.length}/${userActions.totalCount}`}
-          </div>
+          </span>
         </div>
-        <div className="flex divide-x dark:divide-gray-800">
-          <IButton
-            onClick={() => {
-              getUsers(token, authId, projectId);
-            }}
+        <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+          <button
+            type="button"
+            onClick={() => setCreateUserModalOpen(true)}
+            className="flex items-center gap-2 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
-            Reload user
-            <RotateCw className="w-4 h-4 ml-1.5" />
-          </IButton>
-          <IBlueButton
-            onClick={() => {
-              setCreateUserModalOpen(true);
-            }}
-          >
-            Create new user
-            <Plus className="w-4 h-4 ml-1.5" />
-          </IBlueButton>
+            Invite user
+            <Plus strokeWidth={1.5} className="w-4 h-4" />
+          </button>
         </div>
       </PageHeaderBlock>
-      <BluredWrapper className="p-0">
-        <SearchIconInput className="bg-light-background" />
-        <TablePagination
-          columns={userActions.columns}
-          currentPage={userActions.page}
-          onChangeCurrentPage={userActions.setPage}
-          totalItem={userActions.totalCount}
-          pageSize={userActions.pageSize}
-          onChangePageSize={userActions.setPageSize}
-          onChangeColumns={userActions.setColumns}
-        />
+      <BluredWrapper className="sticky top-0 z-11">
+        <SearchIconInput className="bg-light-background flex-1" />
+        <PaginationButtonBlock className="shrink-0">
+          <TablePagination
+            columns={userActions.columns}
+            currentPage={userActions.page}
+            onChangeCurrentPage={userActions.setPage}
+            totalItem={userActions.totalCount}
+            pageSize={userActions.pageSize}
+            onChangePageSize={userActions.setPageSize}
+            onChangeColumns={userActions.setColumns}
+          />
+          <IButton onClick={() => getUsers(token, authId, projectId)}>
+            <RotateCw strokeWidth={1.5} className="h-4 w-4" />
+          </IButton>
+        </PaginationButtonBlock>
       </BluredWrapper>
       <TableSection>
         <Table className="bg-white dark:bg-gray-900">

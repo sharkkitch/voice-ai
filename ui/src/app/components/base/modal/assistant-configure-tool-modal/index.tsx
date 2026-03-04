@@ -208,18 +208,13 @@ export const ConfigureAssistantToolDialog: FC<
         </ModalBody>
         <ModalFooter errorMessage={errorMessage}>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
           >
             Cancel
           </ICancelButton>
-          <IBlueBGButton
-            className="px-4 rounded-[2px]"
-            type="button"
-            onClick={onSubmit}
-          >
+          <IBlueBGButton type="button" onClick={onSubmit}>
             Save tool
           </IBlueBGButton>
         </ModalFooter>

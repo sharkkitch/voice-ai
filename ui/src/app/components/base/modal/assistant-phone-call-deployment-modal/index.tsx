@@ -4,26 +4,19 @@ import {
 } from '@rapidaai/react';
 import { Tab } from '@/app/components/tab';
 import { cn } from '@/utils';
-import { ChevronRight } from 'lucide-react';
 import { ModalProps } from '@/app/components/base/modal';
 import { RightSideModal } from '@/app/components/base/modal/right-side-modal';
-import { FieldSet } from '@/app/components/form/fieldset';
-import { FormLabel } from '@/app/components/form-label';
 import { CONFIG } from '@/configs';
 import { CopyButton } from '@/app/components/form/button/copy-button';
 import { InputHelper } from '@/app/components/input-helper';
 import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
 import { ProviderPill } from '@/app/components/pill/provider-model-pill';
-import { FC, useMemo } from 'react';
+import { FC, ReactNode, useMemo } from 'react';
 
 interface AssistantPhoneCallDeploymentDialogProps extends ModalProps {
   deployment: AssistantPhoneDeployment;
 }
-/**
- *
- * @param props
- * @returns
- */
+
 export function AssistantPhoneCallDeploymentDialog(
   props: AssistantPhoneCallDeploymentDialogProps,
 ) {
@@ -42,32 +35,34 @@ export function AssistantPhoneCallDeploymentDialog(
       setModalOpen={props.setModalOpen}
       className="w-2/3 xl:w-1/3 flex-1"
     >
-      <div className="flex items-center p-4 border-b text-sm/6 font-medium">
-        <div className="font-medium">Assistant</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium">Deployment</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium">vrsn_dpl_{props.deployment.getId()}</div>
+      <div className="h-12 px-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+          Deployment
+        </span>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+          Phone
+        </span>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono truncate">
+          {props.deployment.getId()}
+        </span>
       </div>
-      <div className="relative overflow-auto h-[calc(100vh-50px)] flex flex-col flex-1">
+      <div className="flex flex-col flex-1 overflow-auto h-[calc(100vh-48px)]">
         <Tab
           active="Integration"
-          className={cn(
-            'text-sm',
-            'bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-1',
-          )}
+          className={cn('bg-white dark:bg-gray-900 sticky top-0 z-1')}
           tabs={[
             {
               label: 'Integration',
               element: (
-                <div className="flex-1 px-4 space-y-8">
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 w-full">
                   {providerName === 'sip' && (
                     <SipIntegrationInstructions
                       sipHost={sipHost}
                       assistantId={assistantId}
                     />
                   )}
-
                   {providerName === 'asterisk' && (
                     <AsteriskIntegrationInstructions
                       mediaHost={mediaHost}
@@ -75,49 +70,21 @@ export function AssistantPhoneCallDeploymentDialog(
                       assistantId={assistantId}
                     />
                   )}
-
                   {providerName !== 'sip' && providerName !== 'asterisk' && (
                     <>
-                      <FieldSet className="col-span-2">
-                        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-                          Inbound webhook url
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                            {webhookUrl}
-                          </code>
-                          <div className="flex shrink-0 border divide-x">
-                            <CopyButton className="h-7 w-7">
-                              {webhookUrl}
-                            </CopyButton>
-                          </div>
-                        </div>
+                      <CodeRow label="Inbound webhook url" value={webhookUrl}>
                         <InputHelper>
-                          You can add all the additional agent arguments in
-                          query parameters for example if you are expecting
-                          argument
-                          <code className="text-red-600">`name`</code>
-                          add{' '}
+                          You can add additional agent arguments as query
+                          parameters — e.g.{' '}
                           <code className="text-red-600">
                             `?name=your-name`
                           </code>
                         </InputHelper>
-                      </FieldSet>
-                      <FieldSet className="col-span-2">
-                        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-                          Call status changes / Event callback webhook
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                            {eventUrl}
-                          </code>
-                          <div className="flex shrink-0 border divide-x">
-                            <CopyButton className="h-7 w-7">
-                              {eventUrl}
-                            </CopyButton>
-                          </div>
-                        </div>
-                      </FieldSet>
+                      </CodeRow>
+                      <CodeRow
+                        label="Call status / Event callback webhook"
+                        value={eventUrl}
+                      />
                     </>
                   )}
                 </div>
@@ -126,9 +93,8 @@ export function AssistantPhoneCallDeploymentDialog(
             {
               label: 'Audio',
               element: (
-                <div className="flex-1 space-y-8">
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 w-full">
                   <VoiceInput deployment={props.deployment?.getInputaudio()} />
-
                   <VoiceOutput
                     deployment={props.deployment?.getOutputaudio()}
                   />
@@ -143,7 +109,75 @@ export function AssistantPhoneCallDeploymentDialog(
 }
 
 /* -------------------------------------------------------------------------- */
-/*  SIP Provider Integration Instructions                                     */
+/*  Shared row primitives                                                      */
+/* -------------------------------------------------------------------------- */
+
+const Row: FC<{ label: string; children: ReactNode }> = ({
+  label,
+  children,
+}) => (
+  <div className="flex items-center justify-between h-12 px-4 gap-4">
+    <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 shrink-0">
+      {label}
+    </span>
+    <div className="flex items-center gap-2">{children}</div>
+  </div>
+);
+
+const SectionHeader: FC<{ label: string }> = ({ label }) => (
+  <div className="h-9 px-4 flex items-center bg-gray-50 dark:bg-gray-800/50">
+    <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500">
+      {label}
+    </span>
+  </div>
+);
+
+const CodeRow: FC<{ label: string; value: string; children?: ReactNode }> = ({
+  label,
+  value,
+  children,
+}) => (
+  <div>
+    <SectionHeader label={label} />
+    <div className="px-4 py-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden break-all">
+          {value}
+        </code>
+        <CopyButton className="h-7 w-7 shrink-0 border border-gray-200 dark:border-gray-800">
+          {value}
+        </CopyButton>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+const CodeBlock: FC<{ label: string; code: string; helper?: ReactNode }> = ({
+  label,
+  code,
+  helper,
+}) => (
+  <div>
+    <SectionHeader label={label} />
+    <div className="px-4 py-3 space-y-2">
+      <div className="relative">
+        <pre className="dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs overflow-auto">
+          {code}
+        </pre>
+        <div className="absolute top-1 right-1">
+          <CopyButton className="h-6 w-6 bg-gray-200 dark:bg-gray-800">
+            {code}
+          </CopyButton>
+        </div>
+      </div>
+      {helper}
+    </div>
+  </div>
+);
+
+/* -------------------------------------------------------------------------- */
+/*  SIP Provider Integration Instructions                                      */
 /* -------------------------------------------------------------------------- */
 
 const SipIntegrationInstructions: FC<{
@@ -155,120 +189,64 @@ const SipIntegrationInstructions: FC<{
 
   return (
     <>
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          SIP Server Endpoint
-        </div>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-            {sipEndpoint}
-          </code>
-          <div className="flex shrink-0 border divide-x">
-            <CopyButton className="h-7 w-7">{sipEndpoint}</CopyButton>
-          </div>
-        </div>
+      <CodeRow label="SIP Server Endpoint" value={sipEndpoint}>
         <InputHelper>
           Point your SIP trunk / PBX outbound proxy to this address. Rapida
           accepts SIP INVITE and establishes an RTP media session directly.
         </InputHelper>
-      </FieldSet>
+      </CodeRow>
 
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          SIP URI (Authentication)
-        </div>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-            {sipUri}
-          </code>
-          <div className="flex shrink-0 border divide-x">
-            <CopyButton className="h-7 w-7">{sipUri}</CopyButton>
-          </div>
-        </div>
+      <CodeRow label="SIP URI (Authentication)" value={sipUri}>
         <InputHelper>
-          Authentication is embedded in the SIP URI:{' '}
-          <code className="text-red-600">
-            sip:{'{'}
-            assistantID{'}'}:{'{'}
-            apiKey{'}'}@host
-          </code>
-          . Replace{' '}
+          Replace{' '}
           <code className="text-red-600">
             {'{{'}PROJECT_CREDENTIAL_KEY{'}}'}
           </code>{' '}
-          with your project API key.
+          with your project API key. Format:{' '}
+          <code className="text-red-600">sip:assistantID:apiKey@host</code>
         </InputHelper>
-      </FieldSet>
+      </CodeRow>
 
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          SIP Configuration Details
-        </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-3 pt-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="font-medium text-gray-700 dark:text-gray-300">
-              Transport
-            </div>
-            <div>UDP, TCP, or TLS</div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
-              Port
-            </div>
-            <div>5060</div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
-              Codec
-            </div>
-            <div>
-              G.711 μ-law (PCMU), G.711 A-law (PCMA) + telephone-event (DTMF)
-            </div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
-              Authentication
-            </div>
-            <div>
-              URI-based — credentials in SIP URI userinfo (assistantID:apiKey)
-            </div>
-            <div className="font-medium text-gray-700 dark:text-gray-300">
-              Media
-            </div>
-            <div>RTP (direct media, no WebSocket)</div>
-          </div>
-        </div>
-      </FieldSet>
+      <SectionHeader label="SIP Configuration" />
+      <Row label="Transport">
+        <span className="text-sm text-gray-900 dark:text-gray-100">
+          UDP, TCP, or TLS
+        </span>
+      </Row>
+      <Row label="Port">
+        <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
+          5060
+        </span>
+      </Row>
+      <Row label="Codec">
+        <span className="text-sm text-gray-900 dark:text-gray-100 text-right">
+          G.711 μ-law / A-law + DTMF
+        </span>
+      </Row>
+      <Row label="Authentication">
+        <span className="text-sm text-gray-900 dark:text-gray-100 text-right">
+          URI-based (assistantID:apiKey)
+        </span>
+      </Row>
+      <Row label="Media">
+        <span className="text-sm text-gray-900 dark:text-gray-100">
+          RTP (direct)
+        </span>
+      </Row>
 
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          PBX Dial Plan Example
-        </div>
-        <div>
-          <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            FreeSWITCH
-          </div>
-          <div className="relative">
-            <pre className="dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs overflow-auto rounded">
-              {`<extension name="rapida-ai">
+      <CodeBlock
+        label="PBX Dial Plan — FreeSWITCH"
+        code={`<extension name="rapida-ai">
   <condition field="destination_number" expression="^(\\d+)$">
     <action application="bridge"
             data="sofia/external/${sipUri}"/>
   </condition>
 </extension>`}
-            </pre>
-            <div className="absolute top-1 right-1">
-              <CopyButton className="h-6 w-6 bg-gray-200 dark:bg-gray-800 rounded">
-                {`<extension name="rapida-ai">
-  <condition field="destination_number" expression="^(\\d+)$">
-    <action application="bridge"
-            data="sofia/external/${sipUri}"/>
-  </condition>
-</extension>`}
-              </CopyButton>
-            </div>
-          </div>
-        </div>
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          Asterisk (pjsip.conf + extensions.conf)
-        </div>
-        <div className="relative">
-          <pre className="dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs overflow-auto rounded">
-            {`; pjsip.conf — register a trunk to Rapida SIP
+      />
+
+      <CodeBlock
+        label="PBX Dial Plan — Asterisk (pjsip.conf + extensions.conf)"
+        code={`; pjsip.conf
 [rapida-trunk]
 type = endpoint
 transport = transport-udp
@@ -286,43 +264,16 @@ password = <YOUR_API_KEY>
 type = aor
 contact = sip:${sipHost}:5060
 
-; extensions.conf — route calls to Rapida
+; extensions.conf
 [rapida-outbound]
 exten => _X.,1,Dial(PJSIP/\${EXTEN}@rapida-trunk)`}
-          </pre>
-          <div className="absolute top-1 right-1">
-            <CopyButton className="h-6 w-6 bg-gray-200 dark:bg-gray-800 rounded">
-              {`; pjsip.conf — register a trunk to Rapida SIP
-[rapida-trunk]
-type = endpoint
-transport = transport-udp
-context = from-rapida
-aors = rapida-trunk
-outbound_auth = rapida-trunk-auth
-
-[rapida-trunk-auth]
-type = auth
-auth_type = userpass
-username = ${assistantId || '{ASSISTANT_ID}'}
-password = <YOUR_API_KEY>
-
-[rapida-trunk]
-type = aor
-contact = sip:${sipHost}:5060
-
-; extensions.conf — route calls to Rapida
-[rapida-outbound]
-exten => _X.,1,Dial(PJSIP/\${EXTEN}@rapida-trunk)`}
-            </CopyButton>
-          </div>
-        </div>
-      </FieldSet>
+      />
     </>
   );
 };
 
 /* -------------------------------------------------------------------------- */
-/*  Asterisk Provider Integration Instructions                                */
+/*  Asterisk Provider Integration Instructions                                 */
 /* -------------------------------------------------------------------------- */
 
 const AsteriskIntegrationInstructions: FC<{
@@ -353,81 +304,34 @@ const AsteriskIntegrationInstructions: FC<{
 
   return (
     <>
-      {/* Integrate with WebSocket */}
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          Integrate with WebSocket
-        </div>
-        <div className="space-y-3 pt-2">
-          <div>
-            <FormLabel>Endpoint</FormLabel>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                wss://{rapidaHostname}/v1/talk/asterisk/ctx/{'{contextId}'}
-              </code>
-              <div className="flex shrink-0 border divide-x">
-                <CopyButton className="h-7 w-7">
-                  {`wss://${rapidaHostname}/v1/talk/asterisk/ctx/{contextId}`}
-                </CopyButton>
-              </div>
-            </div>
-          </div>
-          <div>
-            <FormLabel>Dialplan (extensions.conf)</FormLabel>
-            <div className="relative">
-              <pre className="dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs overflow-auto rounded">
-                {`[rapida-inbound-ws]
-exten => _X.,1,Answer()
- same => n,Set(CTX=\${CURL(${webhookUrl})})
- same => n,GotoIf($["\${CTX}" = ""]?error)
- same => n,WebSocket(wss://${rapidaHostname}/v1/talk/asterisk/ctx/\${CTX})
- same => n,Hangup()
- same => n(error),Playback(an-error-has-occurred)
- same => n,Hangup()`}
-              </pre>
-              <div className="absolute top-1 right-1">
-                <CopyButton className="h-6 w-6 bg-gray-200 dark:bg-gray-800 rounded">
-                  {`[rapida-inbound-ws]
-exten => _X.,1,Answer()
- same => n,Set(CTX=\${CURL(${webhookUrl})})
- same => n,GotoIf($["\${CTX}" = ""]?error)
- same => n,WebSocket(wss://${rapidaHostname}/v1/talk/asterisk/ctx/\${CTX})
- same => n,Hangup()
- same => n(error),Playback(an-error-has-occurred)
- same => n,Hangup()`}
-                </CopyButton>
-              </div>
-            </div>
-          </div>
-          <InputHelper>
-            Requires <code>chan_websocket.so</code> (Asterisk 20+). Uses WSS
-            port 443 — ideal for cloud / NAT traversal.
-          </InputHelper>
-        </div>
-      </FieldSet>
+      <CodeRow
+        label="WebSocket — Endpoint"
+        value={`wss://${rapidaHostname}/v1/talk/asterisk/ctx/{contextId}`}
+      />
 
-      {/* Integrate with AudioSocket */}
-      <FieldSet className="col-span-2">
-        <div className="font-medium border-b -mx-4 px-4 py-2 text-sm/6">
-          Integrate with AudioSocket
-        </div>
-        <div className="space-y-3 pt-2">
-          <div>
-            <FormLabel>Endpoint</FormLabel>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                {audioSocketHost}
-              </code>
-              <div className="flex shrink-0 border divide-x">
-                <CopyButton className="h-7 w-7">{audioSocketHost}</CopyButton>
-              </div>
-            </div>
-          </div>
-          <div>
-            <FormLabel>Dialplan (extensions.conf)</FormLabel>
-            <div className="relative">
-              <pre className="dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs overflow-auto rounded">
-                {`[rapida-inbound]
+      <CodeBlock
+        label="WebSocket — Dialplan (extensions.conf)"
+        code={`[rapida-inbound-ws]
+exten => _X.,1,Answer()
+ same => n,Set(CTX=\${CURL(${webhookUrl})})
+ same => n,GotoIf($["\${CTX}" = ""]?error)
+ same => n,WebSocket(wss://${rapidaHostname}/v1/talk/asterisk/ctx/\${CTX})
+ same => n,Hangup()
+ same => n(error),Playback(an-error-has-occurred)
+ same => n,Hangup()`}
+        helper={
+          <InputHelper>
+            Requires <code>chan_websocket.so</code> (Asterisk 20+). WSS port 443
+            — ideal for cloud / NAT traversal.
+          </InputHelper>
+        }
+      />
+
+      <CodeRow label="AudioSocket — Endpoint" value={audioSocketHost ?? ''} />
+
+      <CodeBlock
+        label="AudioSocket — Dialplan (extensions.conf)"
+        code={`[rapida-inbound]
 exten => _X.,1,Answer()
  same => n,Set(CHANNEL(audioreadformat)=slin)
  same => n,Set(CHANNEL(audiowriteformat)=slin)
@@ -437,121 +341,88 @@ exten => _X.,1,Answer()
  same => n,Hangup()
  same => n(error),Playback(an-error-has-occurred)
  same => n,Hangup()`}
-              </pre>
-              <div className="absolute top-1 right-1">
-                <CopyButton className="h-6 w-6 bg-gray-200 dark:bg-gray-800 rounded">
-                  {`[rapida-inbound]
-exten => _X.,1,Answer()
- same => n,Set(CHANNEL(audioreadformat)=slin)
- same => n,Set(CHANNEL(audiowriteformat)=slin)
- same => n,Set(CTX=\${CURL(${webhookUrl})})
- same => n,GotoIf($["\${CTX}" = ""]?error)
- same => n,AudioSocket(\${CTX},${audioSocketHostPart}:${audioSocketPort})
- same => n,Hangup()
- same => n(error),Playback(an-error-has-occurred)
- same => n,Hangup()`}
-                </CopyButton>
-              </div>
-            </div>
-          </div>
+        helper={
           <InputHelper>
             Requires <code>res_audiosocket.so</code> (Asterisk 16+). Raw TCP
             port {audioSocketPort} — SLIN 16-bit 8 kHz. Best for LAN / private
             network.
           </InputHelper>
-        </div>
-      </FieldSet>
+        }
+      />
     </>
   );
 };
 
 /* -------------------------------------------------------------------------- */
-/*  Voice Input / Output helpers                                              */
+/*  Voice Input / Output helpers                                               */
 /* -------------------------------------------------------------------------- */
 
 const VoiceInput: FC<{ deployment?: DeploymentAudioProvider }> = ({
   deployment,
 }) => (
-  <div className="">
-    <div className="flex items-center space-x-2 border-b py-1 px-4 h-10">
-      <h4 className="font-medium">Speech to text</h4>
-    </div>
+  <>
+    <SectionHeader label="Speech to text" />
     {deployment?.getAudiooptionsList() ? (
       deployment?.getAudiooptionsList().length > 0 && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 py-3 px-3 space-y-6">
-          <FieldSet>
-            <FormLabel>Provider</FormLabel>
+        <>
+          <Row label="Provider">
             <ProviderPill provider={deployment?.getAudioprovider()} />
-          </FieldSet>
-          <div className="grid grid-cols-1 gap-4">
-            {deployment
-              ?.getAudiooptionsList()
-              .filter(d => d.getValue())
-              .filter(d => d.getKey().startsWith('listen.'))
-              .map((detail, index) => (
-                <FieldSet key={index}>
-                  <FormLabel>{detail.getKey()}</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                      {detail.getValue()}
-                    </code>
-                    <div className="flex shrink-0 border divide-x">
-                      <CopyButton className="h-7 w-7">
-                        {detail.getValue()}
-                      </CopyButton>
-                    </div>
-                  </div>
-                </FieldSet>
-              ))}
-          </div>
-        </div>
+          </Row>
+          {deployment
+            ?.getAudiooptionsList()
+            .filter(d => d.getValue())
+            .filter(d => d.getKey().startsWith('listen.'))
+            .map((detail, index) => (
+              <Row key={index} label={detail.getKey()}>
+                <span className="text-sm font-mono text-gray-900 dark:text-gray-100 truncate max-w-[200px] text-right">
+                  {detail.getValue()}
+                </span>
+                <CopyButton className="h-6 w-6 shrink-0">
+                  {detail.getValue()}
+                </CopyButton>
+              </Row>
+            ))}
+        </>
       )
     ) : (
-      <YellowNoticeBlock>Voice input is not enabled</YellowNoticeBlock>
+      <div className="px-4 py-3">
+        <YellowNoticeBlock>Voice input is not enabled</YellowNoticeBlock>
+      </div>
     )}
-  </div>
+  </>
 );
 
 const VoiceOutput: FC<{ deployment?: DeploymentAudioProvider }> = ({
   deployment,
 }) => (
-  <div>
-    <div className="flex items-center space-x-2 border-b py-2 px-4  h-10">
-      <h4 className="font-medium">Text to speech</h4>
-    </div>
+  <>
+    <SectionHeader label="Text to speech" />
     {deployment?.getAudiooptionsList() ? (
       deployment?.getAudiooptionsList().length > 0 && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 py-3 px-3 space-y-6">
-          <FieldSet>
-            <FormLabel>Provider</FormLabel>
+        <>
+          <Row label="Provider">
             <ProviderPill provider={deployment?.getAudioprovider()} />
-          </FieldSet>
-          <div className="grid grid-cols-1 gap-4">
-            {deployment
-              ?.getAudiooptionsList()
-              .filter(d => d.getValue())
-              .filter(d => d.getKey().startsWith('speak.'))
-              .map((detail, index) => (
-                <FieldSet key={index}>
-                  <FormLabel>{detail.getKey()}</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 dark:bg-gray-950 bg-gray-100 px-3 py-2 font-mono text-xs min-w-0 overflow-hidden">
-                      {detail.getValue()}
-                    </code>
-
-                    <div className="flex shrink-0 border divide-x">
-                      <CopyButton className="h-7 w-7">
-                        {detail.getValue()}
-                      </CopyButton>
-                    </div>
-                  </div>
-                </FieldSet>
-              ))}
-          </div>
-        </div>
+          </Row>
+          {deployment
+            ?.getAudiooptionsList()
+            .filter(d => d.getValue())
+            .filter(d => d.getKey().startsWith('speak.'))
+            .map((detail, index) => (
+              <Row key={index} label={detail.getKey()}>
+                <span className="text-sm font-mono text-gray-900 dark:text-gray-100 truncate max-w-[200px] text-right">
+                  {detail.getValue()}
+                </span>
+                <CopyButton className="h-6 w-6 shrink-0">
+                  {detail.getValue()}
+                </CopyButton>
+              </Row>
+            ))}
+        </>
       )
     ) : (
-      <YellowNoticeBlock>Voice output is not enabled</YellowNoticeBlock>
+      <div className="px-4 py-3">
+        <YellowNoticeBlock>Voice output is not enabled</YellowNoticeBlock>
+      </div>
     )}
-  </div>
+  </>
 );

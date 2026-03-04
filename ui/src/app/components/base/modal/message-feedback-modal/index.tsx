@@ -41,14 +41,10 @@ export const MessageFeedbackDialog: FC<
           </div>
         </ModalBody>
         <ModalFooter>
-          <ICancelButton
-            className="px-4 rounded-[2px]"
-            onClick={() => props.setModalOpen(false)}
-          >
+          <ICancelButton onClick={() => props.setModalOpen(false)}>
             Cancel
           </ICancelButton>
           <IBlueBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={() => {
               props.setModalOpen(false);

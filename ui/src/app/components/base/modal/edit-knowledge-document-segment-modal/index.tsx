@@ -192,14 +192,8 @@ export const EditKnowledgeDocumentSegmentDialog: FC<{
         </ModalBody>
 
         <ModalFooter>
-          <ICancelButton className="px-4 rounded-[2px]" onClick={onClose}>
-            Cancel
-          </ICancelButton>
-          <IBlueBGButton
-            className="px-4 rounded-[2px]"
-            type="button"
-            onClick={handleUpdate}
-          >
+          <ICancelButton onClick={onClose}>Cancel</ICancelButton>
+          <IBlueBGButton type="button" onClick={handleUpdate}>
             Update document
             <Check className="ml-2" strokeWidth={1.5} />
           </IBlueBGButton>

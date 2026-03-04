@@ -61,22 +61,21 @@ const AdvancedPromptInput: FC<PromptEditorProps> = ({
       <div
         ref={ref}
         className={cn(
-          'outline-solid outline-[1.5px] outline-transparent',
-          'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
+          'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+          'focus-within:outline-primary focus-within:border-primary',
           'border-b border-gray-300 dark:border-gray-700',
-          'dark:focus:border-blue-600 focus:border-blue-600',
-          'transition-all duration-200 ease-in-out',
+          'transition-colors duration-100',
           'relative',
           'bg-light-background dark:bg-gray-950',
-          isFocus && 'border-blue-600! outline-blue-600! ',
-          isExpand ? 'h-full  z-50' : '',
+          isFocus && 'border-primary! outline-primary!',
+          isExpand ? 'h-full z-50' : '',
           className,
         )}
       >
         <div
           className={cn(
-            'flex justify-between items-center rounded-t-lg',
-            'border-b border-gray-300 dark:border-gray-800',
+            'flex justify-between items-center',
+            'border-b border-gray-300 dark:border-gray-700',
           )}
         >
           <MessageTypeSelector value={type} onChange={onTypeChange} />
@@ -84,7 +83,7 @@ const AdvancedPromptInput: FC<PromptEditorProps> = ({
             <IButton
               onClick={onDelete}
               tabIndex={-1}
-              className="hover:border-red-600  dark:hover:border-red-600 transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-800"
+              className="hover:border-red-600  dark:hover:border-red-600 transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-700"
             >
               <DeleteIcon className="w-4 h-4 text-red-600" />
             </IButton>
@@ -94,7 +93,7 @@ const AdvancedPromptInput: FC<PromptEditorProps> = ({
             onClick={() => {
               copyItem(value);
             }}
-            className="hover:border-blue-600  dark:hover:border-blue-600  transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-800"
+            className="hover:border-blue-600  dark:hover:border-blue-600  transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-700"
           >
             {isChecked ? (
               <TickIcon className="h-4 w-4 text-green-600" />
@@ -107,7 +106,7 @@ const AdvancedPromptInput: FC<PromptEditorProps> = ({
             onClick={() => {
               setIsExpand(!isExpand);
             }}
-            className="hover:border-blue-600 dark:hover:border-blue-600  transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-800"
+            className="hover:border-blue-600 dark:hover:border-blue-600  transition-colors border border-transparent border-l-gray-300 dark:border-l-gray-700"
           >
             {isExpand ? (
               <Minimize2 className="h-4 w-4" strokeWidth={1.5} />

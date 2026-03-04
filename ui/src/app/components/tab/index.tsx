@@ -23,7 +23,7 @@ export const Tab: FC<TabProps> = ({
   return (
     <>
       <TabHeader className={className}>
-        <div className="flex items-center divide-x border-r w-fit">
+        <div className="flex items-stretch h-10">
           {tabs.map((ix, id) => {
             return (
               <div
@@ -32,16 +32,14 @@ export const Tab: FC<TabProps> = ({
                   setIsActive(ix.label);
                 }}
                 className={cn(
-                  'group cursor-pointer hover:bg-gray-500/10',
+                  'relative flex items-center gap-2 px-4 cursor-pointer text-xs font-medium uppercase tracking-[0.08em] whitespace-nowrap transition-colors',
                   isActive === ix.label
-                    ? 'text-blue-500 bg-blue-500/10'
-                    : 'hover:bg-blue-500/5 hover:text-blue-500',
+                    ? 'text-gray-900 dark:text-gray-100 after:absolute after:bottom-0 after:inset-x-0 after:h-0.5 after:bg-primary'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
                 )}
               >
-                <div className="px-6 py-2 font-semibold text-[13px] whitespace-nowrap tracking-wide text-pretty gap-3 flex items-center uppercase">
-                  {ix.labelIcon}
-                  {ix.label}
-                </div>
+                {ix.labelIcon}
+                {ix.label}
               </div>
             );
           })}
@@ -77,7 +75,7 @@ export const SideTab: FC<TabProps> = ({
   return (
     <>
       <TabHeader className={cn(className, 'border-none')}>
-        <div className="flex flex-col border-r h-full space-y-0.5 p-1">
+        <div className="flex flex-col border-r border-gray-200 dark:border-gray-800 h-full pt-2">
           {tabs.map((ix, id) => {
             return (
               <div
@@ -86,16 +84,14 @@ export const SideTab: FC<TabProps> = ({
                   setIsActive(ix.label);
                 }}
                 className={cn(
-                  'group px-2 border-transparent -ms-[0.1rem] cursor-pointer',
+                  'cursor-pointer flex items-center gap-2 h-8 px-4 border-l-2 text-sm font-medium whitespace-nowrap transition-colors',
                   isActive === ix.label
-                    ? 'text-blue-500 bg-blue-500/10'
-                    : 'hover:bg-blue-500/5 hover:text-blue-500',
+                    ? 'border-l-primary text-primary bg-primary/10'
+                    : 'border-l-transparent text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary',
                 )}
               >
-                <div className="capitalize px-3 py-3 font-medium text-[14.5px] whitespace-nowrap tracking-wide text-pretty gap-3 flex items-center">
-                  {ix.labelIcon}
-                  {ix.label}
-                </div>
+                {ix.labelIcon}
+                {ix.label}
               </div>
             );
           })}

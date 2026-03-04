@@ -2,14 +2,88 @@ import { CustomLink, CustomLinkProps } from '@/app/components/custom-link';
 import { MultiplePills } from '@/app/components/pill';
 import { Tooltip } from '@/app/components/tooltip';
 import { cn } from '@/utils';
-import { FC, HTMLAttributes } from 'react';
+import { FC, HTMLAttributes, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+import { CornerBorderOverlay } from '@/app/components/base/corner-border';
+
+// ─── Unified card primitives ───────────────────────────────────────────────
+
+/** Static card — background + corner-bracket hover, no interactivity. */
+export const BaseCard: FC<HTMLAttributes<HTMLDivElement>> = ({
+  className,
+  children,
+  ...props
+}) => (
+  <div
+    className={cn(
+      'bg-white dark:bg-gray-950/50 relative group flex flex-col transition-colors duration-100',
+      className,
+    )}
+    {...props}
+  >
+    <CornerBorderOverlay />
+    {children}
+  </div>
+);
+
+/** Navigable card — wraps content in a react-router Link. */
+export const LinkCard: FC<{ to: string; className?: string; children?: ReactNode }> = ({
+  to,
+  className,
+  children,
+}) => (
+  <Link
+    to={to}
+    className={cn(
+      'bg-white dark:bg-gray-950/50 relative group flex flex-col transition-colors duration-100',
+      className,
+    )}
+  >
+    <CornerBorderOverlay />
+    {children}
+  </Link>
+);
+
+/** Actionable card — div with role="button", keyboard support, and focus ring. */
+export const ActionCard: FC<HTMLAttributes<HTMLDivElement>> = ({
+  className,
+  children,
+  onClick,
+  onKeyDown,
+  ...props
+}) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+    onKeyDown?.(e);
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      className={cn(
+        'bg-white dark:bg-gray-950/50 relative group flex flex-col transition-colors duration-100 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+        className,
+      )}
+      {...props}
+    >
+      <CornerBorderOverlay />
+      {children}
+    </div>
+  );
+};
+
+// ─── Legacy card primitives (kept for backwards compatibility) ─────────────
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {}
 export const Card: FC<CardProps> = ({ children, className, ...props }) => {
   return (
     <div
       className={cn(
-        'dark:bg-gray-950 bg-white relative flex flex-col overflow-hidden p-4 h-fit border-[1px] rounded-lg',
+        // Carbon tile — no border radius, 1px border
+        'dark:bg-gray-950 bg-white relative flex flex-col overflow-hidden p-4 h-fit border rounded-none',
         className,
       )}
       {...props}
@@ -29,7 +103,8 @@ export const ClickableCard: FC<ClickableCardProps & CustomLinkProps> = ({
 }) => {
   return (
     <CustomLink to={to} isExternal={isExternal}>
-      <Card className={cn('group hover:shadow-md border-[1px]', className)}>
+      {/* Carbon clickable tile: no shadow, hover = subtle bg tint */}
+      <Card className={cn('group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/60 transition-colors duration-100', className)}>
         {children}
       </Card>
     </CustomLink>

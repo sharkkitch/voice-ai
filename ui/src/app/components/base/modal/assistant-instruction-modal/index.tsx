@@ -73,17 +73,10 @@ window.chatbotConfig = {
             </FieldSet>
           </ModalBody>
           <ModalFooter>
-            <ICancelButton
-              className="px-4 rounded-[2px]"
-              onClick={() => mldAttr.setModalOpen(true)}
-            >
+            <ICancelButton onClick={() => mldAttr.setModalOpen(true)}>
               Close
             </ICancelButton>
-            <ILinkButton
-              href="https://doc.rapida.ai"
-              className="px-4 rounded-[2px]"
-              target="_blank"
-            >
+            <ILinkButton href="https://doc.rapida.ai" target="_blank">
               View Documentation
               <ExternalLink className="w-4 h-4 ml-2" strokeWidth={1.5} />
             </ILinkButton>

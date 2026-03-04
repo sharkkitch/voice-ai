@@ -133,9 +133,10 @@ export const ConfigPrompt: FC<IPromptProps> = ({
           {existingPrompt.prompt.length < MAX_PROMPT_MESSAGE_LENGTH && (
             <IBlueBorderButton
               onClick={handleAddMessage}
-              className="w-full justify-between"
+              className="w-full"
             >
-              Add new message <Plus className="h-4 w-4 ml-1.5" />
+              <Plus className="h-4 w-4" />
+              Add new message
             </IBlueBorderButton>
           )}
         </div>
@@ -143,11 +144,22 @@ export const ConfigPrompt: FC<IPromptProps> = ({
 
       {existingPrompt.variables.length > 0 && (
         <FieldSet>
-          <FormLabel>Arguments ({existingPrompt.variables.length})</FormLabel>
-          <div className="text-sm grid bg-light-background dark:bg-gray-950 w-full divide-y">
+          <div className="flex items-center gap-2">
+            <FormLabel>Arguments</FormLabel>
+            <span className="text-xs tabular-nums text-gray-400 dark:text-gray-600">
+              {existingPrompt.variables.length}
+            </span>
+          </div>
+          <div className="text-sm grid bg-light-background dark:bg-gray-950 w-full border border-gray-300 dark:border-gray-700 divide-y divide-gray-300 dark:divide-gray-700">
+            {/* Carbon table header row */}
+            <div className="grid grid-cols-3 divide-x divide-gray-300 dark:divide-gray-700 bg-gray-50 dark:bg-gray-900">
+              <div className="px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase text-gray-500 dark:text-gray-500">Variable</div>
+              <div className="px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase text-gray-500 dark:text-gray-500">Type</div>
+              <div className="px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase text-gray-500 dark:text-gray-500">Default value</div>
+            </div>
             {existingPrompt.variables.map((v, idx) => (
-              <div key={idx} className="grid grid-cols-3 divide-x">
-                <div className="flex col-span-1 items-center px-4">
+              <div key={idx} className="grid grid-cols-3 divide-x divide-gray-300 dark:divide-gray-700">
+                <div className="flex col-span-1 items-center px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 font-medium">
                   {v.name}
                 </div>
                 <TypeOfVariable
@@ -158,9 +170,9 @@ export const ConfigPrompt: FC<IPromptProps> = ({
                     handleVariableChange(v.name, t, v.defaultvalue)
                   }
                 />
-                <div className="col-span-1">
+                <div className="col-span-1 h-full">
                   <ScalableTextarea
-                    wrapperClassName="border-0 p-0 min-h-4"
+                    wrapperClassName="border-0 bg-transparent h-full"
                     placeholder={`Default value for '${v.name}'`}
                     value={v.defaultvalue}
                     row={1}

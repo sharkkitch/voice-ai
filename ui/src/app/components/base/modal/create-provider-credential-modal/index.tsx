@@ -215,18 +215,13 @@ export function CreateProviderCredentialDialog(
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
           >
             Cancel
           </ICancelButton>
-          <IBlueBGArrowButton
-            className="px-4 rounded-[2px]"
-            onClick={validateAndSubmit}
-            isLoading={loading}
-          >
+          <IBlueBGArrowButton onClick={validateAndSubmit} isLoading={loading}>
             Configure
           </IBlueBGArrowButton>
         </ModalFooter>

@@ -1,72 +1,72 @@
 import { cn } from '@/utils';
 import { HTMLAttributes } from 'react';
 
+// Carbon inline notification — info (blue)
 export const BlueNoticeBlock: React.FC<HTMLAttributes<HTMLDivElement>> = ({
   className,
   onClick,
   children,
-}) => {
-  return (
-    <div
-      className={cn(
-        'm-2 px-4 py-2 border-[0.5px] rounded-[2px]',
-        'border-blue-600 bg-blue-500/10 text-sm',
-        className,
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
-};
+}) => (
+  <div
+    className={cn(
+      'm-2 border-0 border-l-4 border-l-blue-600',
+      'bg-blue-50 dark:bg-blue-900/20',
+      'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+      className,
+    )}
+    onClick={onClick}
+  >
+    {children}
+  </div>
+);
 
+// Carbon inline notification — success (green)
 export const GreenNoticeBlock: React.FC<HTMLAttributes<HTMLDivElement>> = ({
   className,
   children,
-}) => {
-  return (
-    <div
-      className={cn(
-        'm-2 px-4 py-2 border-[0.5px] rounded-[2px]',
-        'border-green-600 bg-green-500/10 text-sm',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-};
+}) => (
+  <div
+    className={cn(
+      'm-2 border-0 border-l-4 border-l-green-600',
+      'bg-green-50 dark:bg-green-900/20',
+      'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+      className,
+    )}
+  >
+    {children}
+  </div>
+);
 
+// Carbon inline notification — error (red)
 export const RedNoticeBlock: React.FC<HTMLAttributes<HTMLDivElement>> = ({
   className,
   children,
-}) => {
-  return (
-    <div
-      className={cn(
-        'px-4 py-2 border-[0.5px] rounded-[2px]',
-        'text-sm border-red-600 bg-red-100 dark:bg-red-500/20',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-};
+}) => (
+  <div
+    className={cn(
+      'm-2 border-0 border-l-4 border-l-red-600',
+      'bg-red-50 dark:bg-red-900/20',
+      'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+      className,
+    )}
+  >
+    {children}
+  </div>
+);
 
+// Carbon inline notification — warning (yellow)
 export const YellowNoticeBlock: React.FC<HTMLAttributes<HTMLDivElement>> = ({
   className,
   children,
-}) => {
-  return (
-    <div
-      className={cn(
-        'm-2 px-4 py-2 border-[0.5px] rounded-[2px]',
-        'border-yellow-600 dark:border-yellow-600/70 bg-yellow-500/10 text-sm/6',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-};
+}) => (
+  <div
+    className={cn(
+      'm-2 border-0 border-l-4 border-l-yellow-500',
+      'bg-yellow-50 dark:bg-yellow-900/20',
+      'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+      className,
+    )}
+  >
+    {children}
+  </div>
+);

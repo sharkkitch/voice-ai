@@ -38,6 +38,18 @@ import { YellowNoticeBlock } from '@/app/components/container/message/notice-blo
 import { ExternalLink, Info } from 'lucide-react';
 import { InputHelper } from '@/app/components/input-helper';
 
+/** Section divider — matches the one in create-endpoint */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
+
 export const CreateNewVersionEndpointPage: FC = () => {
   /**
    * current endpointID for which the version is getting created
@@ -281,55 +293,61 @@ export const CreateNewVersionEndpointPage: FC = () => {
       <TabForm
         activeTab={activeTab}
         onChangeActiveTab={() => {}}
-        formHeading="Complete the step to create new version of endpoint"
+        formHeading="Create a new version of this endpoint."
         errorMessage={errorMessage}
         form={[
           {
-            name: 'Modify Endpoint',
+            name: 'Configure model',
             description:
-              'Change endpoint defnition, change model, instruction and variables for the endpoint',
+              'Modify the model, parameters, and prompt template for this endpoint.',
             code: 'choose-model',
             body: (
               <>
-                <YellowNoticeBlock className="flex items-center">
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
                   <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the endpoint will not be
-                    deployed automatically.
-                  </div>
+                  <p className="text-sm flex-1">
+                    New versions of the endpoint will not be deployed
+                    automatically. You must promote them manually.
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/endpoint/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
-                    <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
-                      strokeWidth={1.5}
-                    />
+                    Read docs
+                    <ExternalLink className="shrink-0 w-3.5 h-3.5" strokeWidth={1.5} />
                   </a>
                 </YellowNoticeBlock>
-                <div className="space-y-6 px-8 pb-8 max-w-4xl ">
-                  <TextProvider
-                    onChangeProvider={onChangeTextProvider}
-                    parameters={textProviderModel.parameters}
-                    provider={textProviderModel.provider}
-                    onChangeParameter={onChangeTextProviderParameter}
-                  />
-                  <ConfigPrompt
-                    instanceId={randomString(10)}
-                    existingPrompt={promptConfig}
-                    onChange={prompt => {
-                      setPromptConfig(prompt);
-                    }}
-                  />
+                <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Model configuration section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Model Configuration" />
+                    <TextProvider
+                      onChangeProvider={onChangeTextProvider}
+                      parameters={textProviderModel.parameters}
+                      provider={textProviderModel.provider}
+                      onChangeParameter={onChangeTextProviderParameter}
+                    />
+                  </div>
+
+                  {/* Prompt template section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Prompt Template" />
+                    <ConfigPrompt
+                      instanceId={randomString(10)}
+                      existingPrompt={promptConfig}
+                      onChange={prompt => {
+                        setPromptConfig(prompt);
+                      }}
+                    />
+                  </div>
                 </div>
               </>
             ),
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => setIsShow(true)}
               >
                 Cancel
@@ -337,7 +355,7 @@ export const CreateNewVersionEndpointPage: FC = () => {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={onvalidateEndpointInstruction}
               >
                 Configure instruction
@@ -347,18 +365,18 @@ export const CreateNewVersionEndpointPage: FC = () => {
 
           {
             code: 'commit-endpoint',
-            name: 'Change definition',
+            name: 'Version note',
             description:
-              'Give a change definition that will help people to understand what has been change in this version',
+              'Write a brief note describing what changed in this version.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => setIsShow(true)}
               >
                 Cancel
               </ICancelButton>,
               <IBlueBGArrowButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 type="button"
                 isLoading={loading}
                 onClick={() => {
@@ -369,45 +387,24 @@ export const CreateNewVersionEndpointPage: FC = () => {
               </IBlueBGArrowButton>,
             ],
             body: (
-              <>
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the endpoint will not be
-                    deployed automatically.
-                  </div>
-                  <a
-                    target="_blank"
-                    href="https://doc.rapida.ai/endpoint/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
-                    rel="noreferrer"
-                  >
-                    Read documentation
-                    <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
-                      strokeWidth={1.5}
-                    />
-                  </a>
-                </YellowNoticeBlock>
-                <div className="space-y-6 px-8 pb-8 max-w-4xl ">
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Version Description" />
                   <FieldSet>
-                    <FormLabel>Change description</FormLabel>
+                    <FormLabel>Version note</FormLabel>
                     <Textarea
                       row={5}
                       value={commitMessage}
-                      placeholder={
-                        'Provide a clear and detailed explanation of the purpose and modifications made to the endpoint.'
-                      }
+                      placeholder="Provide a clear and detailed explanation of the purpose and modifications made to the endpoint."
                       onChange={t => setCommitMessage(t.target.value)}
                     />
                     <InputHelper>
-                      Use this field to summarize the changes made to the
-                      endpoint, highlight key updates, and specify why these
-                      modifications are necessary.
+                      Summarize the changes made to the endpoint, highlight key
+                      updates, and specify why these modifications are necessary.
                     </InputHelper>
                   </FieldSet>
                 </div>
-              </>
+              </div>
             ),
           },
         ]}

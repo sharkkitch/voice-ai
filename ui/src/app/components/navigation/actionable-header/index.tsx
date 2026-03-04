@@ -9,7 +9,7 @@ import { CustomLink } from '@/app/components/custom-link';
 import { useDarkMode } from '@/context/dark-mode-context';
 import { AuthContext } from '@/context/auth-context';
 import { TextImage } from '@/app/components/text-image';
-import { ChevronRight, HelpCircle, Moon, Sun } from 'lucide-react';
+import { HelpCircle, Moon, Sun } from 'lucide-react';
 /**
  *
  * @param props
@@ -38,15 +38,21 @@ export function ActionableHeader(props: { reload?: boolean }) {
     );
   }, [pathname]);
   return (
-    <header className={cn('antialiased')}>
-      <div className="flex items-center justify-between pl-4">
-        <ol className="flex items-center truncate">
-          {breadcrumbs.map((x, idx) => {
-            return <BreadcrumbElement label={x} key={idx} />;
-          })}
-        </ol>
-        <CustomerOptions />
-      </div>
+    // Carbon UI Shell header: h-12, white bg, bottom border
+    <header
+      className={cn(
+        'h-12 flex items-center justify-between',
+        'bg-white dark:bg-gray-900',
+        'border-b border-gray-200 dark:border-gray-800',
+        'shrink-0',
+      )}
+    >
+      <ol className="flex items-center pl-4 truncate">
+        {breadcrumbs.map((x, idx) => {
+          return <BreadcrumbElement label={x} key={idx} />;
+        })}
+      </ol>
+      <CustomerOptions />
     </header>
   );
 }
@@ -56,15 +62,15 @@ function BreadcrumbElement(props: { label: { href: string; label: string } }) {
     <>
       <li>
         <CustomLink
-          className="capitalize hover:text-blue-600 text-base/6 font-medium"
+          className="capitalize text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
           to={props.label.href}
         >
           {props.label.label}
         </CustomLink>
       </li>
-
-      <li className="px-1.5 last:hidden">
-        <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+      {/* Carbon breadcrumb uses "/" as separator */}
+      <li className="px-1.5 last:hidden text-gray-400 dark:text-gray-600 text-sm select-none">
+        /
       </li>
     </>
   );

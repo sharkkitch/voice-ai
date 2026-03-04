@@ -15,6 +15,7 @@ import {
   Bar,
   BarChart,
   YAxis,
+  CartesianGrid,
 } from 'recharts';
 import {
   NameType,
@@ -24,12 +25,39 @@ import { ContentType } from 'recharts/types/component/Tooltip';
 import { useAssistantTracePageStore } from '@/hooks/use-assistant-trace-page-store';
 import { FC, useEffect, useState } from 'react';
 import { BluredWrapper } from '@/app/components/wrapper/blured-wrapper';
-import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { IButton } from '@/app/components/form/button';
-import { ChevronDown } from 'lucide-react';
+import {
+  ChevronDown,
+  MessageSquare,
+  Clock,
+  Zap,
+  Hash,
+  CheckCircle2,
+  Users,
+  LucideIcon,
+} from 'lucide-react';
 import { cn } from '@/utils';
 import { Popover } from '@/app/components/popover';
 import { useCurrentCredential } from '@/hooks/use-credential';
+
+const CHART_COLORS = [
+  '#1e40af',
+  '#22d3ee',
+  '#f59e0b',
+  '#10b981',
+  '#f43f5e',
+  '#1e40af',
+];
+
+interface MetricItem {
+  title: string;
+  value: string;
+  trend: string;
+  icon: LucideIcon;
+  borderClass: string;
+  iconBgClass: string;
+  iconTextClass: string;
+}
 
 export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   const assistantTraceAction = useAssistantTracePageStore();
@@ -41,6 +69,7 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   const [selectedRange, setSelectedRange] = useState<string>('last_30_days');
 
   const { authId, token, projectId } = useCurrentCredential();
+
   const getDateRangeCriteria = (range: string) => {
     const now = new Date();
     let startDate: Date;
@@ -84,7 +113,6 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
     authId,
   ]);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
   const conversationsMap = assistantTraceAction.assistantMessages.reduce(
     (acc, message) => {
       const conversationId = message.getAssistantconversationid();
@@ -98,14 +126,9 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   );
 
   const conversations = Array.from(conversationsMap.values());
-
-  // Calculate total sessions (unique conversations)
   const totalSessions = conversations.length;
-
-  // Calculate total messages
   const totalMessages = assistantTraceAction.assistantMessages.length;
 
-  // Calculate average duration
   const avgDuration =
     conversations.reduce((sum, conversation) => {
       const sortedMessages = conversation.sort(
@@ -114,13 +137,14 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
           toDate(b.getCreateddate()!).getTime(),
       );
       const duration =
-        (toDate(sortedMessages[sortedMessages.length - 1].getCreateddate()!).getTime() -
+        (toDate(
+          sortedMessages[sortedMessages.length - 1].getCreateddate()!,
+        ).getTime() -
           toDate(sortedMessages[0].getCreateddate()!).getTime()) /
         1000;
       return sum + duration;
     }, 0) / totalSessions;
 
-  // Calculate average latency
   const avgLatency =
     assistantTraceAction.assistantMessages.reduce(
       (sum, message) => sum + getTimeTakenMetric(message.getMetricsList()),
@@ -143,13 +167,9 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   ).map(([lang, count]) => ({
     language: lang,
     count,
-    percentage: (
-      (count / assistantTraceAction.assistantMessages.length) *
-      100
-    ).toFixed(1),
+    percentage: ((count / totalMessages) * 100).toFixed(1),
   }));
 
-  // Source distribution for pie chart
   const sourceData = Object.entries(
     assistantTraceAction.assistantMessages.reduce(
       (acc, item) => {
@@ -162,28 +182,36 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   ).map(([source, count]) => ({
     source,
     count,
-    percentage: (
-      (count / assistantTraceAction.assistantMessages.length) *
-      100
-    ).toFixed(1),
+    percentage: ((count / totalMessages) * 100).toFixed(1),
   }));
 
-  //
-  const metricsData = [
+  const metricsData: MetricItem[] = [
     {
       title: 'Total Sessions',
       value: totalSessions.toLocaleString(),
-      trend: `${((totalSessions / assistantTraceAction.assistantMessages.length) * 100).toFixed(1)}% of total interactions`,
+      trend: `${((totalSessions / totalMessages) * 100).toFixed(1)}% of total interactions`,
+      icon: Users,
+      borderClass: 'bg-blue-500',
+      iconBgClass: 'bg-blue-50 dark:bg-blue-950/40',
+      iconTextClass: 'text-blue-500',
     },
     {
       title: 'Total Messages',
       value: totalMessages.toLocaleString(),
       trend: `${(totalMessages / totalSessions).toFixed(1)} messages per session`,
+      icon: MessageSquare,
+      borderClass: 'bg-violet-500',
+      iconBgClass: 'bg-violet-50 dark:bg-violet-950/40',
+      iconTextClass: 'text-violet-500',
     },
     {
       title: 'Avg Duration',
       value: `${Math.round(avgDuration)}s`,
       trend: `${(avgDuration / 60).toFixed(1)} minutes per session`,
+      icon: Clock,
+      borderClass: 'bg-amber-500',
+      iconBgClass: 'bg-amber-50 dark:bg-amber-950/40',
+      iconTextClass: 'text-amber-500',
     },
     {
       title: 'Avg Latency',
@@ -192,29 +220,50 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
         avgLatency / 1000000 > 2000
           ? 'High latency, optimization needed'
           : 'Good response time',
+      icon: Zap,
+      borderClass: 'bg-orange-500',
+      iconBgClass: 'bg-orange-50 dark:bg-orange-950/40',
+      iconTextClass: 'text-orange-500',
     },
     {
       title: 'Token Efficiency',
-      value: `${(assistantTraceAction.assistantMessages.reduce((sum, item) => sum + getTotalTokenMetric(item.getMetricsList()), 0) / totalMessages).toFixed(1)}`,
+      value: (
+        assistantTraceAction.assistantMessages.reduce(
+          (sum, item) => sum + getTotalTokenMetric(item.getMetricsList()),
+          0,
+        ) / totalMessages
+      ).toFixed(1),
       trend: 'Tokens per message',
+      icon: Hash,
+      borderClass: 'bg-teal-500',
+      iconBgClass: 'bg-teal-50 dark:bg-teal-950/40',
+      iconTextClass: 'text-teal-500',
     },
     {
       title: 'Success Rate',
-      value: `${((assistantTraceAction.assistantMessages.filter(item => getStatusMetric(item.getMetricsList()) === 'SUCCESS').length / totalMessages) * 100).toFixed(1)}%`,
+      value: `${(
+        (assistantTraceAction.assistantMessages.filter(
+          item => getStatusMetric(item.getMetricsList()) === 'SUCCESS',
+        ).length /
+          totalMessages) *
+        100
+      ).toFixed(1)}%`,
       trend: 'Completed interactions',
+      icon: CheckCircle2,
+      borderClass: 'bg-emerald-500',
+      iconBgClass: 'bg-emerald-50 dark:bg-emerald-950/40',
+      iconTextClass: 'text-emerald-500',
     },
   ];
 
-  //
   const activeSessionsData = (() => {
     const now = new Date();
-    let interval: number; // Bucket size in minutes
+    let interval: number;
     let formatLabel: (date: Date) => string;
 
-    // Determine grouping interval and label format based on selected range
     switch (selectedRange) {
       case 'last_24_hours':
-        interval = 30; // 30-minute intervals
+        interval = 30;
         formatLabel = date =>
           `${date.getHours().toString().padStart(2, '0')}:${date
             .getMinutes()
@@ -222,7 +271,7 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
             .padStart(2, '0')}`;
         break;
       case 'last_7_days':
-        interval = 240; // 4-hour intervals
+        interval = 240;
         formatLabel = date =>
           `${toDateString(date)} ${date
             .getHours()
@@ -231,14 +280,13 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
         break;
       case 'last_30_days':
       default:
-        interval = 1440; // 1-day intervals
+        interval = 1440;
         formatLabel = date => `${toDateString(date)}`;
         break;
     }
 
-    // Start time based on range
     const startTime = new Date();
-    startTime.setMinutes(0, 0, 0); // Reset to the start of the current hour
+    startTime.setMinutes(0, 0, 0);
     switch (selectedRange) {
       case 'last_24_hours':
         startTime.setDate(startTime.getDate() - 1);
@@ -252,22 +300,15 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
         break;
     }
 
-    // Generate buckets for the desired interval
     const buckets: Array<{ date: Date; total: number; latency: number }> = [];
     for (
       let t = startTime.getTime();
       t < now.getTime();
       t += interval * 60 * 1000
     ) {
-      const bucketDate = new Date(t);
-      buckets.push({
-        date: bucketDate,
-        total: 0,
-        latency: 0,
-      });
+      buckets.push({ date: new Date(t), total: 0, latency: 0 });
     }
 
-    // Group the assistant messages into buckets
     assistantTraceAction.assistantMessages.forEach(message => {
       const msgTime = toDate(message.getCreateddate()!).getTime();
       const bucketIndex = Math.floor(
@@ -281,7 +322,6 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
       }
     });
 
-    // Calculate averages and format the final data
     return buckets.map(bucket => ({
       dateHour: formatLabel(bucket.date),
       total: bucket.total,
@@ -289,7 +329,6 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
       label: `From: ${bucket.date.toISOString().split('.')[0].replace('T', ' ')}`,
     }));
   })();
-  //
 
   const fetchAssistantMessages = () => {
     assistantTraceAction.setPageSize(0);
@@ -306,73 +345,72 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   };
 
   useEffect(() => {
-    // Implement auto-refresh logic
     let intervalId: NodeJS.Timeout | null = null;
-
     if (autoRefreshInterval && autoRefreshInterval > 0) {
       intervalId = setInterval(
         () => {
           fetchAssistantMessages();
         },
         autoRefreshInterval * 60 * 1000,
-      ); // Convert minutes to milliseconds
+      );
     }
-
     return () => {
-      // Cleanup interval
       if (intervalId) clearInterval(intervalId);
     };
-  }, [autoRefreshInterval]); // Dependency: autoRefreshInterval
+  }, [autoRefreshInterval]);
 
   return (
     <div className="w-full">
-      <section className="bg-white dark:bg-gray-950 border-b relative grid grid-cols-1  md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 ">
-        {metricsData.map((metric, index) => (
-          <div
-            key={index}
-            className="grid grid-rows-[1fr_auto] md:border-r md:border-gray-200 dark:border-gray-800"
-          >
-            <div className="grid grid-cols-1 items-center">
-              <div className="px-4 py-2 sm:px-2">
-                <div className="text-2xl font-medium mt-4">{metric.value}</div>
-                <div className="flex items-center gap-2 mt-4">
-                  <h3 className="text-base/7 font-medium text-muted">
-                    <div className="absolute inset-0" />
-                    {metric.title}
-                  </h3>
+      {/* Metric cards */}
+      <section className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        {metricsData.map((metric, index) => {
+          const Icon = metric.icon;
+          return (
+            <div
+              key={index}
+              className="relative flex flex-col gap-2.5 p-5 border-r border-b border-gray-200 dark:border-gray-800 xl:border-b-0 last:border-r-0"
+            >
+              {/* Colored left accent bar */}
+              <div
+                className={cn('absolute left-0 top-4 bottom-4 w-0.5', metric.borderClass)}
+              />
+              <div className="flex items-center justify-between pl-3">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {metric.title}
+                </p>
+                <div className={cn('p-1.5', metric.iconBgClass)}>
+                  <Icon
+                    className={cn('w-3.5 h-3.5', metric.iconTextClass)}
+                    strokeWidth={2}
+                  />
                 </div>
               </div>
-            </div>
-            <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-2 max-md:border-y sm:px-2">
-              <p className="text-sm/6 text-gray-600 dark:text-gray-400 opacity-70">
+              <p className="text-2xl font-semibold tracking-tight pl-3">
+                {metric.value}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 pl-3 leading-relaxed">
                 {metric.trend}
               </p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </section>
 
-      <BluredWrapper className="mt-4 dark:bg-gray-950">
-        <PageTitleBlock className="px-4 text-base/7 font-medium py-2">
+      {/* Analytics toolbar */}
+      <BluredWrapper>
+        <p className="px-4 text-xs font-medium uppercase tracking-[0.08em] text-gray-600 dark:text-gray-400">
           Analytics
-        </PageTitleBlock>
-        <div className=" dark:divide-gray-800 flex">
-          <div className="flex border-l">
+        </p>
+        <div className="flex items-stretch h-10 border-l border-gray-200 dark:border-gray-800">
+          {/* Date range */}
+          <div className="border-r border-gray-200 dark:border-gray-800 flex items-stretch">
             <IButton
-              className={cn(
-                'px-4 border-none capitalize',
-                openRange && 'bg-light-background!  dark:bg-gray-950!',
-              )}
-              onClick={() => {
-                setOpenRange(true);
-              }}
+              className={cn('capitalize', openRange && 'bg-primary/10!')}
+              onClick={() => setOpenRange(true)}
             >
               {selectedRange.replaceAll('_', ' ')}
               <ChevronDown
-                className={cn(
-                  'w-4 h-4 ml-2 transition-all delay-200',
-                  openRange && 'rotate-180',
-                )}
+                className={cn('w-4 h-4 transition-all delay-200', openRange && 'rotate-180')}
               />
             </IButton>
             <Popover
@@ -380,13 +418,12 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
               className="w-60"
               open={openRange}
               setOpen={setOpenRange}
-              arrowClass={'!fill-white dark:!fill-gray-700'}
             >
               <div className="space-y-0.5 text-sm/6">
-                <p className="px-2 py-1 text-xs/5 text-muted uppercase">
+                <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400">
                   Quick Range
                 </p>
-                <hr className="w-full h-[1px] bg-gray-800" />
+                <div className="border-t border-gray-200 dark:border-gray-800" />
                 {[
                   'last_24_hours',
                   'last_3_days',
@@ -408,25 +445,16 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
             </Popover>
           </div>
 
-          <div className="flex border-l">
+          {/* Auto-refresh */}
+          <div className="flex items-stretch">
             <IButton
-              className={cn(
-                'px-4 border-none',
-                openautoRefersh && 'bg-light-background!  dark:bg-gray-950!',
-              )}
-              onClick={() => {
-                setOpenautoRefresh(true);
-              }}
+              className={cn(openautoRefersh && 'bg-primary/10!')}
+              onClick={() => setOpenautoRefresh(true)}
             >
               Auto-refresh{' '}
-              {autoRefreshInterval === null
-                ? 'Off'
-                : `${autoRefreshInterval} Minute`}
+              {autoRefreshInterval === null ? 'Off' : `${autoRefreshInterval} min`}
               <ChevronDown
-                className={cn(
-                  'w-4 h-4 ml-2 transition-all delay-200',
-                  openautoRefersh && 'rotate-180',
-                )}
+                className={cn('w-4 h-4 transition-all delay-200', openautoRefersh && 'rotate-180')}
               />
             </IButton>
             <Popover
@@ -434,13 +462,12 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
               className="w-60"
               open={openautoRefersh}
               setOpen={setOpenautoRefresh}
-              arrowClass={'!fill-white dark:!fill-gray-700'}
             >
               <div className="space-y-0.5 text-sm/6">
-                <p className="px-2 py-1 text-xs/5 text-muted uppercase">
+                <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400">
                   Auto refresh interval
                 </p>
-                <hr className="w-full h-[1px] bg-gray-800" />
+                <div className="border-t border-gray-200 dark:border-gray-800" />
                 {[0, 5, 10, 30].map(mins => (
                   <IButton
                     key={mins}
@@ -450,7 +477,7 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
                       setOpenautoRefresh(false);
                     }}
                   >
-                    {mins === 0 ? 'Off' : `Every ${mins} Minute`}
+                    {mins === 0 ? 'Off' : `Every ${mins} min`}
                   </IButton>
                 ))}
               </div>
@@ -458,166 +485,268 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
           </div>
         </div>
       </BluredWrapper>
-      <div className="bg-white dark:bg-gray-950 grid grid-cols-2">
-        <div className="col-span-2 border-b">
-          <div className="border-b px-4 py-4 opacity-80">
-            <h2 className="text-base/6 font-semibold">Sessions served</h2>
+
+      {/* Charts */}
+      <div className="bg-white dark:bg-gray-900">
+        {/* Sessions bar chart — full width */}
+        <div className="border-b border-gray-200 dark:border-gray-800">
+          <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-sm font-semibold">Sessions served</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Number of sessions over time
+            </p>
           </div>
-          <div className="h-[300px]">
+          <div className="h-[280px] px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={activeSessionsData}
-                margin={{ top: 5, right: 0, left: -30, bottom: 5 }}
+                margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
               >
-                <g className="stroke-gray-300 dark:stroke-gray-800">
-                  <YAxis
-                    dataKey="total"
-                    tickLine={false}
-                    tick={{ fontSize: 12 }}
-                    axisLine={
-                      <line
-                        stroke="stroke-gray-300 dark:stroke-gray-800"
-                        strokeWidth={1}
-                      />
-                    } // gray-200
-                  />
-                </g>
-                <g className="stroke-gray-300 dark:stroke-gray-800">
-                  <XAxis
-                    dataKey="dateHour"
-                    tickLine={true}
-                    tick={{ fontSize: 12 }}
-                    axisLine={
-                      <line
-                        stroke="stroke-gray-300 dark:stroke-gray-800"
-                        strokeWidth={1}
-                        // Tailwind stroke color
-                      />
-                    }
-                  />
-                </g>
-
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#e5e7eb"
+                  strokeOpacity={0.5}
+                />
+                <YAxis
+                  dataKey="total"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  width={36}
+                />
+                <XAxis
+                  dataKey="dateHour"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  interval="preserveStartEnd"
+                />
                 <Tooltip
-                  cursor={false}
+                  cursor={{ fill: '#6366f1', fillOpacity: 0.06, radius: 4 }}
                   content={
-                    (({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0 w-64">
-                            <div className="divide-y text-sm dark:text-gray-400 text-gray-700">
-                              <div className="px-3 py-3 space-y-1.5">
-                                {payload.map((entry, index) => (
-                                  <div
-                                    className="flex items-center justify-between"
-                                    key={index}
-                                  >
-                                    <div className="flex items-center space-x-1.5">
-                                      <div
-                                        className="w-2 h-2"
-                                        style={{
-                                          backgroundColor:
-                                            entry.color || '#ccc',
-                                          borderRadius: '2px',
-                                        }}
-                                      ></div>
-                                      <span className="font-medium capitalize">
-                                        {entry.name}
-                                      </span>
-                                    </div>
-                                    <span className="font-medium">
-                                      {entry.value}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="px-3 py-2">
-                                {/* Updated to show 'From' and 'To' for tooltip */}
-                                <div>{payload[0]?.payload?.label}</div>
-                              </div>
-                            </div>
+                    (({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      return (
+                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg px-3 py-2.5 text-sm min-w-[140px]">
+                          <p className="text-gray-400 dark:text-gray-500 text-xs mb-1.5">
+                            {payload[0]?.payload?.label}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-primary" />
+                            <span className="text-gray-600 dark:text-gray-300">
+                              Sessions
+                            </span>
+                            <span className="ml-auto font-semibold tabular-nums">
+                              {payload[0]?.value}
+                            </span>
                           </div>
-                        );
-                      }
-                      return null;
+                        </div>
+                      );
                     }) as ContentType<ValueType, NameType>
                   }
                 />
-                <g className="dark:text-blue-600/50 text-blue-600/70">
-                  <Bar dataKey="total" stackId="a" fill="currentColor" />
-                </g>
+                <Bar
+                  dataKey="total"
+                  fill="#1e40af"
+                  fillOpacity={0.85}
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={32}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="col-span-1 border-r">
-          <div className="border-b px-4 py-4 opacity-80">
-            <h2 className="text-base/6 font-semibold">Source Distribution</h2>
-          </div>
 
-          <div className="p-4 pt-0">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={sourceData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ source, percentage }) =>
-                      `${source} (${percentage}%)`
-                    }
-                    outerRadius={80}
-                    innerRadius={40} // Added for donut chart
-                    fill="#8884d8"
-                    dataKey="count"
-                    stroke="none"
-                  >
-                    {sourceData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+        {/* Pie charts row */}
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Source Distribution */}
+          <div className="border-r border-gray-200 dark:border-gray-800">
+            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-sm font-semibold">Source Distribution</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Messages by deployment source
+              </p>
+            </div>
+            <div className="relative">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sourceData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={85}
+                      innerRadius={52}
+                      dataKey="count"
+                      nameKey="source"
+                      stroke="none"
+                    >
+                      {sourceData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={
+                        (({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const item = payload[0];
+                          return (
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg px-3 py-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2.5 h-2.5 rounded-sm shrink-0"
+                                  style={{
+                                    backgroundColor: item.color || '#6366f1',
+                                  }}
+                                />
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  {item.name || 'Unknown'}
+                                </span>
+                                <span className="ml-3 font-semibold">
+                                  {item.value}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }) as ContentType<ValueType, NameType>
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Centered donut label */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <p className="text-lg font-bold">{totalMessages}</p>
+                  <p className="text-xs text-gray-400">Total</p>
+                </div>
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="px-5 pb-5 pt-3 space-y-2.5">
+              {sourceData.map((item, index) => (
+                <div
+                  key={item.source}
+                  className="flex items-center gap-2.5 text-xs"
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm shrink-0"
+                    style={{
+                      backgroundColor:
+                        CHART_COLORS[index % CHART_COLORS.length],
+                    }}
+                  />
+                  <span className="text-gray-600 dark:text-gray-400 truncate flex-1 capitalize">
+                    {item.source || 'Unknown'}
+                  </span>
+                  <span className="font-semibold tabular-nums text-gray-800 dark:text-gray-200">
+                    {item.percentage}%
+                  </span>
+                  <span className="text-gray-400 tabular-nums">
+                    ({item.count})
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-        <div className="col-span-1">
-          <div className="border-b px-4 py-4 opacity-80">
-            <h2 className="text-base/6 font-semibold">Language Distribution</h2>
-          </div>
 
-          <div className="p-4 pt-0">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={languageData}
-                    cx="50%"
-                    cy="50%"
-                    stroke="none"
-                    labelLine={false}
-                    label={({ language, percentage }) =>
-                      `${language} (${percentage}%)`
-                    }
-                    outerRadius={80}
-                    innerRadius={40} // Added for donut chart
-                    fill="#8884d8"
-                    dataKey="count"
-                  >
-                    {languageData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+          {/* Language Distribution */}
+          <div>
+            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-sm font-semibold">Language Distribution</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Messages by detected language
+              </p>
+            </div>
+            <div className="relative">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={languageData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={85}
+                      innerRadius={52}
+                      dataKey="count"
+                      nameKey="language"
+                      stroke="none"
+                    >
+                      {languageData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={
+                        (({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const item = payload[0];
+                          return (
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg px-3 py-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-2.5 h-2.5 rounded-sm shrink-0"
+                                  style={{
+                                    backgroundColor: item.color || '#6366f1',
+                                  }}
+                                />
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  {item.name || 'Unknown'}
+                                </span>
+                                <span className="ml-3 font-semibold">
+                                  {item.value}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }) as ContentType<ValueType, NameType>
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Centered donut label */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <p className="text-lg font-bold">{totalMessages}</p>
+                  <p className="text-xs text-gray-400">Total</p>
+                </div>
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="px-5 pb-5 pt-3 space-y-2.5">
+              {languageData.map((item, index) => (
+                <div
+                  key={item.language}
+                  className="flex items-center gap-2.5 text-xs"
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm shrink-0"
+                    style={{
+                      backgroundColor:
+                        CHART_COLORS[index % CHART_COLORS.length],
+                    }}
+                  />
+                  <span className="text-gray-600 dark:text-gray-400 truncate flex-1">
+                    {item.language}
+                  </span>
+                  <span className="font-semibold tabular-nums text-gray-800 dark:text-gray-200">
+                    {item.percentage}%
+                  </span>
+                  <span className="text-gray-400 tabular-nums">
+                    ({item.count})
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

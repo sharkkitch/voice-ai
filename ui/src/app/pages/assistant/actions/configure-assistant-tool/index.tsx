@@ -102,9 +102,9 @@ const ConfigureAssistantTool: FC<{ assistantId: string }> = ({
   return (
     <div className="relative flex flex-col flex-1">
       <ConfirmDialogComponent />
-      <PageHeaderBlock className="border-b">
+      <PageHeaderBlock>
         <PageTitleBlock>Configure Tools and MCPs</PageTitleBlock>
-        <div className="flex divide-x border-l">
+        <div className="flex items-stretch border-l border-gray-200 dark:border-gray-800">
           <IBlueButton
             onClick={() => {
               navigator.goToCreateAssistantTool(assistantId);
@@ -113,6 +113,7 @@ const ConfigureAssistantTool: FC<{ assistantId: string }> = ({
             Add another tool
             <Plus className="w-4 h-4 ml-1.5" />
           </IBlueButton>
+          <div className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
           <IButton type="button" onClick={() => get()}>
             <RotateCw className="w-4 h-4" strokeWidth={1.5} />
           </IButton>
@@ -134,12 +135,12 @@ const ConfigureAssistantTool: FC<{ assistantId: string }> = ({
           <ExternalLink className="shrink-0 w-4 h-4 ml-1.5" strokeWidth={1.5} />
         </a>
       </YellowNoticeBlock>
-      <div className="overflow-auto flex flex-col flex-1 pb-20 bg-white dark:bg-gray-900">
+      <div className="overflow-auto flex flex-col flex-1">
         {axtion.tools.length > 0 ? (
-          <div className="p-2 grid sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-gray-200 dark:bg-gray-800 grow shrink-0 m-4">
             {axtion.tools.map((itm, idx) => (
               <SelectToolCard
-                className="col-span-1 bg-white h-full"
+                className="col-span-1"
                 tool={itm}
                 key={`tool-card-${idx}`}
                 options={[
@@ -163,7 +164,7 @@ const ConfigureAssistantTool: FC<{ assistantId: string }> = ({
                 ]}
               />
             ))}
-          </div>
+          </section>
         ) : (
           <div className="my-auto mx-auto">
             <ActionableEmptyMessage

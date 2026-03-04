@@ -192,18 +192,13 @@ export const UpdateProjectDialog = (props: UpdateProjectDialogProps) => {
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
           >
             Cancel
           </ICancelButton>
-          <IBlueBGArrowButton
-            className="px-4 rounded-[2px]"
-            type="submit"
-            isLoading={loading}
-          >
+          <IBlueBGArrowButton type="submit" isLoading={loading}>
             Update
           </IBlueBGArrowButton>
         </ModalFooter>

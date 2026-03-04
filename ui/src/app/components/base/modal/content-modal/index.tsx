@@ -55,7 +55,6 @@ export function CenterModal(props: CenterModalProps) {
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               props.setModalOpen(false);
             }}
@@ -74,11 +73,7 @@ CenterModal.defaultProps = {
   className: 'flex flex-col w-full md:max-w-xl relative shadow-xs z-50',
   actionWrapper: (action: any, loading?: boolean) => {
     return (
-      <IBlueBGButton
-        className="px-4 rounded-[2px]"
-        type="submit"
-        isLoading={loading}
-      >
+      <IBlueBGButton type="submit" isLoading={loading}>
         {action}
         <MoveRight className="ml-2" strokeWidth={1.5} />
       </IBlueBGButton>

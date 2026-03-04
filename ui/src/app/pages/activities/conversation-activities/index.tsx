@@ -270,53 +270,51 @@ export const ListingPage: FC<{}> = () => {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Conversation Logs</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {`${conversationLogAction.assistantMessages.length}/${conversationLogAction.totalCount}`}
-          </div>
+          </span>
         </div>
       </PageHeaderBlock>
-      <BluredWrapper className="border-t p-0">
-        <div className="flex">
-          <SearchIconInput
-            className="bg-light-background"
-            value={filters.search}
-            onChange={value => {
-              const newValue = value.target.value;
-              const newFilters = { ...filters };
-              const filterRegex = /(id|session):(\S+)/g;
-              let match;
-              let hasMatch = false;
-              newFilters.id = '';
-              newFilters.sessionId = '';
+      <BluredWrapper className="sticky top-0 z-11">
+        <SearchIconInput
+          className="bg-light-background flex-1"
+          value={filters.search}
+          onChange={value => {
+            const newValue = value.target.value;
+            const newFilters = { ...filters };
+            const filterRegex = /(id|session):(\S+)/g;
+            let match;
+            let hasMatch = false;
+            newFilters.id = '';
+            newFilters.sessionId = '';
 
-              if (newValue === '') {
-                // Reset all filters when input is cleared
-                setFilters({ search: '', id: '', sessionId: '' });
-                applyFilter({ search: '', id: '', sessionId: '' });
-                return;
-              }
+            if (newValue === '') {
+              // Reset all filters when input is cleared
+              setFilters({ search: '', id: '', sessionId: '' });
+              applyFilter({ search: '', id: '', sessionId: '' });
+              return;
+            }
 
-              while ((match = filterRegex.exec(newValue)) !== null) {
-                const [, filterType, filterValue] = match;
-                hasMatch = true;
-                switch (filterType) {
-                  case 'id':
-                    newFilters.id = filterValue;
-                    break;
-                  case 'session':
-                    newFilters.sessionId = filterValue;
-                    break;
-                }
+            while ((match = filterRegex.exec(newValue)) !== null) {
+              const [, filterType, filterValue] = match;
+              hasMatch = true;
+              switch (filterType) {
+                case 'id':
+                  newFilters.id = filterValue;
+                  break;
+                case 'session':
+                  newFilters.sessionId = filterValue;
+                  break;
               }
-              newFilters.search = newValue;
-              setFilters(newFilters);
-              if (hasMatch) {
-                applyFilter(newFilters);
-              }
-            }}
-            placeholder="Search by id:trace-id, session:session-id"
-          />
-        </div>
+            }
+            newFilters.search = newValue;
+            setFilters(newFilters);
+            if (hasMatch) {
+              applyFilter(newFilters);
+            }
+          }}
+          placeholder="Search by id:trace-id, session:session-id"
+        />
         <PaginationButtonBlock>
           <TablePagination
             columns={conversationLogAction.columns}
@@ -443,7 +441,7 @@ export const ListingPage: FC<{}> = () => {
                 </TableCell>
               )}
               <TableCell>
-                <div className="divide-x dark:divide-gray-800 flex border w-fit">
+                <div className="flex border border-gray-200 dark:border-gray-800 w-fit">
                   <IButton
                     className="rounded-none"
                     onClick={event => {
@@ -463,26 +461,30 @@ export const ListingPage: FC<{}> = () => {
                     </TooltipPlus>
                   </IButton>
                   {CONFIG.workspace.features?.telemetry !== false && (
-                    <IButton
-                      className="rounded-none"
-                      onClick={event => {
-                        handleTraceClick(row);
-                      }}
-                    >
-                      <TooltipPlus
-                        className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
-                        popupContent={
-                          <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
-                            View telemetry
-                          </div>
-                        }
+                    <>
+                      <span className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
+                      <IButton
+                        className="rounded-none"
+                        onClick={event => {
+                          handleTraceClick(row);
+                        }}
                       >
-                        <Telescope strokeWidth={1.5} className="h-4 w-4" />
-                      </TooltipPlus>
-                    </IButton>
+                        <TooltipPlus
+                          className="bg-white dark:bg-gray-950 border-[0.5px] rounded-[2px] px-0 py-0"
+                          popupContent={
+                            <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-500">
+                              View telemetry
+                            </div>
+                          }
+                        >
+                          <Telescope strokeWidth={1.5} className="h-4 w-4" />
+                        </TooltipPlus>
+                      </IButton>
+                    </>
                   )}
+                  <span className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
                   <ILinkBorderButton
-                    className="rounded-none"
+                    className="rounded-none border-0"
                     href={`/deployment/assistant/${row.getAssistantid()}/sessions/${row.getAssistantconversationid()}`}
                   >
                     <TooltipPlus

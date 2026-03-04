@@ -16,6 +16,7 @@ interface ScrollableResizableTableProps
   isExpandable?: boolean;
   ontoggle?: (boolean) => void;
   isOptionable?: boolean;
+  optionLabel?: string;
 }
 
 export const ScrollableResizableTable: FC<ScrollableResizableTableProps> = ({
@@ -25,6 +26,7 @@ export const ScrollableResizableTable: FC<ScrollableResizableTableProps> = ({
   ontoggle,
   children,
   isOptionable,
+  optionLabel,
 }) => {
   const [columns, setColumns] = useState<
     { key: string; width: number; name: string }[]
@@ -99,7 +101,7 @@ export const ScrollableResizableTable: FC<ScrollableResizableTableProps> = ({
                   {column.name}
                   {index !== columns.length - 1 && (
                     <div
-                      className="absolute top-1 -right-[2px] bottom-1 w-[2px] cursor-col-resize hover:bg-blue-500"
+                      className="absolute top-1 -right-[2px] bottom-1 w-[2px] cursor-col-resize hover:bg-primary"
                       onMouseDown={e => {
                         e.preventDefault();
                         const startX = e.pageX;
@@ -126,7 +128,11 @@ export const ScrollableResizableTable: FC<ScrollableResizableTableProps> = ({
                 </TableCell>
               ))}
 
-              {isOptionable && <TableCell className="w-10 h-10"></TableCell>}
+              {isOptionable && (
+                <TableCell className="w-10 px-2 py-2 text-left uppercase text-xs/6 font-medium tracking-wider text-muted">
+                  {optionLabel}
+                </TableCell>
+              )}
             </TableRow>
           </thead>
           <tbody>{children}</tbody>

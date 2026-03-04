@@ -6,8 +6,8 @@ export const ModalBody: FC<HTMLAttributes<HTMLDivElement>> = props => {
     <div
       {...props}
       className={cn(
-        'space-y-6 shrink',
-        'relative px-8 pb-8 pt-4',
+        'flex flex-col gap-6 shrink',
+        'relative px-4 py-5',
         props.className,
       )}
     >

@@ -103,7 +103,6 @@ export const HowKnowledgeWorksDialog: FC<
         <HowItWorks steps={steps} />
         <ModalFooter>
           <IBlueBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={() => {
               props.setModalOpen(false);

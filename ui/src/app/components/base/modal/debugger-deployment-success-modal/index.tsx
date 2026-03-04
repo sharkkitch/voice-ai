@@ -40,7 +40,6 @@ export const DebuggerDeploymentSuccessDialog: FC<
         </ModalBody>
         <ModalFooter>
           <ICancelButton
-            className="px-4 rounded-[2px]"
             onClick={() => {
               setModalOpen(false);
             }}

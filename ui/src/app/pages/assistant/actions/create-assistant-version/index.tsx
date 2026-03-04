@@ -35,7 +35,20 @@ import { ValidateTextProviderDefaultOptions } from '@/app/components/providers/t
 import { connectionConfig } from '@/configs';
 import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
 import { ExternalLink, Info } from 'lucide-react';
+import { InputHelper } from '@/app/components/input-helper';
 import toast from 'react-hot-toast/headless';
+
+/** Section divider — matches the one in create-endpoint */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
 
 /**
  *
@@ -105,7 +118,7 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
   });
 
   /**
-   * current data curernt used as commit message
+   * current data used as commit message
    */
   const [versionMessage, setVersionMessage] = useState(
     `Changed on ${new Date().toLocaleDateString()}`,
@@ -264,9 +277,8 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
       <ConfirmDialogComponent />
       <Helmet title="Create new version"></Helmet>
       <TabForm
-        className="bg-linear-to-r from-white hover:shadow-alternate to-violet-500/5 dark:from-gray-950/30 dark:via-gray-950/10 dark:to-violet-950/20"
         activeTab={activeTab}
-        formHeading="Complete all steps to create a new assistant version."
+        formHeading="Create a new version of this assistant."
         onChangeActiveTab={() => {}}
         errorMessage={errorMessage}
         form={[
@@ -277,7 +289,7 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
               "Update the assistant's definition — including the model, instructions, and variables — as needed.",
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -290,57 +302,65 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
                     setActiveTab('commit-assistant');
                   }
                 }}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Continue
               </IBlueBGArrowButton>,
             ],
             body: (
               <>
-                <YellowNoticeBlock className="flex items-center">
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
                   <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the assistant will not be
-                    deployed automatically.
-                  </div>
+                  <p className="text-sm flex-1">
+                    New versions of the assistant will not be deployed
+                    automatically. You must promote them manually.
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/assistant/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
+                    Read docs
                     <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
+                      className="shrink-0 w-3.5 h-3.5"
                       strokeWidth={1.5}
                     />
                   </a>
                 </YellowNoticeBlock>
-                <div className="space-y-6 px-8 max-w-4xl">
-                  <TextProvider
-                    onChangeParameter={onChangeProviderParameter}
-                    onChangeProvider={onChangeProvider}
-                    parameters={selectedModel.parameters}
-                    provider={selectedModel.provider}
-                  />
+                <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Model configuration section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Model Configuration" />
+                    <TextProvider
+                      onChangeParameter={onChangeProviderParameter}
+                      onChangeProvider={onChangeProvider}
+                      parameters={selectedModel.parameters}
+                      provider={selectedModel.provider}
+                    />
+                  </div>
 
-                  <ConfigPrompt
-                    instanceId={randomString(10)}
-                    existingPrompt={template}
-                    onChange={prompt => setTemplate(prompt)}
-                  />
+                  {/* Prompt template section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Prompt Template" />
+                    <ConfigPrompt
+                      instanceId={randomString(10)}
+                      existingPrompt={template}
+                      onChange={prompt => setTemplate(prompt)}
+                    />
+                  </div>
                 </div>
               </>
             ),
           },
           {
             code: 'commit-assistant',
-            name: 'Change definition',
+            name: 'Version note',
             description:
-              'Provide a clear description of the changes made in this version to help others understand what has been updated.',
+              'Write a brief note describing what changed in this version.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(navigator.goBack)}
               >
                 Cancel
@@ -351,44 +371,30 @@ const CreateNewVersion: FC<{ assistantId: string }> = ({ assistantId }) => {
                 onClick={() => {
                   createProviderModel();
                 }}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Create new version
               </IBlueBGArrowButton>,
             ],
             body: (
-              <>
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Please note that new versions of the assistant will not be
-                    deployed automatically.
-                  </div>
-                  <a
-                    target="_blank"
-                    href="https://doc.rapida.ai/assistant/create-new-version"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
-                    rel="noreferrer"
-                  >
-                    Read documentation
-                    <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
-                      strokeWidth={1.5}
-                    />
-                  </a>
-                </YellowNoticeBlock>
-                <div className="space-y-6 px-8 max-w-4xl">
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Version Description" />
                   <FieldSet>
-                    <FormLabel>Change description</FormLabel>
+                    <FormLabel>Version note</FormLabel>
                     <Textarea
                       row={5}
                       value={versionMessage}
-                      placeholder={'Describe the changes made in this version'}
+                      placeholder="Provide a clear and detailed explanation of the changes made to this assistant."
                       onChange={t => setVersionMessage(t.target.value)}
                     />
+                    <InputHelper>
+                      Summarize the changes made to the assistant, highlight key
+                      updates, and specify why these modifications are necessary.
+                    </InputHelper>
                   </FieldSet>
                 </div>
-              </>
+              </div>
             ),
           },
         ]}

@@ -18,42 +18,32 @@ export const InputGroup: FC<InputGroupProps> = ({
   return (
     <section
       {...props}
-      className={cn('border m-4 rounded-md', props.className)}
+      className={cn('border-b border-gray-200 dark:border-gray-800', props.className)}
     >
+      {/* Carbon accordion trigger */}
       <div
-        onClick={() => {
-          setIsExpanded(!isExpanded);
-        }}
+        onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
-          'cursor-pointer',
-          'outline-solid outline-[1.5px] outline-transparent',
-          'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
-          !isExpanded && 'rounded-b-md !border-b-0',
-          'px-4 group flex justify-between w-full items-center py-3 text-left rounded-t-md border-b hover:bg-white dark:hover:bg-gray-950',
+          'h-12 px-4 flex items-center justify-between w-full cursor-pointer',
+          'hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors',
+          isExpanded && 'border-b border-gray-200 dark:border-gray-800',
         )}
       >
-        <div className="mr-3.5 flex items-center">
-          <div className={cn('flex-none font-semibold text-sm/6')}>
-            {props.title}
-          </div>
+        <div className="flex-none text-sm font-semibold text-gray-900 dark:text-gray-100">
+          {props.title}
         </div>
-        <span className="h-7 w-7 flex items-center justify-center rounded-full p-1 bg-light-background dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-800">
-          <ChevronDown
-            strokeWidth={1.5}
-            className={cn(
-              'h-full w-full transition-all',
-              isExpanded && 'rotate-180',
-            )}
-          />
-        </span>
+        <ChevronDown
+          strokeWidth={1.5}
+          className={cn('w-4 h-4 text-gray-500 transition-transform duration-200', isExpanded && 'rotate-180')}
+        />
       </div>
       <AnimatePresence>
         <motion.div
-          className={cn('p-6', childClass)}
+          className={cn('px-4 py-6', childClass)}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
           style={{ display: isExpanded ? 'block' : 'none' }}
         >
           {props.children}

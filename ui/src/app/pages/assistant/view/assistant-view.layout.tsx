@@ -134,35 +134,37 @@ export const AssistantViewLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>
-            Assistant<span className="px-1">/</span>
-            {assistantAction.currentAssistant?.getName()}{' '}
+            <span className="text-gray-400 dark:text-gray-500 font-normal">
+              Assistant
+            </span>
+            <span className="px-2 text-gray-300 dark:text-gray-600">/</span>
+            {assistantAction.currentAssistant?.getName()}
           </PageTitleBlock>
-          <div className="text-xs opacity-75">
-            {assistantAction.currentAssistant
-              ?.getAssistantprovidermodel()
-              ?.getCreateddate() &&
-              toHumanReadableRelativeTime(
+          {assistantAction.currentAssistant
+            ?.getAssistantprovidermodel()
+            ?.getCreateddate() && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+              {toHumanReadableRelativeTime(
                 assistantAction.currentAssistant
                   ?.getAssistantprovidermodel()
                   ?.getCreateddate()!,
               )}
-          </div>
+            </span>
+          )}
         </div>
         {assistantAction.currentAssistant && (
-          <div className="flex divide-x dark:divide-gray-800">
-            <div className="flex border-l">
+          <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+            {/* Create New Version */}
+            <div className="border-r border-gray-200 dark:border-gray-800 flex items-stretch">
               <IBlueButton
                 className={cn(
-                  'px-4',
-                  createVersionPopover &&
-                    'bg-light-background!  dark:bg-gray-950!',
+                  'h-full px-4',
+                  createVersionPopover && 'bg-primary/10!',
                 )}
-                onClick={() => {
-                  setCreateVersionPopover(true);
-                }}
+                onClick={() => setCreateVersionPopover(true)}
               >
                 Create New Version
-                <GitPullRequestCreate className="w-4 h-4 ml-2" />
+                <GitPullRequestCreate className="w-4 h-4" strokeWidth={1.5} />
               </IBlueButton>
               <Popover
                 align={'bottom-end'}
@@ -171,24 +173,16 @@ export const AssistantViewLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
                 setOpen={setCreateVersionPopover}
               >
                 <div className="space-y-0.5 text-sm/6">
-                  <p className="px-2 py-1 text-xs/5 text-muted uppercase">
+                  <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400">
                     New Version
                   </p>
-                  <hr className="w-full h-[1px] bg-gray-800" />
+                  <div className="border-t border-gray-200 dark:border-gray-800" />
                   <IButton
                     className="w-full justify-start"
                     onClick={() => goToCreateAssistantVersion(assistantId!)}
                   >
                     Create New version
                   </IButton>
-                  {/* <IButton
-                    className="w-full justify-start"
-                    onClick={() =>
-                      goToCreateAssistantWebsocketVersion(assistantId!)
-                    }
-                  >
-                    Connect new Websocket
-                  </IButton> */}
                   <IButton
                     className="w-full justify-start"
                     onClick={() =>
@@ -201,17 +195,27 @@ export const AssistantViewLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
               </Popover>
             </div>
 
-            <IButton onClick={() => goToManageAssistant(assistantId!)}>
-              Configure assistant
-              <Bolt className="w-4 h-4 ml-1.5" strokeWidth={1.5} />
-            </IButton>
+            {/* Configure assistant */}
+            <div className="border-r border-gray-200 dark:border-gray-800 flex items-stretch">
+              <IButton
+                className="h-full px-4"
+                onClick={() => goToManageAssistant(assistantId!)}
+              >
+                Configure assistant
+                <Bolt className="w-4 h-4" strokeWidth={1.5} />
+              </IButton>
+            </div>
 
-            <div className="flex">
-              <IButton onClick={() => setPreviewPopover(!previewPopover)}>
+            {/* Preview */}
+            <div className="flex items-stretch">
+              <IButton
+                className="h-full px-4"
+                onClick={() => setPreviewPopover(!previewPopover)}
+              >
                 Preview
                 <ChevronDown
                   className={cn(
-                    'w-4 h-4 ml-1.5 transition-all delay-200',
+                    'w-4 h-4 transition-all delay-200',
                     previewPopover && 'rotate-180',
                   )}
                   strokeWidth={1.5}
@@ -224,11 +228,10 @@ export const AssistantViewLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
                 setOpen={setPreviewPopover}
               >
                 <div className="space-y-0.5 text-sm/6">
-                  <p className="px-2 py-1 text-xs/5 text-muted uppercase">
+                  <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400">
                     Agent Preview
                   </p>
-                  <hr className="w-full h-[1px] bg-gray-800" />
-
+                  <div className="border-t border-gray-200 dark:border-gray-800" />
                   {assistantAction.currentAssistant.getPhonedeployment() && (
                     <IButton
                       className="w-full justify-start"
@@ -249,29 +252,15 @@ export const AssistantViewLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
           </div>
         )}
       </PageHeaderBlock>
-      <div
-        className={cn(
-          'sticky top-0 z-3',
-          'bg-white border-t border-b dark:bg-gray-900 dark:border-gray-800',
-        )}
-      >
-        <div className="flex items-center divide-x border-r w-fit">
-          <TabLink
-            to={`/deployment/assistant/${assistantId}/overview`}
-            className="text-[13px]/6 uppercase font-semibold"
-          >
+      <div className="sticky top-0 z-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-stretch h-10">
+          <TabLink to={`/deployment/assistant/${assistantId}/overview`}>
             Overview
           </TabLink>
-          <TabLink
-            to={`/deployment/assistant/${assistantId}/sessions`}
-            className="text-[13px]/6 uppercase font-semibold"
-          >
+          <TabLink to={`/deployment/assistant/${assistantId}/sessions`}>
             Sessions
           </TabLink>
-          <TabLink
-            to={`/deployment/assistant/${assistantId}/version-history`}
-            className="text-[13px]/6 uppercase font-semibold"
-          >
+          <TabLink to={`/deployment/assistant/${assistantId}/version-history`}>
             Versions
           </TabLink>
         </div>

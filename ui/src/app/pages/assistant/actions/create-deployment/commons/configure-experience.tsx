@@ -3,10 +3,10 @@ import { FieldSet } from '@/app/components/form/fieldset';
 import { Input } from '@/app/components/form/input';
 import { Slider } from '@/app/components/form/slider';
 import { Textarea } from '@/app/components/form/textarea';
-import { InputGroup } from '@/app/components/input-group';
 import { InputHelper } from '@/app/components/input-helper';
 import { cn } from '@/utils';
-import { FC } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { FC, useState } from 'react';
 
 export interface ExperienceConfig {
   greeting?: string;
@@ -21,187 +21,155 @@ export const ConfigureExperience: FC<{
   experienceConfig: ExperienceConfig;
   setExperienceConfig: (config: ExperienceConfig) => void;
 }> = ({ experienceConfig, setExperienceConfig }) => {
-  /**
-   *
-   * @param newGreeting
-   */
-  const onChangeGreeting = (newGreeting: string) => {
-    setExperienceConfig({ ...experienceConfig, greeting: newGreeting });
-  };
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const onChangeMessageOnError = (newMessageOnError: string) => {
-    setExperienceConfig({
-      ...experienceConfig,
-      messageOnError: newMessageOnError,
-    });
-  };
-
-  const onChangeIdealMessage = (idealMessage: string) => {
-    setExperienceConfig({
-      ...experienceConfig,
-      idealMessage: idealMessage,
-    });
-  };
-
-  const onChangeIdealTimeout = (idealTimeout: string) => {
-    setExperienceConfig({
-      ...experienceConfig,
-      idealTimeout: idealTimeout,
-    });
-  };
-  const onChangeMaxCallDuration = (duration: string) => {
-    setExperienceConfig({
-      ...experienceConfig,
-      maxCallDuration: duration,
-    });
-  };
-
-  const onChangeIdleTimeoutBackoffTimes = (no: string) => {
-    setExperienceConfig({
-      ...experienceConfig,
-      idleTimeoutBackoffTimes: no,
-    });
-  };
+  const onChangeGreeting = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, greeting: v });
+  const onChangeMessageOnError = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, messageOnError: v });
+  const onChangeIdealMessage = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, idealMessage: v });
+  const onChangeIdealTimeout = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, idealTimeout: v });
+  const onChangeMaxCallDuration = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, maxCallDuration: v });
+  const onChangeIdleTimeoutBackoffTimes = (v: string) =>
+    setExperienceConfig({ ...experienceConfig, idleTimeoutBackoffTimes: v });
 
   return (
-    <InputGroup
-      title="General Experience"
-      className="bg-white dark:bg-gray-900 "
-    >
-      <div className={cn('flex max-w-3xl')}>
-        <div className="flex flex-col space-y-6 w-full">
-          <FieldSet>
-            <FormLabel>Greeting</FormLabel>
-            <Textarea
-              row={2}
-              className="bg-light-background"
-              value={experienceConfig.greeting || ''}
-              onChange={e => onChangeGreeting(e.target.value)}
-              placeholder={
-                'Write a custom greeting message. You can use {{variable}} to include dynamic content.'
-              }
-            />
-          </FieldSet>
-        </div>
-      </div>
-      <InputGroup
-        title={'Advanced Experience Configuration'}
-        className="mx-0 my-0 mt-6"
-        initiallyExpanded={false}
-      >
-        <div className={cn('flex max-w-3xl')}>
-          <div className="flex flex-col space-y-6 w-full">
+    <div className="border-b border-gray-200 dark:border-gray-800">
+      {/* Right: fields */}
+      <div className="flex flex-col gap-6 max-w-4xl px-6 py-8">
+        <FieldSet>
+          <FormLabel>Greeting</FormLabel>
+          <Textarea
+            row={3}
+            value={experienceConfig.greeting || ''}
+            onChange={e => onChangeGreeting(e.target.value)}
+            placeholder="Write a custom greeting message. You can use {{variable}} to include dynamic content."
+          />
+        </FieldSet>
+
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          <ChevronDown
+            className={cn(
+              'w-4 h-4 transition-transform duration-200',
+              showAdvanced && 'rotate-180',
+            )}
+            strokeWidth={2}
+          />
+          {showAdvanced ? 'Hide' : 'Show'} advanced settings
+        </button>
+
+        {showAdvanced && (
+          <div className="flex flex-col gap-6 pt-6 border-t border-gray-200 dark:border-gray-800">
             <FieldSet>
               <FormLabel>Error Message</FormLabel>
               <Input
-                className="bg-light-background"
-                placeholder="Message that will be send to the user when error occured"
+                placeholder="Message sent to the user when an error occurs"
                 value={experienceConfig.messageOnError || ''}
                 onChange={e => onChangeMessageOnError(e.target.value)}
               />
             </FieldSet>
+
             <FieldSet>
               <FormLabel>Idle Silence Timeout (Seconds)</FormLabel>
-              <div className="flex space-x-2 justify-center items-center">
+              <div className="flex items-center gap-3">
                 <Slider
+                  className="flex-1"
                   min={15}
                   max={120}
                   step={1}
                   value={
-                    experienceConfig.idealTimeout &&
-                    parseInt(experienceConfig.idealTimeout)
+                    experienceConfig.idealTimeout
+                      ? parseInt(experienceConfig.idealTimeout)
+                      : undefined
                   }
-                  onSlide={(v: number) => {
-                    onChangeIdealTimeout(v.toString());
-                  }}
+                  onSlide={v => onChangeIdealTimeout(v.toString())}
                 />
                 <Input
-                  className="bg-light-background w-16"
+                  className="w-16 shrink-0"
                   value={experienceConfig.idealTimeout}
-                  onChange={e => {
-                    onChangeIdealTimeout(e.target.value);
-                  }}
+                  onChange={e => onChangeIdealTimeout(e.target.value)}
                 />
               </div>
               <InputHelper>
-                Duration of silence after which Rapida will interrupt the user
-                (3-10 minute).
+                Duration of silence after which Rapida will prompt the user
+                (15–120 s).
               </InputHelper>
             </FieldSet>
+
             <FieldSet>
               <FormLabel>Idle Timeout Backoff (Times)</FormLabel>
-              <div className="flex space-x-2 justify-center items-center">
+              <div className="flex items-center gap-3">
                 <Slider
+                  className="flex-1"
                   min={0}
                   max={5}
                   step={1}
                   value={
-                    experienceConfig.idleTimeoutBackoffTimes &&
-                    parseInt(experienceConfig.idleTimeoutBackoffTimes)
+                    experienceConfig.idleTimeoutBackoffTimes
+                      ? parseInt(experienceConfig.idleTimeoutBackoffTimes)
+                      : undefined
                   }
-                  onSlide={(v: number) => {
-                    onChangeIdleTimeoutBackoffTimes(v.toString());
-                  }}
+                  onSlide={v => onChangeIdleTimeoutBackoffTimes(v.toString())}
                 />
                 <Input
-                  className="bg-light-background w-16"
+                  className="w-16 shrink-0"
                   value={experienceConfig.idleTimeoutBackoffTimes}
-                  onChange={e => {
-                    onChangeIdleTimeoutBackoffTimes(e.target.value);
-                  }}
+                  onChange={e =>
+                    onChangeIdleTimeoutBackoffTimes(e.target.value)
+                  }
                 />
               </div>
               <InputHelper>
-                Number of times the idle timeout duration increases after it
-                triggers. Each time adds the base timeout again (e.g. 3 → 6 → 9
-                minutes).
+                How many times the idle timeout multiplies before ending the
+                session.
               </InputHelper>
             </FieldSet>
 
-            <FieldSet className="relative col-span-1">
+            <FieldSet>
               <FormLabel>Idle Message</FormLabel>
               <Input
-                className="bg-light-background"
-                placeholder="Message that the assistant will speak when the user hasn't responded."
+                placeholder="Message spoken when the user hasn't responded"
                 value={experienceConfig.idealMessage}
                 onChange={e => onChangeIdealMessage(e.target.value)}
               />
-              <InputHelper>
-                Message that the assistant will speak when the user hasn't
-                responded.
-              </InputHelper>
             </FieldSet>
+
             <FieldSet>
-              <FormLabel>Maximum Session Duration (Second)</FormLabel>
-              <div className="flex space-x-2 justify-center items-center">
+              <FormLabel>Maximum Session Duration (Seconds)</FormLabel>
+              <div className="flex items-center gap-3">
                 <Slider
+                  className="flex-1"
                   min={180}
                   max={600}
                   step={1}
                   value={
-                    experienceConfig.maxCallDuration &&
-                    parseInt(experienceConfig.maxCallDuration)
+                    experienceConfig.maxCallDuration
+                      ? parseInt(experienceConfig.maxCallDuration)
+                      : undefined
                   }
-                  onSlide={(v: number) => {
-                    onChangeMaxCallDuration(v.toString());
-                  }}
+                  onSlide={v => onChangeMaxCallDuration(v.toString())}
                 />
                 <Input
-                  className="bg-light-background w-16"
+                  className="w-16 shrink-0"
                   value={experienceConfig.maxCallDuration}
-                  onChange={e => {
-                    onChangeMaxCallDuration(e.target.value);
-                  }}
+                  onChange={e => onChangeMaxCallDuration(e.target.value)}
                 />
               </div>
               <InputHelper>
-                Maximum Session Duration. Set the time limit for sessions values
-                it should be between 5 and 15 minute.
+                Maximum session length before the call is automatically ended
+                (180–600 s).
               </InputHelper>
             </FieldSet>
           </div>
-        </div>
-      </InputGroup>
-    </InputGroup>
+        )}
+      </div>
+    </div>
   );
 };

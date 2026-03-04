@@ -1,4 +1,4 @@
-import { Card, CardDescription, CardTitle } from '@/app/components/base/cards';
+import { BaseCard, CardDescription, CardTitle } from '@/app/components/base/cards';
 import { IBlueBGButton, IBorderButton } from '@/app/components/form/button';
 import { CardOptionMenu } from '@/app/components/menu';
 import { useAllProviderCredentials } from '@/hooks/use-model';
@@ -46,11 +46,8 @@ export const ProviderCard: FC<ProviderCardProps> = memo(
             setCreateProviderModalOpen(!createProviderModalOpen);
           }}
         />
-        <Card
-          className={cn(
-            'relative min-h-full p-4 md:p-5 rounded-2xl border! shadow-none',
-            className,
-          )}
+        <BaseCard
+          className={cn('p-4 md:p-5', className)}
           data-id={provider.code}
         >
           <header className="flex justify-between">
@@ -110,7 +107,7 @@ export const ProviderCard: FC<ProviderCardProps> = memo(
               </div>
             </div>
           </div>
-        </Card>
+        </BaseCard>
       </>
     );
   },

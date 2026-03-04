@@ -119,54 +119,55 @@ export const RapidaCredentialCard = () => {
   };
 
   return (
-    <div className="shadow-xs rounded-lg border dark:border-slate-800">
-      <div className="flex justify-between items-center border-b dark:border-slate-800 px-4 py-2">
-        <h1 className="font-medium text-base">
-          SDK Authentication Credentials
-        </h1>
-        <div className="flex">
-          <ReloadButton
-            className="h-7 text-xs"
-            isLoading={loading}
-            onClick={getAllProjectCredential}
-          />
-        </div>
+    <div className="border border-gray-200 dark:border-gray-800">
+      {/* Carbon toolbar row */}
+      <div className="h-10 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+          SDK Credentials
+        </span>
+        <ReloadButton
+          className="h-7 text-xs"
+          isLoading={loading}
+          onClick={getAllProjectCredential}
+        />
       </div>
-      {ourKeys.length === 0 && (
+
+      {ourKeys.length === 0 ? (
         <div className="px-4 flex justify-center">
           <ActionableEmptyMessage
             title="No credentials"
-            subtitle="There are no SDK Authentication Credential found to display"
+            subtitle="There are no SDK Authentication Credentials found to display"
             action="Create new credential"
-            onActionClick={() => {
-              onCreateProjectCredential();
-              // navigator('/deployment/endpoint/create-endpoint');
-            }}
+            onActionClick={onCreateProjectCredential}
           />
         </div>
-      )}
-
-      {ourKeys.map((x, idx) => {
-        return (
-          <div className="space-x-4 px-4 py-2 flex opacity-80" key={idx}>
-            <div className="flex flex-col justify-between items-start w-2/3 max-w-full">
-              <p className="text-sm font-medium mb-1">Publishable key</p>
-              <div className="flex items-center space-x-2 justify-between max-w-full">
-                <div className="truncate max-w-full">{x.getKey()}</div>
-                <CopyButton className="shrink-0">{x.getKey()}</CopyButton>
+      ) : (
+        <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          {ourKeys.map((x, idx) => (
+            <div
+              key={idx}
+              className="h-12 px-4 flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 shrink-0">
+                  Publishable key
+                </span>
+                <span className="font-mono text-xs text-gray-900 dark:text-gray-100 truncate">
+                  {x.getKey()}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                  {x.getCreateddate()
+                    ? toHumanReadableRelativeDay(x.getCreateddate()!)
+                    : '—'}
+                </span>
+                <CopyButton>{x.getKey()}</CopyButton>
               </div>
             </div>
-            <div className="w-1/3">
-              <p className="text-sm font-medium mb-1">Created on</p>
-              <p className="text-sm text-gray-500">
-                {x.getCreateddate()
-                  ? toHumanReadableRelativeDay(x.getCreateddate()!)
-                  : 'Not enabled'}
-              </p>
-            </div>
-          </div>
-        );
-      })}
+          ))}
+        </div>
+      )}
     </div>
   );
 };

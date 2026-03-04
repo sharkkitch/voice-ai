@@ -160,11 +160,9 @@ export const CreateTool: FC<{ assistantId: string }> = ({ assistantId }) => {
       className="relative flex flex-col flex-1"
     >
       <ConfirmDialogComponent />
-      <div className="overflow-auto flex flex-col flex-1 pb-20 bg-white dark:bg-gray-900">
-        <PageHeaderBlock className="border-b">
-          <div className="flex items-center gap-3">
-            <PageTitleBlock>Adding New Tool</PageTitleBlock>
-          </div>
+      <div className="overflow-auto flex flex-col flex-1 pb-20">
+        <PageHeaderBlock>
+          <PageTitleBlock>New Tool</PageTitleBlock>
         </PageHeaderBlock>
         <BuildinTool
           toolDefinition={toolDefinition}
@@ -177,7 +175,7 @@ export const CreateTool: FC<{ assistantId: string }> = ({ assistantId }) => {
 
       <PageActionButtonBlock errorMessage={errorMessage}>
         <ICancelButton
-          className="px-4 rounded-[2px]"
+          className="w-full h-full"
           onClick={() => showDialog(navigator.goBack)}
           type="button"
         >
@@ -186,7 +184,7 @@ export const CreateTool: FC<{ assistantId: string }> = ({ assistantId }) => {
         <IBlueBGArrowButton
           isLoading={loading}
           type="submit"
-          className="px-4 rounded-[2px]"
+          className="w-full h-full"
         >
           Configure Tool
         </IBlueBGArrowButton>

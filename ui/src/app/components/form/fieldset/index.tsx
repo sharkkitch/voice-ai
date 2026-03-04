@@ -2,16 +2,15 @@ import React, { FieldsetHTMLAttributes } from 'react';
 import { cn } from '@/utils';
 
 /**
- *
- * @param props
- * @returns
+ * Carbon form field group — wraps label + input + helper/error text.
+ * Uses gap-2 (8px) between elements per Carbon spacing-03 token.
  */
 export function FieldSet(props: FieldsetHTMLAttributes<HTMLElement>) {
   return (
     <fieldset
       {...props}
       className={cn(
-        'space-y-2 dark:space-y-2 flex flex-col min-w-0',
+        'flex flex-col space-y-2 min-w-0 border-0 p-0 m-0',
         props.className,
       )}
     >

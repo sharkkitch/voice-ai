@@ -1,42 +1,43 @@
 import { cn } from '@/utils';
 import React, { useState } from 'react';
 
-interface TextAreaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   row?: number;
   wrapperClassName?: string;
 }
 
 /**
- *
+ * Carbon textarea — default style.
+ * Identical visual treatment to the Input component. resize-none. Min 3 rows.
  */
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  (props: TextAreaProps, ref) => {
-    /**
-     * when any request is going disable all the input boxes
-     */
+  (props, ref) => {
     return (
       <textarea
         {...props}
         id={props.name}
         ref={ref}
-        required={props.required}
-        name={props.name}
-        rows={props.row}
+        rows={props.row ?? 3}
         className={cn(
-          'block p-2.5 resize-none w-full',
-          'dark:placeholder-gray-600 placeholder-gray-400',
-          'outline-solid outline-[1.5px] outline-transparent',
-          'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
-          'border-b border-gray-300 dark:border-gray-700',
-          'dark:focus:border-blue-600 focus:border-blue-600',
-          'transition-all duration-200 ease-in-out',
-          'dark:text-gray-300 text-gray-600',
+          'block w-full px-4 py-2.5 resize-none',
+          // Carbon field background
           'bg-light-background dark:bg-gray-950',
+          // Typography — Carbon body-short-01
+          'text-sm text-gray-900 dark:text-gray-100',
+          'placeholder-gray-400 dark:placeholder-gray-600',
+          // Border — bottom only
+          'border-0 border-b border-gray-300 dark:border-gray-700',
+          // Focus — inset outline
+          'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+          'focus:outline-primary focus:border-primary dark:focus:border-primary',
+          // Shape
+          'rounded-none',
+          // Disabled
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          'transition-colors duration-100',
           props.className,
         )}
-        placeholder={props.placeholder}
-      ></textarea>
+      />
     );
   },
 );
@@ -44,43 +45,36 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
 interface TextAreaWithActionProps extends TextAreaProps {
   actions?: React.ReactElement;
 }
+
+/**
+ * Auto-expanding textarea — grows with content, no scroll. Used in prompt editors.
+ */
 export const ScalableTextarea = React.forwardRef<
   HTMLTextAreaElement,
   TextAreaWithActionProps
->((props: TextAreaWithActionProps, ref) => {
-  /**
-   * when any request is going disable all the input boxes
-   */
+>((props, ref) => {
   const [textareaHeight, setTextareaHeight] = useState('auto');
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Reset height to auto to allow shrinking
-    e.target.style.height = 'auto';
-    // Set height to scroll height, with a minimum of 32px (adjust as needed)
-    e.target.style.height = `${Math.max(e.target.scrollHeight, 32)}px`;
 
-    // Update the state if needed
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${Math.max(e.target.scrollHeight, 32)}px`;
     if (textareaHeight !== e.target.style.height) {
       setTextareaHeight(e.target.style.height);
     }
-
-    // Propagate onChange event to parent component
-    if (props.onChange) {
-      props.onChange(e);
-    }
+    if (props.onChange) props.onChange(e);
   };
-  const { wrapperClassName, ...attr } = props;
+
+  const { wrapperClassName, actions, ...attr } = props;
+
   return (
     <div
       className={cn(
-        'block p-2.5 resize-none w-full',
-        'dark:placeholder-gray-600 placeholder-gray-400',
-        'outline-solid outline-[1.5px] outline-transparent',
-        'focus-within:outline-blue-600 focus:outline-blue-600 outline-offset-[-1.5px]',
-        'border-b border-gray-300 dark:border-gray-700',
-        'dark:focus:border-blue-600 focus:border-blue-600',
-        'transition-all duration-200 ease-in-out',
-        'dark:text-gray-300 text-gray-600',
+        'block w-full px-4 py-2.5',
         'bg-light-background dark:bg-gray-950',
+        'border-0 border-b border-gray-300 dark:border-gray-700',
+        'outline-solid outline-[1.5px] outline-transparent outline-offset-[-1.5px]',
+        'focus-within:outline-primary focus-within:border-primary',
+        'rounded-none transition-colors duration-100',
         wrapperClassName,
       )}
     >
@@ -88,137 +82,90 @@ export const ScalableTextarea = React.forwardRef<
         {...attr}
         id={props.name}
         ref={ref}
-        required
-        name={props.name}
         onChange={handleChange}
-        style={{ height: textareaHeight }} // Dynamically set height
+        style={{ height: textareaHeight }}
         className={cn(
-          'p-2',
-          'block resize-none w-full min-h-12 max-h-80',
-          'dark:placeholder-gray-600 placeholder-gray-400',
+          'block w-full resize-none min-h-8 max-h-80',
+          'text-sm text-gray-900 dark:text-gray-100',
+          'placeholder-gray-400 dark:placeholder-gray-600',
+          'bg-transparent',
           'focus:ring-0 focus:outline-hidden',
-          'bg-light-background dark:bg-gray-950',
-          'focus:bg-white',
           props.className,
         )}
         rows={props.row}
-        placeholder={props.placeholder}
-      ></textarea>
-      {props.actions && props.actions}
+      />
+      {actions}
     </div>
   );
 });
 
-/**
- * for paragraph you can do what magic you would want to do in future
- */
-export const ParagraphTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  TextAreaProps
->((attr, ref) => {
-  return (
+/** Inline paragraph input — transparent wrapper, no border. Used in variable editors. */
+export const ParagraphTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (attr, ref) => (
     <ScalableTextarea
       ref={ref}
       placeholder="Enter variable value..."
       spellCheck="false"
       className="form-input px-2"
-      wrapperClassName={`
-        border-transparent!
-        outline-hidden!
-        shadow-none!
-        bg-transparent
-      `}
+      wrapperClassName="border-transparent! outline-hidden! bg-transparent p-0"
       {...attr}
       required
     />
-  );
-});
-
-export const NumberTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  TextAreaProps
->((attr, ref) => {
-  return (
-    <ScalableTextarea
-      ref={ref}
-      placeholder="Enter variable value..."
-      spellCheck="false"
-      className="form-input px-2"
-      wrapperClassName={`
-        border-transparent!
-        outline-hidden!
-        shadow-none!
-        bg-transparent
-      `}
-      {...attr}
-      required
-    />
-  );
-});
-
-export const UrlTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  (attr, ref) => {
-    return (
-      <ScalableTextarea
-        ref={ref}
-        placeholder="Enter variable value..."
-        spellCheck="false"
-        className="form-input px-2"
-        wrapperClassName={`
-        border-transparent!
-        outline-hidden!
-        shadow-none!
-        bg-transparent
-      `}
-        {...attr}
-        required
-      />
-    );
-  },
+  ),
 );
 
-export const TextTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  TextAreaProps
->((attr, ref) => {
-  return (
+export const NumberTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (attr, ref) => (
     <ScalableTextarea
       ref={ref}
       placeholder="Enter variable value..."
       spellCheck="false"
-      className="form-input"
-      wrapperClassName={`
-        p-0 
-        border-transparent!
-        outline-hidden!
-        shadow-none!
-        bg-transparent
-      `}
+      className="form-input px-2"
+      wrapperClassName="border-transparent! outline-hidden! bg-transparent p-0"
       {...attr}
       required
     />
-  );
-});
+  ),
+);
 
-export const JsonTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  TextAreaProps
->((attr, ref) => {
-  return (
+export const UrlTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (attr, ref) => (
+    <ScalableTextarea
+      ref={ref}
+      placeholder="Enter variable value..."
+      spellCheck="false"
+      className="form-input px-2"
+      wrapperClassName="border-transparent! outline-hidden! bg-transparent p-0"
+      {...attr}
+      required
+    />
+  ),
+);
+
+export const TextTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (attr, ref) => (
     <ScalableTextarea
       ref={ref}
       placeholder="Enter variable value..."
       spellCheck="false"
       className="form-input"
-      wrapperClassName={`
-        p-0 
-        border-transparent!
-        outline-hidden!
-        shadow-none!
-        bg-transparent
-      `}
+      wrapperClassName="p-0 border-transparent! outline-hidden! bg-transparent"
       {...attr}
       required
     />
-  );
-});
+  ),
+);
+
+export const JsonTextarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (attr, ref) => (
+    <ScalableTextarea
+      ref={ref}
+      placeholder="Enter variable value..."
+      spellCheck="false"
+      className="form-input"
+      wrapperClassName="p-0 border-transparent! outline-hidden! bg-transparent"
+      {...attr}
+      required
+    />
+  ),
+);

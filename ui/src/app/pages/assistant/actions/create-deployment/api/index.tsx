@@ -1,6 +1,13 @@
+import {
+  ConfigureExperience,
+  ExperienceConfig,
+} from '@/app/pages/assistant/actions/create-deployment/commons/configure-experience';
+import { ConfigureAudioOutputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-output';
+import { ConfigureAudioInputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-input';
 import { useRapidaStore } from '@/hooks';
 import { useCurrentCredential } from '@/hooks/use-credential';
 import { useGlobalNavigation } from '@/hooks/use-global-navigator';
+import { Code } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -13,19 +20,8 @@ import {
   Metadata,
 } from '@rapidaai/react';
 import { GetAssistantApiDeployment } from '@rapidaai/react';
-import {
-  ConfigureExperience,
-  ExperienceConfig,
-} from '@/app/pages/assistant/actions/create-deployment/commons/configure-experience';
-import { ConfigureAudioOutputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-output';
-import { ConfigureAudioInputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-input';
-import {
-  ICancelButton,
-  IBlueBGArrowButton,
-} from '@/app/components/form/button';
 import toast from 'react-hot-toast/headless';
 import { Helmet } from '@/app/components/helmet';
-
 import {
   GetDefaultMicrophoneConfig,
   GetDefaultSpeechToTextIfInvalid,
@@ -36,14 +32,34 @@ import {
   GetDefaultTextToSpeechIfInvalid,
   ValidateTextToSpeechIfInvalid,
 } from '@/app/components/providers/text-to-speech/provider';
-import { PageActionButtonBlock } from '@/app/components/blocks/page-action-button-block';
 import { connectionConfig } from '@/configs';
 import { useConfirmDialog } from '@/app/pages/assistant/actions/hooks/use-confirmation';
+import { TabForm } from '@/app/components/form/tab-form';
+import { ISecondaryButton } from '../../../../../components/form/button/index';
+import {
+  IBlueBGArrowButton,
+  ICancelButton,
+} from '@/app/components/form/button';
 
-/**
- *
- * @returns
- */
+const STEPS = [
+  {
+    code: 'experience',
+    name: 'General Experience',
+    description: 'Define how the assistant greets users and handles sessions.',
+  },
+  {
+    code: 'voice-input',
+    name: 'Voice Input',
+    description:
+      'Configure the speech-to-text provider for capturing user audio.',
+  },
+  {
+    code: 'voice-output',
+    name: 'Voice Output',
+    description: 'Configure the text-to-speech provider for audio responses.',
+  },
+];
+
 export function ConfigureAssistantApiDeploymentPage() {
   const { assistantId } = useParams();
   return (
@@ -56,29 +72,18 @@ export function ConfigureAssistantApiDeploymentPage() {
   );
 }
 
-/**
- * Configure assistant web deployment
- * this provide a list of web deployment configuration
- * @param param0
- * @returns
- */
 const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
   const { goToDeploymentAssistant } = useGlobalNavigation();
   const { loading, showLoader, hideLoader } = useRapidaStore();
   const { authId, projectId, token } = useCurrentCredential();
-  const [errorMessage, setErrorMessage] = useState('');
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog({});
-  /**
-   * if voice is enabled
-   */
-  const [voiceInputEnable, setVoiceInputEnable] = useState(false);
-  const [voiceOutputEnable, setVoiceOutputEnable] = useState(false);
 
-  /**
-   * voice experience
-   */
+  const [activeTab, setActiveTab] = useState('experience');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [voiceInputEnable, setVoiceInputEnable] = useState(false);
+
   const [experienceConfig, setExperienceConfig] = useState<ExperienceConfig>({
     greeting: undefined,
     messageOnError: undefined,
@@ -88,9 +93,6 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
     idleTimeoutBackoffTimes: '2',
   });
 
-  /**
-   * io for voice
-   */
   const [audioInputConfig, setAudioInputConfig] = useState<{
     provider: string;
     parameters: Metadata[];
@@ -101,6 +103,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       GetDefaultMicrophoneConfig(),
     ),
   });
+
   const [audioOutputConfig, setAudioOutputConfig] = useState<{
     provider: string;
     parameters: Metadata[];
@@ -112,7 +115,6 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
     ),
   });
 
-  // Fetch existing deployment on component mount
   useEffect(() => {
     showLoader('block');
     const request = new GetAssistantDeploymentRequest();
@@ -123,12 +125,12 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       ConnectionConfig.WithDebugger({
         authorization: token,
         userId: authId,
-        projectId: projectId,
+        projectId,
       }),
     )
       .then(response => {
         hideLoader();
-        if (response && response.getData()) {
+        if (response?.getData()) {
           const deployment = response.getData();
           setExperienceConfig({
             greeting: deployment?.getGreeting(),
@@ -139,30 +141,27 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
             idleTimeoutBackoffTimes: deployment?.getIdealtimeoutbackoff(),
           });
 
-          // Audio providers configuration
-          if (deployment && deployment.getInputaudio()) {
-            const provider = deployment.getInputaudio();
+          if (deployment?.getInputaudio()) {
+            const provider = deployment.getInputaudio()!;
             setVoiceInputEnable(true);
             setAudioInputConfig({
-              provider: provider?.getAudioprovider() || 'deepgram',
+              provider: provider.getAudioprovider() || 'deepgram',
               parameters: GetDefaultSpeechToTextIfInvalid(
-                provider?.getAudioprovider() || 'deepgram',
+                provider.getAudioprovider() || 'deepgram',
                 GetDefaultMicrophoneConfig(
-                  provider?.getAudiooptionsList() || [],
+                  provider.getAudiooptionsList() || [],
                 ),
               ),
             });
           }
 
-          //
-          if (deployment && deployment.getOutputaudio()) {
-            const provider = deployment?.getOutputaudio();
-            setVoiceOutputEnable(true);
+          if (deployment?.getOutputaudio()) {
+            const provider = deployment.getOutputaudio()!;
             setAudioOutputConfig({
-              provider: provider?.getAudioprovider() || 'cartesia',
+              provider: provider.getAudioprovider() || 'cartesia',
               parameters: GetDefaultTextToSpeechIfInvalid(
-                provider?.getAudioprovider() || 'cartesia',
-                GetDefaultSpeakerConfig(provider?.getAudiooptionsList() || []),
+                provider.getAudioprovider() || 'cartesia',
+                GetDefaultSpeakerConfig(provider.getAudiooptionsList() || []),
               ),
             });
           }
@@ -170,91 +169,126 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       })
       .catch(err => {
         hideLoader();
-        if (err) {
-          setErrorMessage(
-            err.message || 'Failed to fetch deployment configuration',
-          );
-          return;
-        }
+        setErrorMessage(
+          err?.message || 'Failed to fetch deployment configuration',
+        );
       });
   }, [assistantId, showLoader, token, authId, projectId]);
 
-  // Handle deployment update
-  const handleDeployApi = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleTabChange = (code: string) => {
+    const clickedIndex = STEPS.findIndex(s => s.code === code);
+    const currentIndex = STEPS.findIndex(s => s.code === activeTab);
+    if (clickedIndex < currentIndex) {
+      setActiveTab(code);
+      setErrorMessage('');
+    }
+  };
+
+  const handleNext = () => {
+    setErrorMessage('');
+    const idx = STEPS.findIndex(s => s.code === activeTab);
+
+    if (activeTab === 'voice-input') {
+      if (!audioInputConfig.provider) {
+        setErrorMessage('Please select a speech-to-text provider.');
+        return;
+      }
+      const err = ValidateSpeechToTextIfInvalid(
+        audioInputConfig.provider,
+        audioInputConfig.parameters,
+      );
+      if (err) {
+        setErrorMessage(err);
+        return;
+      }
+      setVoiceInputEnable(true);
+    }
+
+    if (idx < STEPS.length - 1) {
+      setActiveTab(STEPS[idx + 1].code);
+    }
+  };
+
+  const handleSkipVoiceInput = () => {
+    setErrorMessage('');
+    setVoiceInputEnable(false);
+    setActiveTab('voice-output');
+  };
+
+  // includeVoiceOutput is passed directly to avoid React state timing issues
+  // on the last step where Skip and Deploy are on the same step.
+  const handleDeployApi = (includeVoiceOutput: boolean) => {
     showLoader('block');
     setErrorMessage('');
+
     if (voiceInputEnable) {
       if (!audioInputConfig.provider) {
         hideLoader();
         setErrorMessage(
-          'Please provide a provider for interpreting input audio of user.',
+          'Please provide a provider for interpreting input audio.',
         );
         return;
       }
-
-      let error = ValidateSpeechToTextIfInvalid(
+      const err = ValidateSpeechToTextIfInvalid(
         audioInputConfig.provider,
         audioInputConfig.parameters,
       );
-      if (error) {
+      if (err) {
         hideLoader();
-        setErrorMessage('Please provide a valid speech to text options.');
+        setErrorMessage(err);
         return;
       }
     }
-    if (voiceOutputEnable) {
+
+    if (includeVoiceOutput) {
       if (!audioOutputConfig.provider) {
         hideLoader();
         setErrorMessage(
-          'Please provide a provider for interpreting output audio of user.',
+          'Please provide a provider for interpreting output audio.',
         );
         return;
       }
-
-      let error = ValidateTextToSpeechIfInvalid(
+      const err = ValidateTextToSpeechIfInvalid(
         audioOutputConfig.provider,
         audioOutputConfig.parameters,
       );
-      if (error) {
+      if (err) {
         hideLoader();
-        setErrorMessage('Please provide a valid text to speech options.');
+        setErrorMessage(err);
         return;
       }
     }
 
     const req = new CreateAssistantDeploymentRequest();
     const deployment = new AssistantDebuggerDeployment();
-
     deployment.setAssistantid(assistantId);
     if (experienceConfig.greeting)
       deployment.setGreeting(experienceConfig.greeting);
-    if (experienceConfig?.messageOnError)
-      deployment.setMistake(experienceConfig?.messageOnError);
-    if (experienceConfig?.idealTimeout)
-      deployment.setIdealtimeout(experienceConfig?.idealTimeout);
-    if (experienceConfig?.idleTimeoutBackoffTimes)
+    if (experienceConfig.messageOnError)
+      deployment.setMistake(experienceConfig.messageOnError);
+    if (experienceConfig.idealTimeout)
+      deployment.setIdealtimeout(experienceConfig.idealTimeout);
+    if (experienceConfig.idleTimeoutBackoffTimes)
       deployment.setIdealtimeoutbackoff(
-        experienceConfig?.idleTimeoutBackoffTimes,
+        experienceConfig.idleTimeoutBackoffTimes,
       );
-
-    if (experienceConfig?.idealMessage)
-      deployment.setIdealtimeoutmessage(experienceConfig?.idealMessage);
-    if (experienceConfig?.maxCallDuration)
-      deployment.setMaxsessionduration(experienceConfig?.maxCallDuration);
+    if (experienceConfig.idealMessage)
+      deployment.setIdealtimeoutmessage(experienceConfig.idealMessage);
+    if (experienceConfig.maxCallDuration)
+      deployment.setMaxsessionduration(experienceConfig.maxCallDuration);
 
     if (voiceInputEnable) {
-      const inputAudioProvider = new DeploymentAudioProvider();
-      inputAudioProvider.setAudioprovider(audioInputConfig.provider);
-      inputAudioProvider.setAudiooptionsList(audioInputConfig.parameters);
-      deployment.setInputaudio(inputAudioProvider);
+      const inputAudio = new DeploymentAudioProvider();
+      inputAudio.setAudioprovider(audioInputConfig.provider);
+      inputAudio.setAudiooptionsList(audioInputConfig.parameters);
+      deployment.setInputaudio(inputAudio);
     }
 
-    if (voiceOutputEnable) {
-      const outputAudioProvider = new DeploymentAudioProvider();
-      outputAudioProvider.setAudioprovider(audioOutputConfig.provider);
-      outputAudioProvider.setAudiooptionsList(audioOutputConfig.parameters);
-      deployment.setOutputaudio(outputAudioProvider);
+    if (includeVoiceOutput) {
+      const outputAudio = new DeploymentAudioProvider();
+      outputAudio.setAudioprovider(audioOutputConfig.provider);
+      outputAudio.setAudiooptionsList(audioOutputConfig.parameters);
+      deployment.setOutputaudio(outputAudio);
     }
 
     req.setApi(deployment);
@@ -264,83 +298,154 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       ConnectionConfig.WithDebugger({
         authorization: token,
         userId: authId,
-        projectId: projectId,
+        projectId,
       }),
     )
       .then(response => {
         hideLoader();
         if (response?.getData() && response.getSuccess()) {
-          toast.success(
-            'Assistant deployment config for api has been updated successfully.',
-          );
+          toast.success('SDK / API deployment updated successfully.');
           goToDeploymentAssistant(assistantId);
         } else {
-          let err =
+          toast.error(
             response?.getError()?.getHumanmessage() ||
-            'Unable to create deployment, please try again';
-          toast.error(err);
+              'Unable to create deployment, please try again.',
+          );
         }
       })
       .catch(err => {
         hideLoader();
-        if (err) {
-          setErrorMessage(err.message || 'Failed to deploy api');
-          toast.error(
-            err.message ||
-              'Error while deploying assistant as api, please check and try again.',
-          );
-          return;
-        }
+        setErrorMessage(
+          err?.message || 'Error deploying as API. Please try again.',
+        );
       });
   };
 
   return (
     <>
       <ConfirmDialogComponent />
-      <form
-        onSubmit={handleDeployApi}
-        method="POST"
-        className="relative flex flex-col flex-1 bg-white dark:bg-gray-900"
-      >
-        <div className="overflow-auto flex flex-col flex-1 pb-20">
-          <ConfigureExperience
-            experienceConfig={experienceConfig}
-            setExperienceConfig={setExperienceConfig}
-          />
-
-          <ConfigureAudioInputProvider
-            voiceInputEnable={voiceInputEnable}
-            onChangeVoiceInputEnable={setVoiceInputEnable}
-            audioInputConfig={audioInputConfig}
-            setAudioInputConfig={setAudioInputConfig}
-          />
-          <ConfigureAudioOutputProvider
-            voiceOutputEnable={voiceOutputEnable}
-            onChangeVoiceOutputEnable={setVoiceOutputEnable}
-            audioOutputConfig={audioOutputConfig}
-            setAudioOutputConfig={setAudioOutputConfig}
-          />
+      <div className="flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-900">
+        {/* Page header */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 shrink-0 flex items-center gap-3">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              SDK / API Deployment
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Configure your assistant for React and REST SDK integration.
+            </p>
+          </div>
         </div>
-        <PageActionButtonBlock errorMessage={errorMessage}>
-          <ICancelButton
-            className="px-4 rounded-[2px]"
-            onClick={() => {
-              showDialog(() => {
-                goToDeploymentAssistant(assistantId);
-              });
-            }}
-          >
-            Cancel
-          </ICancelButton>
-          <IBlueBGArrowButton
-            type="submit"
-            className="px-4 rounded-[2px]"
-            isLoading={loading}
-          >
-            Deploy Api
-          </IBlueBGArrowButton>
-        </PageActionButtonBlock>
-      </form>
+
+        <TabForm
+          formHeading="Complete all steps to configure your SDK / API deployment."
+          activeTab={activeTab}
+          onChangeActiveTab={handleTabChange}
+          errorMessage={errorMessage}
+          form={[
+            {
+              code: 'experience',
+              name: 'General Experience',
+              description:
+                'Define how the assistant greets users and handles sessions.',
+              body: (
+                <ConfigureExperience
+                  experienceConfig={experienceConfig}
+                  setExperienceConfig={setExperienceConfig}
+                />
+              ),
+              actions: [
+                <ICancelButton
+                  className="w-full h-full"
+                  onClick={() =>
+                    showDialog(() => goToDeploymentAssistant(assistantId))
+                  }
+                >
+                  Cancel
+                </ICancelButton>,
+                <IBlueBGArrowButton
+                  type="button"
+                  className="w-full h-full"
+                  onClick={handleNext}
+                >
+                  Next
+                </IBlueBGArrowButton>,
+              ],
+            },
+            {
+              code: 'voice-input',
+              name: 'Voice Input',
+              description:
+                'Configure the speech-to-text provider for capturing user audio.',
+              body: (
+                <ConfigureAudioInputProvider
+                  audioInputConfig={audioInputConfig}
+                  setAudioInputConfig={setAudioInputConfig}
+                />
+              ),
+              actions: [
+                <ICancelButton
+                  className="w-full h-full"
+                  onClick={() =>
+                    showDialog(() => goToDeploymentAssistant(assistantId))
+                  }
+                >
+                  Cancel
+                </ICancelButton>,
+                <ISecondaryButton
+                  className="w-full h-full"
+                  onClick={handleSkipVoiceInput}
+                >
+                  Skip
+                </ISecondaryButton>,
+                <IBlueBGArrowButton
+                  type="button"
+                  className="w-full h-full"
+                  onClick={handleNext}
+                >
+                  Next
+                </IBlueBGArrowButton>,
+              ],
+            },
+            {
+              code: 'voice-output',
+              name: 'Voice Output',
+              description:
+                'Configure the text-to-speech provider for audio responses.',
+              body: (
+                <ConfigureAudioOutputProvider
+                  audioOutputConfig={audioOutputConfig}
+                  setAudioOutputConfig={setAudioOutputConfig}
+                />
+              ),
+              actions: [
+                <ICancelButton
+                  className="w-full h-full"
+                  onClick={() =>
+                    showDialog(() => goToDeploymentAssistant(assistantId))
+                  }
+                >
+                  Cancel
+                </ICancelButton>,
+                <ISecondaryButton
+                  className="w-full h-full"
+                  onClick={() => handleDeployApi(false)}
+                >
+                  Skip
+                </ISecondaryButton>,
+                <IBlueBGArrowButton
+                  type="button"
+                  className="w-full h-full"
+                  isLoading={loading}
+                  onClick={() => handleDeployApi(true)}
+                >
+                  Deploy API
+                </IBlueBGArrowButton>,
+              ],
+            },
+          ]}
+        />
+      </div>
     </>
   );
 };

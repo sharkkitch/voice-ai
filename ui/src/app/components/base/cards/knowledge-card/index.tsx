@@ -1,9 +1,10 @@
 import { FC, HTMLAttributes } from 'react';
 import {
+  BaseCard,
   Card,
   CardDescription,
   CardTitle,
-  ClickableCard,
+  LinkCard,
 } from '@/app/components/base/cards';
 import { Knowledge } from '@rapidaai/react';
 import { KnowledgeIcon } from '@/app/components/Icon/knowledge';
@@ -50,12 +51,9 @@ export const ClickableKnowledgeCard: FC<KnowledgeCardProps> = ({
   className,
 }) => {
   return (
-    <ClickableCard
-      to={`/knowledge/${knowledge.getId()}`}
-      className={cn('p-0 rounded-lg', className)}
-    >
-      <div className="p-4">
-        <header className="flex justify-between">
+    <LinkCard to={`/knowledge/${knowledge.getId()}`} className={className}>
+      <div className="p-4 md:p-5 flex-1 flex flex-col">
+        <header>
           <KnowledgeIcon className="w-7 h-7" strokeWidth={1.5} />
         </header>
         <div className="flex-1 mt-3">
@@ -65,19 +63,17 @@ export const ClickableKnowledgeCard: FC<KnowledgeCardProps> = ({
           </CardDescription>
         </div>
       </div>
-      <div className="flex items-center text-xs opacity-80 mt-1 border-t px-4 justify-between">
-        <div className="py-3">
+      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 px-4 divide-x divide-gray-100 dark:divide-gray-800">
+        <div className="py-3 pr-4">
           {formatHumanReadableNumber(knowledge.getDocumentcount())} docs
         </div>
-        <div className="w-px h-full" />
-        <div className="py-3">
+        <div className="py-3 px-4">
           {formatHumanReadableNumber(knowledge.getWordcount())} words
         </div>
-        <div className="w-px h-full" />
-        <div className="py-3">
+        <div className="py-3 pl-4">
           {formatHumanReadableNumber(knowledge.getTokencount())} tokens
         </div>
       </div>
-    </ClickableCard>
+    </LinkCard>
   );
 };

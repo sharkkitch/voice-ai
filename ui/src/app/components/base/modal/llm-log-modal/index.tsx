@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import toast from 'react-hot-toast/headless';
 import { useCredential } from '@/hooks/use-credential';
 
@@ -13,7 +13,6 @@ import { Metadata } from '@rapidaai/react';
 import { ServiceError } from '@rapidaai/react';
 import { Tab } from '@/app/components/tab';
 import { cn } from '@/utils';
-import { ChevronRight } from 'lucide-react';
 import { StatusIndicator } from '@/app/components/indicators/status';
 import { ModalProps } from '@/app/components/base/modal';
 import { RightSideModal } from '@/app/components/base/modal/right-side-modal';
@@ -94,92 +93,63 @@ export function LLMLogDialog(props: LLMLogModalProps) {
     <RightSideModal
       modalOpen={props.modalOpen}
       setModalOpen={props.setModalOpen}
-      className="w-2/3 xl:w-1/3 flex-1"
+      className="w-[580px]"
     >
-      <div className="flex items-center p-4 border-b">
-        <div className="font-medium text-lg">Log</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium text-lg">LLM</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium text-base">{props.currentActivityId}</div>
+      <div className="h-12 px-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+          LLM Log
+        </span>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono truncate">
+          {props.currentActivityId}
+        </span>
       </div>
-      <div className="relative overflow-auto h-[calc(100vh-50px)] flex flex-col flex-1">
+      <div className="relative overflow-auto h-[calc(100vh-48px)] flex flex-col flex-1">
         <Tab
-          active="Metadata"
-          className={cn(
-            'text-sm',
-            'bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-1',
-          )}
+          active="Overview"
+          className={cn('bg-white dark:bg-gray-900 sticky top-0 z-1')}
           tabs={[
             {
-              label: 'Metadata',
+              label: 'Overview',
               element: (
-                <div className="flex-1 px-4 space-y-8">
-                  <section>
-                    {activity && (
-                      <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="space-y-1">
-                          <div className="capitalize font-semibold">Status</div>
-                          <div className="">
-                            <StatusIndicator state={activity.getStatus()} />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="capitalize font-semibold">
-                            Time Taken
-                          </div>
-                          <div className="font-normal text-left max-w-[20rem] truncate">
-                            {`${activity.getTimetaken() / 1000000}ms`}{' '}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="capitalize font-semibold">
-                            Request Created Time
-                          </div>
-                          <div className="">
-                            {toHumanReadableDateTime(
-                              activity.getCreateddate()!,
-                            )}
-                          </div>
-                        </div>
-
-                        {/*  */}
-                        <div className="space-y-1">
-                          <div className="capitalize font-semibold">
-                            Response body
-                          </div>
-                          <div className="">
-                            {activity?.getResponsestatus() && (
-                              <HttpStatusSpanIndicator
-                                status={activity.getResponsestatus()}
-                              />
-                            )}
-                          </div>
-                        </div>
-
-                        {/*  */}
-                      </div>
-                    )}
-                  </section>
-                  <div className="font-semibold text-lg border-b -mx-4 px-4 py-2">
-                    Additional data
-                  </div>
-                  <section>
-                    <div className="grid grid-cols-2 gap-4">
-                      {additionalData.map((ad, idx) => {
-                        return (
-                          <div className="space-y-1" key={idx}>
-                            <div className="capitalize font-semibold">
-                              {ad.getKey().replaceAll('_', ' ')}{' '}
-                            </div>
-                            <div className="font-normal text-left max-w-[20rem] truncate">
-                              {ad.getValue()}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 w-full">
+                  {activity && (
+                    <>
+                      <OverviewRow label="Status">
+                        <StatusIndicator
+                          state={activity.getStatus()}
+                          size="small"
+                        />
+                      </OverviewRow>
+                      <OverviewRow label="Time Taken">
+                        <span className="text-sm tabular-nums text-gray-900 dark:text-gray-100">
+                          {`${activity.getTimetaken() / 1000000}ms`}
+                        </span>
+                      </OverviewRow>
+                      <OverviewRow label="Created">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
+                          {toHumanReadableDateTime(activity.getCreateddate()!)}
+                        </span>
+                      </OverviewRow>
+                      {activity?.getResponsestatus() && (
+                        <OverviewRow label="Response Status">
+                          <HttpStatusSpanIndicator
+                            status={activity.getResponsestatus()}
+                          />
+                        </OverviewRow>
+                      )}
+                      {additionalData.map((ad, idx) => (
+                        <OverviewRow
+                          key={idx}
+                          label={ad.getKey().replaceAll('_', ' ')}
+                        >
+                          <span className="text-sm text-gray-900 dark:text-gray-100 truncate max-w-[20rem]">
+                            {ad.getValue()}
+                          </span>
+                        </OverviewRow>
+                      ))}
+                    </>
+                  )}
                 </div>
               ),
             },
@@ -234,3 +204,15 @@ export function LLMLogDialog(props: LLMLogModalProps) {
     </RightSideModal>
   );
 }
+
+const OverviewRow: FC<{ label: string; children: React.ReactNode }> = ({
+  label,
+  children,
+}) => (
+  <div className="flex items-center justify-between h-12 px-4 gap-4">
+    <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 shrink-0">
+      {label}
+    </span>
+    <div className="flex items-center">{children}</div>
+  </div>
+);

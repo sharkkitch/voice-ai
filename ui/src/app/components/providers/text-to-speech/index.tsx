@@ -35,7 +35,7 @@ export const TextToSpeechProvider: React.FC<ProviderComponentProps> = props => {
     onChangeParameter(updatedParams);
   };
   return (
-    <div className="space-y-6 w-full max-w-6xl">
+    <div className="flex flex-col gap-6 w-full max-w-6xl">
       <FieldSet className="relative">
         <FormLabel>Provider</FormLabel>
         <Dropdown

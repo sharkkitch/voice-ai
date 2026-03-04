@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
 import { GenericModal, ModalProps } from '@/app/components/base/modal';
 import { HowItWorks } from '@/app/components/base/modal/how-it-works-modal';
-import { IBlueBGButton } from '@/app/components/form/button';
 import { Check } from 'lucide-react';
 import { ModalFooter } from '@/app/components/base/modal/modal-footer';
 import { ModalFitHeightBlock } from '@/app/components/blocks/modal-fit-height-block';
@@ -92,7 +91,7 @@ export const HowAssistantWorksDialog: FC<
    */
   return (
     <GenericModal modalOpen={props.modalOpen} setModalOpen={props.setModalOpen}>
-      <ModalFitHeightBlock className="w-1/2">
+      <ModalFitHeightBlock className="w-[800px]">
         <ModalHeader
           onClose={() => {
             props.setModalOpen(false);
@@ -102,16 +101,14 @@ export const HowAssistantWorksDialog: FC<
         </ModalHeader>
         <HowItWorks steps={steps} />
         <ModalFooter>
-          <IBlueBGButton
-            className="px-4 rounded-[2px]"
+          <button
             type="button"
-            onClick={() => {
-              props.setModalOpen(false);
-            }}
+            className="inline-flex items-center gap-2 h-10 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+            onClick={() => props.setModalOpen(false)}
           >
             Got it
-            <Check className="ml-2 w-4 h-5" strokeWidth={1.5} />
-          </IBlueBGButton>
+            <Check className="w-4 h-4" strokeWidth={1.5} />
+          </button>
         </ModalFooter>
       </ModalFitHeightBlock>
     </GenericModal>

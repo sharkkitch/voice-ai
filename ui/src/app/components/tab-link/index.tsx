@@ -15,15 +15,14 @@ export const Tab: FC<TabProps> = ({ isActive, children, ...props }) => {
     <div
       {...props}
       className={cn(
-        'group px-2 border-b-[3px] border-transparent -mb-[0.2rem] cursor-pointer',
+        'relative flex items-center px-4 cursor-pointer text-xs font-medium uppercase tracking-[0.08em] whitespace-nowrap transition-colors h-10',
         isActive
-          ? 'text-blue-500 bg-blue-500/10'
-          : 'hover:bg-blue-500/5 hover:text-blue-500',
+          ? 'text-gray-900 dark:text-gray-100 after:absolute after:bottom-0 after:inset-x-0 after:h-0.5 after:bg-primary'
+          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
+        props.className,
       )}
     >
-      <div className="capitalize px-3 py-3 group-hover:bg-blue-600/5 dark:group-hover:bg-blue-950/50">
-        {children}
-      </div>
+      {children}
     </div>
   );
 };
@@ -34,17 +33,15 @@ export const TabLink: FC<LinkTabProps> = ({ to, children, className }) => {
       to={to}
       className={({ isActive }) => {
         return cn(
-          'group cursor-pointer hover:bg-gray-500/10',
+          'relative flex items-center gap-2 px-4 cursor-pointer text-xs font-medium uppercase tracking-[0.08em] whitespace-nowrap transition-colors h-10',
           isActive
-            ? 'text-blue-500 bg-blue-500/10'
-            : 'hover:bg-blue-500/5 hover:text-blue-500',
+            ? 'text-gray-900 dark:text-gray-100 after:absolute after:bottom-0 after:inset-x-0 after:h-0.5 after:bg-primary'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
           className,
         );
       }}
     >
-      <div className="px-6 py-2 font-semibold text-[13px] whitespace-nowrap tracking-wide text-pretty gap-3 flex items-center uppercase">
-        {children}
-      </div>
+      {children}
     </NavLink>
   );
 };
@@ -73,12 +70,12 @@ export const SideTab: FC<LinkTabProps> = props => {
     <div
       onClick={props.onClick}
       className={cn(
-        'group px-2 border-r-[3px] border-transparent -ms-[0.1rem] cursor-pointer font-semibold text-[13px]  whitespace-nowrap tracking-wide text-pretty',
-        'flex items-center px-5 py-2 relative',
-        props.className,
+        'cursor-pointer border-l-2 transition-colors',
+        'flex items-center h-8 px-4 text-sm font-medium whitespace-nowrap',
         props.isActive === true
-          ? 'text-blue-500 bg-blue-500/10'
-          : 'hover:bg-blue-500/5 hover:text-blue-500',
+          ? 'border-l-primary text-primary bg-primary/10'
+          : 'border-l-transparent text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary',
+        props.className,
       )}
     >
       {props.children}

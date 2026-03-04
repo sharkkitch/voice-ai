@@ -1,232 +1,62 @@
 import { Spinner } from '@/app/components/loader/spinner';
 import React, { FC } from 'react';
 import { cn } from '@/utils';
-import { ChevronRight, PlusIcon } from 'lucide-react';
-/**
- *
- */
+import { ChevronRight, Plus } from 'lucide-react';
+
+// ─── Shared prop interface ────────────────────────────────────────────────────
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /**
-   *
-   */
-  children?: any;
-
-  /**
-   * if loading represent
-   */
+  children?: React.ReactNode;
+  /** Shows a spinner and disables the button while true */
   isLoading?: boolean;
-
-  /**
-   *
-   */
   size?: 'sm' | 'md' | 'lg';
 }
 
 export interface LinkProps
   extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  /**
-   *
-   */
-  children?: any;
-
-  /**
-   * if loading represent
-   */
+  children?: React.ReactNode;
   isLoading?: boolean;
 }
 
-export function Button(props: ButtonProps) {
-  const { isLoading, ...btnProps } = props;
-  return (
-    <button
-      {...btnProps}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 leading-7 truncate w-fit justify-center items-center relative',
-        'bg-blue-600 text-white hover:bg-blue-500 py-1.5 px-3',
-        'button',
-        props.disabled && 'opacity-80! cursor-not-allowed!',
-        props.className,
-      )}
-    >
-      {isLoading ? (
-        <span className="inline-block absolute">
-          <Spinner className="border-white" />
-        </span>
-      ) : (
-        props.children
-      )}
-    </button>
-  );
-}
+// ─── Base class fragments ─────────────────────────────────────────────────────
 
-export function BlueBorderButton(props: ButtonProps) {
-  const { isLoading, ...btnProps } = props;
+/** Shared structural classes applied to every button variant */
+const base =
+  'inline-flex items-center justify-center gap-2 w-fit ' +
+  'text-sm font-medium ' +
+  'rounded-none border-0 ' +
+  'transition-colors duration-100 ' +
+  'disabled:opacity-50 disabled:cursor-not-allowed ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ' +
+  'button';
 
-  return (
-    <button
-      {...btnProps}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'py-1.5 px-3',
-        'text-blue-600 dark:text-blue-400',
-        'border-[1.5px] border-blue-600 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-700',
-        'bg-white dark:bg-gray-950/50 dark:hover:bg-blue-700/20 hover:bg-blue-200/20',
-        'button',
-        props.disabled && 'cursor-not-allowed opacity-70',
-        props.className,
-      )}
-    >
-      {isLoading ? (
-        <span className="inline-block absolute">
-          <Spinner />
-        </span>
-      ) : (
-        props.children
-      )}
-    </button>
-  );
-}
-
-export function BorderButton(props: ButtonProps) {
-  return (
-    <button
-      type="button"
-      {...props}
-      className={cn(
-        'cursor-pointer',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'dark:text-gray-400',
-        'py-2 px-2.5',
-        'border-[1.5px] border-gray-300/50 dark:border-gray-700/50',
-        'bg-white dark:bg-gray-950/50 dark:hover:bg-gray-700/50 hover:bg-gray-200',
-        'button',
-        'focus:outline-hidden focus:outline-2 focus:outline-solid focus:outline-offset-1 outline-gray-100/10',
-        props.className,
-      )}
-    >
-      {props.children}
-    </button>
-  );
-}
-
-export const ILinkBorderButton: FC<LinkProps> = props => {
-  const { isLoading, ...btnProps } = props;
-  return (
-    <a
-      {...btnProps}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        ' dark:hover:text-gray-300',
-        'py-1.5 px-3',
-        'hover:bg-white dark:hover:bg-gray-950',
-        'button',
-        'focus:outline-hidden',
-
-        'outline-solid outline-transparent hover:outline-blue-600 -outline-offset-[1.5px]',
-        'transition-all delay-200',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {isLoading ? (
-        <span className="inline-block absolute">
-          <Spinner />
-        </span>
-      ) : (
-        props.children
-      )}
-    </a>
-  );
+/** Carbon md height = 40px, lg = 48px, sm = 32px */
+const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
+  sm: 'h-8 px-4 text-xs',
+  md: 'h-10 px-4 text-sm',
+  lg: 'h-12 px-4 text-base',
 };
 
-export function SimpleButton(props: ButtonProps) {
+// ─── Primary ──────────────────────────────────────────────────────────────────
+
+/**
+ * Carbon Primary button — filled primary, white text.
+ * Use for the single most important action on a page.
+ */
+export function Button({ isLoading, size = 'md', ...props }: ButtonProps) {
   return (
     <button
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'dark:hover:text-gray-300 hover:text-gray-900',
-        'py-3 px-3 ',
-        'hover:bg-gray-100 dark:hover:bg-gray-900',
-        'button',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {props.children}
-    </button>
-  );
-}
-
-export function IconButton(props: ButtonProps) {
-  return (
-    <SimpleButton
-      className={cn(
-        'cursor-pointer',
-        'rounded-[2px]',
-        'h-6! w-6! p-[4px]!',
-        props.className,
-      )}
-      onClick={props.onClick}
-      {...props}
-    >
-      {props.children}
-    </SimpleButton>
-  );
-}
-
-export function ILinkButton(props: LinkProps) {
-  return (
-    <a
-      {...props}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'text-white',
-        'py-2.5 px-3',
-        'bg-blue-600 hover:bg-blue-700',
-        'button',
-        'border-y border-transparent',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {props.children}
-    </a>
-  );
-}
-
-export function HoverButton(props: ButtonProps) {
-  const { isLoading, ...btnProps } = props;
-  return (
-    <button
-      {...btnProps}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 leading-7 truncate w-fit justify-center items-center relative border-none',
-        'py-3 px-3 dark:hover:bg-gray-900 hover:bg-gray-100',
-        'button',
-        'hover:shadow-sm',
-        'focus:outline-solid focus:outline-offset-1 focus:outline-gray-300 dark:focus:outline-gray-700',
+        base,
+        sizes[size],
+        'bg-primary text-white hover:bg-primary/90 active:bg-primary/80',
         props.className,
       )}
     >
       {isLoading ? (
-        <span className="inline-block absolute">
-          <Spinner />
-        </span>
+        <Spinner className="border-white" size="xs" />
       ) : (
         props.children
       )}
@@ -234,46 +64,19 @@ export function HoverButton(props: ButtonProps) {
   );
 }
 
-export const OutlineButton = (props: ButtonProps) => {
-  const { isLoading, className, ...btnProps } = props;
-  return (
-    <Button
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'rounded-[2px] px-4 capitalize',
-        className,
-        props.disabled && 'opacity-60',
-      )}
-      type="submit"
-      {...btnProps}
-    >
-      {props.children}
-      {props.isLoading && <Spinner className="h-4 w-4 ml-2 border-white" />}
-    </Button>
-  );
-};
+// ─── Primary aliases (used throughout existing pages) ─────────────────────────
 
-//
-
-export function IButton(props: ButtonProps) {
+/** @alias Button — primary filled */
+export function IBlueBGButton({ isLoading, ...props }: ButtonProps) {
   return (
     <button
       type="button"
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'dark:hover:text-gray-400',
-        'py-1.5 px-3',
-        'hover:bg-white dark:hover:bg-gray-950',
-        'button',
-        'focus:outline-hidden',
-        !props.disabled &&
-          'outline-solid outline-transparent hover:outline-blue-600 -outline-offset-[1.5px]',
-        'transition-all delay-200',
-        'focus:outline-hidden',
+        base,
+        'h-10 px-4',
+        'bg-primary text-white hover:bg-primary/90 active:bg-primary/80',
+        isLoading && 'cursor-wait',
         props.className,
       )}
     >
@@ -282,154 +85,54 @@ export function IButton(props: ButtonProps) {
   );
 }
 
-export function IBlueButton(props: ButtonProps) {
+/**
+ * Carbon CTA / wizard "Next" button.
+ * Text is left-aligned; icon is pinned to the far right (justify-between).
+ * min-w-[10rem] ensures visible breathing room between label and icon.
+ */
+export function IBlueBGArrowButton({ isLoading, ...props }: ButtonProps) {
   return (
     <button
       type="button"
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'text-blue-500 hover:text-blue-600',
-        'py-1.5 px-3',
-        'bg-white hover:bg-light-background dark:bg-gray-900 dark:hover:bg-gray-950',
-        'button',
-        !props.disabled &&
-          'outline-solid outline-transparent hover:outline-blue-600 -outline-offset-[1.5px]',
-        'transition-all delay-200',
-        'focus:outline-hidden',
+        base,
+        'h-10 pl-4 pr-4',
+        // Carbon icon-right: text left, icon pinned to right edge
+        'justify-between gap-8 min-w-[10rem]',
+        'bg-primary text-white hover:bg-primary/90 active:bg-primary/80',
+        isLoading && 'cursor-wait',
         props.className,
       )}
     >
-      {props.children}
-    </button>
-  );
-}
-
-export function IBlueBorderPlusButton(props: ButtonProps) {
-  return (
-    <button
-      type="button"
-      {...props}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-start items-center',
-        'bg-light-background dark:bg-gray-900',
-        'text-blue-600 hover:text-blue-600 border border-blue-600',
-        'px-4',
-        'text-sm',
-        'hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600',
-        'button',
-        'transition-all delay-200',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {props.children}
-      {props.isLoading ? (
-        <Spinner className="ml-16 border-white animate-spin" size="xs" />
+      <span>{props.children}</span>
+      {isLoading ? (
+        <Spinner className="w-4 h-4 border-white shrink-0" size="xs" />
       ) : (
-        <PlusIcon className="ml-12 w-5 h-5" strokeWidth={1.5} />
+        <ChevronRight className="w-4 h-4 shrink-0" strokeWidth={1.5} />
       )}
     </button>
   );
 }
 
-export function IBlueBorderButton(props: ButtonProps) {
-  return (
-    <button
-      type="button"
-      {...props}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px] cursor-pointer',
-        'flex h-9 truncate w-fit justify-start items-center',
-        'bg-light-background dark:bg-gray-900',
-        'text-blue-600 hover:text-blue-600 border border-blue-600',
-        'px-4 space-x-16',
-        'text-sm',
-        'hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white',
-        'button',
-        'transition-all delay-200',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {props.children}
-    </button>
-  );
-}
+// ─── Secondary ────────────────────────────────────────────────────────────────
 
-export function IBorderButton(props: ButtonProps) {
-  return (
-    <button
-      type="button"
-      {...props}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-start items-center',
-        'bg-light-background dark:bg-gray-900',
-        'text-gray-600 hover:text-gray-600 border border-gray-300 dark:border-gray-700',
-        'px-4',
-        'text-sm',
-        'hover:bg-gray-600 dark:hover:bg-gray-600 hover:text-white',
-        'button',
-        'transition-all delay-200',
-        'focus:outline-hidden',
-        props.className,
-      )}
-    >
-      {!props.isLoading ? (
-        props.children
-      ) : (
-        <Spinner className="w-4 h-4 border-white" />
-      )}
-    </button>
-  );
-}
-
-export function IBlueBGButton(props: ButtonProps) {
-  const { isLoading, ...alt } = props;
-  return (
-    <button
-      type="button"
-      {...alt}
-      className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 dark:border-[1.4px] border-gray-900 truncate w-fit justify-center items-center cursor-pointer',
-        'text-white',
-        'py-2.5 px-3',
-        'bg-blue-600 hover:bg-blue-700',
-        'button',
-        'focus:outline-hidden',
-        props.isLoading && 'cursor-wait bg-blue-500',
-        props.className,
-      )}
-    >
-      {props.children}
-    </button>
-  );
-}
-
+/**
+ * Carbon Secondary button — transparent bg, gray border, gray text.
+ * Pairs with a primary button as a non-destructive alternative.
+ */
 export function ICancelButton(props: ButtonProps) {
   return (
     <button
       type="button"
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'py-2.5 px-3',
-        'border border-gray-300 hover:bg-gray-200',
-        'bg-white dark:bg-gray-800',
-        'dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900',
-        'button',
-        'focus:outline-hidden',
+        base,
+        'h-10 px-4',
+        'bg-transparent',
+        'text-primary',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        'active:bg-gray-200 dark:active:bg-gray-700',
         props.className,
       )}
     >
@@ -438,21 +141,251 @@ export function ICancelButton(props: ButtonProps) {
   );
 }
 
+export function ISecondaryButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-gray-200 dark:bg-gray-800',
+        'hover:bg-gray-300 dark:hover:bg-gray-950',
+        'active:bg-gray-200 dark:active:bg-gray-700',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** @alias ICancelButton */
+export function BorderButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent border border-gray-300 dark:border-gray-600',
+        'text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-50 dark:hover:bg-gray-800',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** @alias ICancelButton */
+export function IBorderButton({ isLoading, ...props }: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent border border-gray-300 dark:border-gray-600',
+        'text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-700 hover:text-white hover:border-gray-700',
+        'dark:hover:bg-gray-600 dark:hover:border-gray-600',
+        props.className,
+      )}
+    >
+      {isLoading ? <Spinner className="w-4 h-4" size="xs" /> : props.children}
+    </button>
+  );
+}
+
+// ─── Tertiary ─────────────────────────────────────────────────────────────────
+
+/**
+ * Carbon Tertiary button — primary border + text, transparent bg.
+ * Hover fills with primary color.
+ */
+export function BlueBorderButton({ isLoading, ...props }: ButtonProps) {
+  return (
+    <button
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent border border-primary',
+        'text-primary',
+        'hover:bg-primary hover:text-white',
+        'dark:hover:bg-primary',
+        props.className,
+      )}
+    >
+      {isLoading ? <Spinner size="xs" /> : props.children}
+    </button>
+  );
+}
+
+/** @alias BlueBorderButton */
+export function IBlueBorderButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent border border-primary',
+        'text-primary',
+        'hover:bg-primary hover:text-white',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** Tertiary with trailing Plus icon */
+export function IBlueBorderPlusButton({ isLoading, ...props }: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4 justify-between gap-8',
+        'bg-transparent border border-primary',
+        'text-primary',
+        'hover:bg-primary hover:text-white',
+        props.className,
+      )}
+    >
+      {props.children}
+      {isLoading ? (
+        <Spinner className="border-current" size="xs" />
+      ) : (
+        <Plus className="w-4 h-4" strokeWidth={1.5} />
+      )}
+    </button>
+  );
+}
+
+// ─── Ghost ────────────────────────────────────────────────────────────────────
+
+/**
+ * Carbon Ghost button — no background, no border. Text color only.
+ * Used for low-emphasis actions, often inline with content.
+ */
+export function HoverButton({ isLoading, ...props }: ButtonProps) {
+  return (
+    <button
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        props.className,
+      )}
+    >
+      {isLoading ? <Spinner size="xs" /> : props.children}
+    </button>
+  );
+}
+
+/** @alias HoverButton */
+export function IButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** Ghost — primary text color */
+export function IBlueButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent text-primary',
+        'hover:bg-primary/10 dark:hover:bg-primary/10',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** Icon button — square, ghost */
+export function IconButton(props: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'w-8 h-8 p-1.5',
+        'bg-transparent text-gray-600 dark:text-gray-400',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** Simple hover — minimal ghost, used for toolbar/icon rows */
+export function SimpleButton(props: ButtonProps) {
+  return (
+    <button
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+// ─── Danger ───────────────────────────────────────────────────────────────────
+
+/**
+ * Carbon Danger button — red fill, white text.
+ * Use for destructive or irreversible actions.
+ */
 export function IRedBGButton(props: ButtonProps) {
   return (
     <button
       type="button"
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'text-white',
-        'py-3 px-3 ',
-        'disabled:opacity-80',
-        'bg-red-600 group-hover:bg-red-600',
-        'button',
-        'focus:outline-hidden cursor-pointer',
+        base,
+        'h-10 px-4',
+        'bg-red-600 text-white',
+        'hover:bg-red-700 active:bg-red-800',
+        'disabled:opacity-50',
         props.className,
       )}
     >
@@ -461,21 +394,40 @@ export function IRedBGButton(props: ButtonProps) {
   );
 }
 
+/** Carbon Danger tertiary — red border + text, fills red on hover */
+export function IRedBorderButton({ isLoading, ...props }: ButtonProps) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        base,
+        'h-10 px-4',
+        'bg-transparent border border-red-600',
+        'text-red-600',
+        'hover:bg-red-600 hover:text-white',
+        props.className,
+      )}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+// ─── Success ──────────────────────────────────────────────────────────────────
+
+/** Non-Carbon custom: success/green fill */
 export function IGreenBGButton(props: ButtonProps) {
   return (
     <button
       type="button"
       {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center',
-        'text-white',
-        'py-3 px-3 ',
-        'disabled:opacity-80',
-        'bg-green-600 group-hover:bg-green-600',
-        'button',
-        'focus:outline-hidden cursor-pointer',
+        base,
+        'h-10 px-4',
+        'bg-green-600 text-white',
+        'hover:bg-green-700 active:bg-green-800',
+        'disabled:opacity-50',
         props.className,
       )}
     >
@@ -484,44 +436,60 @@ export function IGreenBGButton(props: ButtonProps) {
   );
 }
 
-export function IRedBorderButton(props: ButtonProps) {
-  const { isLoading, ...btnProps } = props;
+// ─── Outline (wraps primary) ─────────────────────────────────────────────────
+
+/** Wraps primary Button with uppercase label */
+export const OutlineButton = ({
+  isLoading,
+  className,
+  ...props
+}: ButtonProps) => (
+  <Button
+    className={cn('px-4 uppercase tracking-wide', className)}
+    type="submit"
+    {...props}
+  >
+    {props.children}
+    {isLoading && <Spinner className="w-4 h-4 border-white" size="xs" />}
+  </Button>
+);
+
+// ─── Link variants ────────────────────────────────────────────────────────────
+
+/** Anchor styled as primary button */
+export function ILinkButton(props: LinkProps) {
   return (
-    <button
-      type="button"
-      {...btnProps}
+    <a
+      {...props}
       className={cn(
-        'cursor-pointer font-medium',
-        'rounded-[2px]',
-        'flex h-9 truncate w-fit justify-center items-center border',
-        'text-red-600 hover:text-white',
-        'py-3 px-3 ',
-        'bg-red-600/5 transition-all delay-200',
-        'border-red-600 hover:bg-red-600',
-        'button',
-        'focus:outline-hidden',
+        'inline-flex items-center justify-center gap-2 w-fit',
+        'h-10 px-4 text-sm font-medium',
+        'bg-primary text-white hover:bg-primary/90',
+        'rounded-none transition-colors duration-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
         props.className,
       )}
     >
       {props.children}
-    </button>
+    </a>
   );
 }
 
-export function IBlueBGArrowButton(props: ButtonProps) {
-  const { isLoading, ...btnProps } = props;
-  return (
-    <IBlueBGButton
-      {...btnProps}
-      className={cn('cursor-pointer', 'rounded-[2px]', props.className)}
-      disabled={isLoading}
-    >
-      {props.children}
-      {props.isLoading ? (
-        <Spinner className="w-4 h-4 ml-3 border-white" />
-      ) : (
-        <ChevronRight className="w-4 h-4 ml-3" strokeWidth={1.5} />
-      )}
-    </IBlueBGButton>
-  );
-}
+/** Anchor styled as secondary button */
+export const ILinkBorderButton: FC<LinkProps> = ({ isLoading, ...props }) => (
+  <a
+    {...props}
+    className={cn(
+      'inline-flex items-center justify-center gap-2 w-fit',
+      'h-10 px-4 text-sm font-medium',
+      'bg-transparent border border-gray-300 dark:border-gray-600',
+      'text-gray-700 dark:text-gray-300',
+      'hover:bg-gray-50 dark:hover:bg-gray-800',
+      'rounded-none transition-colors duration-100',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+      props.className,
+    )}
+  >
+    {isLoading ? <Spinner size="xs" /> : props.children}
+  </a>
+);

@@ -40,14 +40,8 @@ const ConfirmDialog: FC<ConfirmDialogProps> = ({
           <div className="text-base leading-normal">{content}</div>
         </div>
         <ModalFooter>
-          <ICancelButton className="px-4 rounded-[2px]" onClick={onCancel}>
-            {cancelText}
-          </ICancelButton>
-          <IRedBGButton
-            className="px-4 rounded-[2px]"
-            type="button"
-            onClick={onConfirm}
-          >
+          <ICancelButton onClick={onCancel}>{cancelText}</ICancelButton>
+          <IRedBGButton type="button" onClick={onConfirm}>
             {confirmText}
           </IRedBGButton>
         </ModalFooter>

@@ -2,7 +2,6 @@ import { AssistantConversationMessage } from '@rapidaai/react';
 import { Metadata } from '@rapidaai/react';
 import { Tab } from '@/app/components/tab';
 import { cn } from '@/utils';
-import { ChevronRight } from 'lucide-react';
 import { ModalProps } from '@/app/components/base/modal';
 import { RightSideModal } from '@/app/components/base/modal/right-side-modal';
 import { CodeHighlighting } from '@/app/components/code-highlighting';
@@ -26,31 +25,28 @@ export function ConversationLogDialog(props: ConversationLogDialogProps) {
     <RightSideModal
       modalOpen={props.modalOpen}
       setModalOpen={props.setModalOpen}
-      className="w-2/3 xl:w-1/3 flex-1"
+      className="w-[580px]"
     >
-      <div className="flex items-center p-4 border-b">
-        <div className="font-medium text-lg">Log</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium text-lg">Conversation</div>
-        <ChevronRight size={18} className="mx-2" />
-        <div className="font-medium text-base">
+      <div className="h-12 px-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+          Conversation Log
+        </span>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono truncate">
           {props.currentAssistantMessage.getAssistantconversationid()}
-        </div>
+        </span>
       </div>
-      <div className="relative overflow-auto h-[calc(100vh-50px)] flex flex-col flex-1">
+      <div className="relative overflow-auto h-[calc(100vh-48px)] flex flex-col flex-1">
         <Tab
           active="Message"
-          className={cn(
-            'text-sm',
-            'bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-1',
-          )}
+          className={cn('bg-white dark:bg-gray-900 sticky top-0 z-1')}
           tabs={[
             {
               label: 'Message',
               element: (
-                <div className="flex-1 p-4 space-y-8">
+                <div className="flex-1 p-4">
                   {props.currentAssistantMessage.getBody() ? (
-                    <div className="border rounded-[2px]">
+                    <div className="border border-gray-200 dark:border-gray-800">
                       <MarkdownViewer
                         text={props.currentAssistantMessage.getBody()}
                       />
@@ -101,27 +97,25 @@ const MessageMetadatas: FC<{ metadata: Array<Metadata> }> = ({ metadata }) => {
     return (
       <div className="w-full">
         <BlueNoticeBlock className="w-full">
-          There are no metdata for given message.
+          There are no metadata for given message.
         </BlueNoticeBlock>
       </div>
     );
   return (
-    <div className="flex flex-col w-full">
-      {metadata.map((x, idx) => {
-        return (
-          <div
-            className="flex justify-between w-full items-center border-[0.5px] rounded-[2px]"
-            key={`metadata-idx-${idx}`}
-          >
-            <div className="py-3 px-4 flex items-center gap-2">
-              <span className="capitalize">{x.getKey()}</span>
-            </div>
-            <div className="py-3 px-4 ">
-              <div className="flex items-center">{x.getValue()}</div>
-            </div>
+    <div className="divide-y divide-gray-200 dark:divide-gray-800 w-full">
+      {metadata.map((x, idx) => (
+        <div
+          key={`metadata-idx-${idx}`}
+          className="flex items-center justify-between h-12 px-4 gap-4"
+        >
+          <span className="text-xs font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400 shrink-0">
+            {x.getKey()}
+          </span>
+          <div className="flex items-center text-sm text-gray-900 dark:text-gray-100">
+            {x.getValue()}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import { FC } from 'react';
 import { Endpoint } from '@rapidaai/react';
-import { IBlueButton } from '@/app/components/form/button';
 import { useNavigate } from 'react-router-dom';
 import { useResourceRole } from '@/hooks/use-credential';
 import { isOwnerResource } from '@/utils';
 import { Plus } from 'lucide-react';
+import { EndpointOptions } from '@/app/pages/endpoint/view/endpoint-option';
 
 /**
  *
@@ -37,24 +37,28 @@ export const EndpointAction: FC<{ currentEndpoint: Endpoint }> = ({
 const OwnerAction: FC<{ currentEndpoint: Endpoint }> = ({
   currentEndpoint,
 }) => {
-  /**
-   * dom navigation
-   */
   const navigate = useNavigate();
   return (
-    <>
+    <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+      {/* Options overflow menu */}
+      <div className="border-r border-gray-200 dark:border-gray-800 flex items-stretch">
+        <EndpointOptions endpoint={currentEndpoint} />
+      </div>
+      {/* Primary CTA */}
       {currentEndpoint != null && (
-        <IBlueButton
-          onClick={() => {
+        <button
+          type="button"
+          className="flex items-center gap-2 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
+          onClick={() =>
             navigate(
               `/deployment/endpoint/${currentEndpoint?.getId()}/create-endpoint-version`,
-            );
-          }}
+            )
+          }
         >
           Create new version
-          <Plus strokeWidth={1.5} className="ml-1.5 h-4 w-4" />
-        </IBlueButton>
+          <Plus strokeWidth={1.5} className="w-4 h-4" />
+        </button>
       )}
-    </>
+    </div>
   );
 };

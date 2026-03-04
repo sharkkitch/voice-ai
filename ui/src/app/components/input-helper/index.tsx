@@ -1,23 +1,22 @@
 import { cn } from '@/utils';
 
-/**
- *  */
-interface InputHelperProp extends React.LabelHTMLAttributes<HTMLLabelElement> {}
+interface InputHelperProp extends React.HTMLAttributes<HTMLParagraphElement> {}
 
 /**
- *
- * @param props
- * @returns
+ * Carbon helper-text-01 — 12px / 0.75rem, Regular 400, line-height 16px, letter-spacing 0.32px.
+ * Always placed directly below the field it describes.
  */
 export function InputHelper(props: InputHelperProp) {
   return (
-    <div
+    <p
       className={cn(
-        'mb-3 text-sm/6 dark:text-gray-500 text-gray-500',
+        // Carbon helper-text-01
+        'text-xs leading-4 tracking-[0.02em]',
+        'text-gray-500 dark:text-gray-500',
         props.className,
       )}
     >
       {props.children}
-    </div>
+    </p>
   );
 }

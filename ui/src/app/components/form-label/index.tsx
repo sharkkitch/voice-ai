@@ -1,23 +1,23 @@
 import { cn } from '@/utils';
 
-/**
- *  */
 interface FormLabelProp extends React.LabelHTMLAttributes<HTMLLabelElement> {}
 
 /**
- *
- * @param props
- * @returns
+ * Carbon label-01 — 12px / 0.75rem, Regular 400, line-height 16px, letter-spacing 0.32px.
+ * Used for all field labels in form components.
  */
 export function FormLabel(props: FormLabelProp) {
   return (
     <label
       htmlFor={props.htmlFor}
+      onClick={props.onClick}
       className={cn(
-        'leading-6 cursor-pointer inline-flex items-center capitalize text-sm font-medium dark:text-gray-500 text-gray-500',
+        // Carbon label-01
+        'text-xs font-medium leading-4 tracking-[0.02em]',
+        'text-gray-600 dark:text-gray-400',
+        'cursor-pointer',
         props.className,
       )}
-      onClick={props.onClick}
     >
       {props.children}
     </label>

@@ -14,8 +14,9 @@ import { TablePagination } from '@/app/components/base/tables/table-pagination';
 import { useRapidaStore } from '@/hooks';
 import { BluredWrapper } from '@/app/components/wrapper/blured-wrapper';
 import { ServiceError } from '@rapidaai/react';
-import { IBlueButton, IButton } from '@/app/components/form/button';
+import { IButton } from '@/app/components/form/button';
 import { Plus, RotateCw } from 'lucide-react';
+import { PaginationButtonBlock } from '@/app/components/blocks/pagination-button-block';
 import { Table } from '@/app/components/base/tables/table';
 import { TableHead } from '@/app/components/base/tables/table-head';
 import { TableBody } from '@/app/components/base/tables/table-body';
@@ -147,38 +148,35 @@ export function ProjectPage() {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Projects</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {`${projects.length}/${totalCount}`}
-          </div>
+          </span>
         </div>
-        <div className="flex divide-x dark:divide-gray-800">
-          <IButton
-            onClick={() => {
-              getAllProject(page, pageSize, criteria);
-            }}
-          >
-            Reload Project
-            <RotateCw className="w-4 h-4 ml-1.5" />
-          </IButton>
-          <IBlueButton
-            onClick={() => {
-              setCreateProjectModalOpen(true);
-            }}
+        <div className="flex items-stretch h-12 border-l border-gray-200 dark:border-gray-800">
+          <button
+            type="button"
+            onClick={() => setCreateProjectModalOpen(true)}
+            className="flex items-center gap-2 px-4 text-sm text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
             Create new project
-            <Plus className="w-4 h-4 ml-1.5" />
-          </IBlueButton>
+            <Plus strokeWidth={1.5} className="w-4 h-4" />
+          </button>
         </div>
       </PageHeaderBlock>
-      <BluredWrapper className="p-0">
-        <SearchIconInput className="bg-light-background" />
-        <TablePagination
-          currentPage={page}
-          onChangeCurrentPage={setPage}
-          totalItem={totalCount}
-          pageSize={pageSize}
-          onChangePageSize={setPageSize}
-        />
+      <BluredWrapper className="sticky top-0 z-11">
+        <SearchIconInput className="bg-light-background flex-1" />
+        <PaginationButtonBlock className="shrink-0">
+          <TablePagination
+            currentPage={page}
+            onChangeCurrentPage={setPage}
+            totalItem={totalCount}
+            pageSize={pageSize}
+            onChangePageSize={setPageSize}
+          />
+          <IButton onClick={() => getAllProject(page, pageSize, criteria)}>
+            <RotateCw strokeWidth={1.5} className="h-4 w-4" />
+          </IButton>
+        </PaginationButtonBlock>
       </BluredWrapper>
       <TableSection>
         <Table className="bg-white dark:bg-gray-900">

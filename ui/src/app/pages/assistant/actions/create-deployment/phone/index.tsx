@@ -1,8 +1,11 @@
 import {
-  IBlueBGArrowButton,
-  ICancelButton,
-} from '@/app/components/form/button';
+  ConfigureExperience,
+  ExperienceConfig,
+} from '@/app/pages/assistant/actions/create-deployment/commons/configure-experience';
+import { ConfigureAudioInputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-input';
+import { ConfigureAudioOutputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-output';
 import { useRapidaStore } from '@/hooks';
+import { Phone } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGlobalNavigation } from '@/hooks/use-global-navigator';
@@ -17,12 +20,6 @@ import {
 } from '@rapidaai/react';
 import { GetAssistantPhoneDeployment } from '@rapidaai/react';
 import { useCurrentCredential } from '@/hooks/use-credential';
-import {
-  ConfigureExperience,
-  ExperienceConfig,
-} from '@/app/pages/assistant/actions/create-deployment/commons/configure-experience';
-import { ConfigureAudioInputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-input';
-import { ConfigureAudioOutputProvider } from '@/app/pages/assistant/actions/create-deployment/commons/configure-audio-output';
 import toast from 'react-hot-toast/headless';
 import { Helmet } from '@/app/components/helmet';
 import { GetCartesiaDefaultOptions } from '@/app/components/providers/text-to-speech/cartesia';
@@ -35,12 +32,42 @@ import {
   GetDefaultSpeakerConfig,
   ValidateTextToSpeechIfInvalid,
 } from '@/app/components/providers/text-to-speech/provider';
-import { PageActionButtonBlock } from '@/app/components/blocks/page-action-button-block';
 import { connectionConfig } from '@/configs';
 import {
   TelephonyProvider,
   ValidateTelephonyOptions,
 } from '@/app/components/providers/telephony';
+import { TabForm } from '@/app/components/form/tab-form';
+import {
+  IBlueBGArrowButton,
+  ICancelButton,
+} from '@/app/components/form/button';
+
+const STEPS = [
+  {
+    code: 'telephony',
+    name: 'Telephony',
+    description:
+      'Select and configure your telephony provider for inbound and outbound calls.',
+  },
+  {
+    code: 'experience',
+    name: 'General Experience',
+    description: 'Define how the assistant greets users and handles sessions.',
+  },
+  {
+    code: 'voice-input',
+    name: 'Voice Input',
+    description:
+      'Configure the speech-to-text provider for capturing caller audio.',
+  },
+  {
+    code: 'voice-output',
+    name: 'Voice Output',
+    description: 'Configure the text-to-speech provider for audio responses.',
+  },
+];
+
 export function ConfigureAssistantCallDeploymentPage() {
   const { assistantId } = useParams();
   return (
@@ -52,25 +79,17 @@ export function ConfigureAssistantCallDeploymentPage() {
     </>
   );
 }
-/**
- * Configure assistant web deployment
- * this provide a list of web deployment configuration
- * @param param0
- * @returns
- */
+
 const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
   const { goToDeploymentAssistant } = useGlobalNavigation();
   const { loading, showLoader, hideLoader } = useRapidaStore();
   const { authId, projectId, token } = useCurrentCredential();
+
+  const [activeTab, setActiveTab] = useState('telephony');
   const [errorMessage, setErrorMessage] = useState('');
 
-  /**
-   * enable for voice
-   */
-  const [voiceInputEnable, setVoiceInputEnable] = useState(true);
-  const [voiceOutputEnable, setVoiceOutputEnable] = useState(true);
   const [experienceConfig, setExperienceConfig] = useState<ExperienceConfig>({
     greeting: undefined,
     messageOnError: undefined,
@@ -88,9 +107,6 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
     parameters: [],
   });
 
-  /**
-   * audio input
-   */
   const [audioInputConfig, setAudioInputConfig] = useState<{
     provider: string;
     parameters: Metadata[];
@@ -102,9 +118,6 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
     ),
   });
 
-  /**
-   * audio output
-   */
   const [audioOutputConfig, setAudioOutputConfig] = useState<{
     provider: string;
     parameters: Metadata[];
@@ -113,18 +126,6 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
     parameters: GetCartesiaDefaultOptions(GetDefaultSpeakerConfig()),
   });
 
-  const onChangTelephonyProvider = (providerName: string) => {
-    setTelephonyConfig({
-      provider: providerName,
-      parameters: [],
-    });
-  };
-
-  const onChangeTelephonyParameter = (parameters: Metadata[]) => {
-    if (telephonyConfig) setTelephonyConfig({ ...telephonyConfig, parameters });
-  };
-
-  // Fetch existing deployment on component mount
   useEffect(() => {
     showLoader('block');
     const request = new GetAssistantDeploymentRequest();
@@ -135,115 +136,122 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       ConnectionConfig.WithDebugger({
         authorization: token,
         userId: authId,
-        projectId: projectId,
+        projectId,
       }),
     )
       .then(response => {
         hideLoader();
-        if (response && response.getData()) {
-          const deployment = response.getData();
+        const deployment = response?.getData();
+        if (!deployment) return;
 
-          //
-          console.dir(deployment?.toObject());
-          if (deployment) {
-            setExperienceConfig({
-              greeting: deployment?.getGreeting(),
-              messageOnError: deployment?.getMistake(),
-              idealTimeout: deployment?.getIdealtimeout(),
-              idealMessage: deployment?.getIdealtimeoutmessage(),
-              maxCallDuration: deployment?.getMaxsessionduration(),
-              idleTimeoutBackoffTimes: deployment?.getIdealtimeoutbackoff(),
-            });
-          }
+        setExperienceConfig({
+          greeting: deployment.getGreeting(),
+          messageOnError: deployment.getMistake(),
+          idealTimeout: deployment.getIdealtimeout(),
+          idealMessage: deployment.getIdealtimeoutmessage(),
+          maxCallDuration: deployment.getMaxsessionduration(),
+          idleTimeoutBackoffTimes: deployment.getIdealtimeoutbackoff(),
+        });
 
-          // Audio providers configuration
+        if (deployment.getPhoneprovidername()) {
+          setTelephonyConfig({
+            provider: deployment.getPhoneprovidername() || '',
+            parameters: deployment.getPhoneoptionsList() || [],
+          });
+        }
 
-          if (deployment && deployment.getPhoneprovidername()) {
-            setTelephonyConfig({
-              provider: deployment?.getPhoneprovidername() || '',
-              parameters: deployment?.getPhoneoptionsList() || [],
-            });
-          }
+        if (deployment.getInputaudio()) {
+          const provider = deployment.getInputaudio()!;
+          setAudioInputConfig({
+            provider: provider.getAudioprovider() || '',
+            parameters: provider.getAudiooptionsList() || [],
+          });
+        }
 
-          if (deployment && deployment.getInputaudio()) {
-            const provider = deployment.getInputaudio();
-            setVoiceInputEnable(true);
-            setAudioInputConfig({
-              provider: provider?.getAudioprovider() || '',
-              parameters: provider?.getAudiooptionsList() || [],
-            });
-          }
-
-          if (deployment && deployment.getOutputaudio()) {
-            const provider = deployment?.getOutputaudio();
-            setVoiceOutputEnable(true);
-            setAudioOutputConfig({
-              provider: provider?.getAudioprovider() || '',
-              parameters: provider?.getAudiooptionsList() || [],
-            });
-          }
+        if (deployment.getOutputaudio()) {
+          const provider = deployment.getOutputaudio()!;
+          setAudioOutputConfig({
+            provider: provider.getAudioprovider() || '',
+            parameters: provider.getAudiooptionsList() || [],
+          });
         }
       })
       .catch(err => {
         hideLoader();
-        if (err) {
-          setErrorMessage(err.message || 'Failed to deploy api');
-          toast.error(
-            err.message ||
-              'Error while deploying assistant as phone call, please check and try again.',
-          );
-          return;
-        }
+        toast.error(
+          err?.message ||
+            'Error loading phone deployment configuration. Please try again.',
+        );
       });
-
-    //   afterGetAssistantPhoneDeployment,
-    //
   }, [assistantId, showLoader, token, authId, projectId]);
 
-  // Handle deployment update
-  const handleDeployPhone = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleTabChange = (code: string) => {
+    const clickedIndex = STEPS.findIndex(s => s.code === code);
+    const currentIndex = STEPS.findIndex(s => s.code === activeTab);
+    if (clickedIndex < currentIndex) {
+      setActiveTab(code);
+      setErrorMessage('');
+    }
+  };
 
-    //
+  const handleNext = () => {
+    setErrorMessage('');
+    const idx = STEPS.findIndex(s => s.code === activeTab);
+
+    if (activeTab === 'telephony') {
+      if (
+        !ValidateTelephonyOptions(
+          telephonyConfig.provider,
+          telephonyConfig.parameters,
+        )
+      ) {
+        setErrorMessage('Please provide a valid telephony configuration.');
+        return;
+      }
+    }
+
+    if (activeTab === 'voice-input') {
+      if (!audioInputConfig.provider) {
+        setErrorMessage('Please select a speech-to-text provider.');
+        return;
+      }
+      const err = ValidateSpeechToTextIfInvalid(
+        audioInputConfig.provider,
+        audioInputConfig.parameters,
+      );
+      if (err) {
+        setErrorMessage(err);
+        return;
+      }
+    }
+
+    if (idx < STEPS.length - 1) {
+      setActiveTab(STEPS[idx + 1].code);
+    }
+  };
+
+  const handleDeployPhone = () => {
     showLoader('block');
-    // setting error message to be empty when there is no data to submit
     setErrorMessage('');
 
-    if (telephonyConfig == null) {
+    if (
+      !ValidateTelephonyOptions(
+        telephonyConfig.provider,
+        telephonyConfig.parameters,
+      )
+    ) {
       hideLoader();
-      setErrorMessage(
-        'Please provide a valid telephony providers for phone call.',
-      );
-      return;
-    }
-
-    let error = ValidateTelephonyOptions(
-      telephonyConfig.provider,
-      telephonyConfig.parameters,
-    );
-    if (!error) {
-      hideLoader();
-      setErrorMessage(
-        'Please provide a valid telephony providers for phone call.',
-      );
-      return;
-    }
-
-    if (audioInputConfig == null) {
-      hideLoader();
-      setErrorMessage('Please provide a valid speech to text for phone voice');
+      setErrorMessage('Please provide a valid telephony configuration.');
       return;
     }
 
     if (!audioInputConfig.provider) {
       hideLoader();
-      setErrorMessage(
-        'Please provide a provider for interpreting input audio of user.',
-      );
+      setErrorMessage('Please provide a speech-to-text provider.');
       return;
     }
 
-    let sttError = ValidateSpeechToTextIfInvalid(
+    const sttError = ValidateSpeechToTextIfInvalid(
       audioInputConfig.provider,
       audioInputConfig.parameters,
     );
@@ -253,30 +261,19 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       return;
     }
 
-    if (audioOutputConfig == null) {
-      hideLoader();
-      setErrorMessage(
-        'Please provide a provider for interpreting output audio of user.',
-      );
-      return;
-    }
-
-    // audio input is set and working
     if (!audioOutputConfig.provider) {
       hideLoader();
-      setErrorMessage(
-        'Please provide a provider for interpreting output audio of user.',
-      );
+      setErrorMessage('Please provide a text-to-speech provider.');
       return;
     }
 
-    let ttsErr = ValidateTextToSpeechIfInvalid(
+    const ttsError = ValidateTextToSpeechIfInvalid(
       audioOutputConfig.provider,
       audioOutputConfig.parameters,
     );
-    if (ttsErr) {
+    if (ttsError) {
       hideLoader();
-      setErrorMessage(ttsErr);
+      setErrorMessage(ttsError);
       return;
     }
 
@@ -285,37 +282,31 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
     deployment.setAssistantid(assistantId);
     if (experienceConfig.greeting)
       deployment.setGreeting(experienceConfig.greeting);
-    if (experienceConfig?.messageOnError)
-      deployment.setMistake(experienceConfig?.messageOnError);
-    if (experienceConfig?.idealTimeout)
-      deployment.setIdealtimeout(experienceConfig?.idealTimeout);
-    if (experienceConfig?.idleTimeoutBackoffTimes)
+    if (experienceConfig.messageOnError)
+      deployment.setMistake(experienceConfig.messageOnError);
+    if (experienceConfig.idealTimeout)
+      deployment.setIdealtimeout(experienceConfig.idealTimeout);
+    if (experienceConfig.idleTimeoutBackoffTimes)
       deployment.setIdealtimeoutbackoff(
-        experienceConfig?.idleTimeoutBackoffTimes,
+        experienceConfig.idleTimeoutBackoffTimes,
       );
-    if (experienceConfig?.idealMessage)
-      deployment.setIdealtimeoutmessage(experienceConfig?.idealMessage);
-    if (experienceConfig?.maxCallDuration)
-      deployment.setMaxsessionduration(experienceConfig?.maxCallDuration);
+    if (experienceConfig.idealMessage)
+      deployment.setIdealtimeoutmessage(experienceConfig.idealMessage);
+    if (experienceConfig.maxCallDuration)
+      deployment.setMaxsessionduration(experienceConfig.maxCallDuration);
 
-    if (telephonyConfig) {
-      deployment.setPhoneoptionsList(telephonyConfig.parameters);
-      deployment.setPhoneprovidername(telephonyConfig.provider);
-    }
+    deployment.setPhoneprovidername(telephonyConfig.provider);
+    deployment.setPhoneoptionsList(telephonyConfig.parameters);
 
-    if (audioInputConfig) {
-      const inputAudioProvider = new DeploymentAudioProvider();
-      inputAudioProvider.setAudioprovider(audioInputConfig.provider);
-      inputAudioProvider.setAudiooptionsList(audioInputConfig.parameters);
-      deployment.setInputaudio(inputAudioProvider);
-    }
+    const inputAudio = new DeploymentAudioProvider();
+    inputAudio.setAudioprovider(audioInputConfig.provider);
+    inputAudio.setAudiooptionsList(audioInputConfig.parameters);
+    deployment.setInputaudio(inputAudio);
 
-    if (audioOutputConfig) {
-      const outputAudioProvider = new DeploymentAudioProvider();
-      outputAudioProvider.setAudioprovider(audioOutputConfig.provider);
-      outputAudioProvider.setAudiooptionsList(audioOutputConfig.parameters);
-      deployment.setOutputaudio(outputAudioProvider);
-    }
+    const outputAudio = new DeploymentAudioProvider();
+    outputAudio.setAudioprovider(audioOutputConfig.provider);
+    outputAudio.setAudiooptionsList(audioOutputConfig.parameters);
+    deployment.setOutputaudio(outputAudio);
 
     req.setPhone(deployment);
 
@@ -325,87 +316,166 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       ConnectionConfig.WithDebugger({
         authorization: token,
         userId: authId,
-        projectId: projectId,
+        projectId,
       }),
     )
       .then(response => {
         hideLoader();
         if (response?.getData() && response.getSuccess()) {
-          toast.success(
-            'Assistant deployment config for phone call has been updated successfully.',
-          );
+          toast.success('Phone call deployment updated successfully.');
           goToDeploymentAssistant(assistantId);
         } else {
-          let err =
+          toast.error(
             response?.getError()?.getHumanmessage() ||
-            'Unable to create deployment, please try again';
-          toast.error(err);
+              'Unable to create deployment, please try again.',
+          );
         }
       })
       .catch(err => {
         hideLoader();
-        if (err) {
-          setErrorMessage(err.message || 'Failed to deploy api');
-          toast.error(
-            err.message ||
-              'Error while deploying assistant as phone call, please check and try again.',
-          );
-          return;
-        }
+        setErrorMessage(
+          err?.message || 'Error deploying phone call. Please try again.',
+        );
       });
-
-    //  hideLoader();
   };
 
   return (
-    <form
-      onSubmit={handleDeployPhone}
-      method="POST"
-      className="relative flex flex-col flex-1 bg-white dark:bg-gray-900"
-    >
-      <div className="overflow-auto flex flex-col flex-1 pb-20">
-        <TelephonyProvider
-          provider={telephonyConfig.provider}
-          parameters={telephonyConfig.parameters}
-          onChangeProvider={onChangTelephonyProvider}
-          onChangeParameter={onChangeTelephonyParameter}
-        />
-        <ConfigureExperience
-          experienceConfig={experienceConfig}
-          setExperienceConfig={setExperienceConfig}
-        />
-
-        <ConfigureAudioInputProvider
-          voiceInputEnable={voiceInputEnable}
-          onChangeVoiceInputEnable={setVoiceInputEnable}
-          audioInputConfig={audioInputConfig}
-          setAudioInputConfig={setAudioInputConfig}
-        />
-        <ConfigureAudioOutputProvider
-          voiceOutputEnable={voiceOutputEnable}
-          onChangeVoiceOutputEnable={setVoiceOutputEnable}
-          audioOutputConfig={audioOutputConfig}
-          setAudioOutputConfig={setAudioOutputConfig}
-        />
+    <div className="flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-900">
+      {/* Page header */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 shrink-0 flex items-center gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Phone Call Deployment
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Configure inbound and outbound phone call handling.
+          </p>
+        </div>
       </div>
-      <PageActionButtonBlock errorMessage={errorMessage}>
-        <ICancelButton
-          className="px-4 rounded-[2px]"
-          onClick={() => {
-            goToDeploymentAssistant(assistantId);
-          }}
-        >
-          Cancel
-        </ICancelButton>
-        <IBlueBGArrowButton
-          type="submit"
-          className="px-4 rounded-[2px]"
-          isLoading={loading}
-          disabled={loading}
-        >
-          Deploy Phone
-        </IBlueBGArrowButton>
-      </PageActionButtonBlock>
-    </form>
+
+      <TabForm
+        formHeading="Complete all steps to configure your phone call deployment."
+        activeTab={activeTab}
+        onChangeActiveTab={handleTabChange}
+        errorMessage={errorMessage}
+        form={[
+          {
+            code: 'telephony',
+            name: 'Telephony',
+            description:
+              'Select and configure your telephony provider for inbound and outbound calls.',
+            body: (
+              <TelephonyProvider
+                provider={telephonyConfig.provider}
+                parameters={telephonyConfig.parameters}
+                onChangeProvider={provider =>
+                  setTelephonyConfig({ provider, parameters: [] })
+                }
+                onChangeParameter={parameters =>
+                  setTelephonyConfig(c => ({ ...c, parameters }))
+                }
+              />
+            ),
+            actions: [
+              <ICancelButton
+                className="w-full h-full"
+                onClick={() => goToDeploymentAssistant(assistantId)}
+              >
+                Cancel
+              </ICancelButton>,
+              <IBlueBGArrowButton
+                type="button"
+                className="w-full h-full"
+                onClick={handleNext}
+              >
+                Next
+              </IBlueBGArrowButton>,
+            ],
+          },
+          {
+            code: 'experience',
+            name: 'General Experience',
+            description:
+              'Define how the assistant greets users and handles sessions.',
+            body: (
+              <ConfigureExperience
+                experienceConfig={experienceConfig}
+                setExperienceConfig={setExperienceConfig}
+              />
+            ),
+            actions: [
+              <ICancelButton
+                className="w-full h-full"
+                onClick={() => goToDeploymentAssistant(assistantId)}
+              >
+                Cancel
+              </ICancelButton>,
+              <IBlueBGArrowButton
+                type="button"
+                className="w-full h-full"
+                onClick={handleNext}
+              >
+                Next
+              </IBlueBGArrowButton>,
+            ],
+          },
+          {
+            code: 'voice-input',
+            name: 'Voice Input',
+            description:
+              'Configure the speech-to-text provider for capturing caller audio.',
+            body: (
+              <ConfigureAudioInputProvider
+                audioInputConfig={audioInputConfig}
+                setAudioInputConfig={setAudioInputConfig}
+              />
+            ),
+            actions: [
+              <ICancelButton
+                className="w-full h-full"
+                onClick={() => goToDeploymentAssistant(assistantId)}
+              >
+                Cancel
+              </ICancelButton>,
+              <IBlueBGArrowButton
+                type="button"
+                className="w-full h-full"
+                onClick={handleNext}
+              >
+                Next
+              </IBlueBGArrowButton>,
+            ],
+          },
+          {
+            code: 'voice-output',
+            name: 'Voice Output',
+            description:
+              'Configure the text-to-speech provider for audio responses.',
+            body: (
+              <ConfigureAudioOutputProvider
+                audioOutputConfig={audioOutputConfig}
+                setAudioOutputConfig={setAudioOutputConfig}
+              />
+            ),
+            actions: [
+              <ICancelButton
+                className="w-full h-full"
+                onClick={() => goToDeploymentAssistant(assistantId)}
+              >
+                Cancel
+              </ICancelButton>,
+              <IBlueBGArrowButton
+                type="button"
+                className="w-full h-full"
+                isLoading={loading}
+                onClick={handleDeployPhone}
+              >
+                Deploy Phone
+              </IBlueBGArrowButton>,
+            ],
+          },
+        ]}
+      />
+    </div>
   );
 };

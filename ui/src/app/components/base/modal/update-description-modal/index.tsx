@@ -4,14 +4,10 @@ import { GenericModal, ModalProps } from '@/app/components/base/modal';
 import { useRapidaStore } from '@/hooks';
 import React, { useEffect, useState } from 'react';
 import { FieldSet } from '@/app/components/form/fieldset';
-import { Tooltip } from '@/app/components/tooltip';
 import { Input } from '@/app/components/form/input';
-import { cn } from '@/utils';
-import { InfoIcon } from '@/app/components/Icon/Info';
 import { FormLabel } from '@/app/components/form-label';
 import { ModalBody } from '@/app/components/base/modal/modal-body';
 import { ModalFooter } from '@/app/components/base/modal/modal-footer';
-import { MoveRight } from 'lucide-react';
 import { ModalHeader } from '@/app/components/base/modal/modal-header';
 import { ModalFitHeightBlock } from '@/app/components/blocks/modal-fit-height-block';
 import { ModalTitleBlock } from '@/app/components/blocks/modal-title-block';
@@ -58,75 +54,45 @@ export function UpdateDescriptionDialog(props: UpdateDescriptionDialogProps) {
 
   return (
     <GenericModal modalOpen={props.modalOpen} setModalOpen={props.setModalOpen}>
-      <ModalFitHeightBlock>
-        <ModalHeader
-          onClose={() => {
-            props.setModalOpen(false);
-          }}
-        >
+      <ModalFitHeightBlock className="w-[592px]">
+        <ModalHeader onClose={() => props.setModalOpen(false)}>
           <ModalTitleBlock>{props.title}</ModalTitleBlock>
         </ModalHeader>
+
         <ModalBody>
           <FieldSet>
-            <FormLabel>
-              Name
-              <Tooltip icon={<InfoIcon className="w-4 h-4 ml-1" />}>
-                <p className={cn('font-normal text-sm p-1 w-64')}>
-                  Give a name that you can use to identify later.
-                </p>
-              </Tooltip>
-            </FormLabel>
+            <FormLabel>Name</FormLabel>
             <Input
               name="usecase"
-              onChange={e => {
-                setName(e.target.value);
-              }}
               value={name}
-              className="form-input"
-              placeholder="eg: your emotion detector"
-            ></Input>
+              placeholder="e.g. emotion detector"
+              onChange={e => setName(e.target.value)}
+            />
           </FieldSet>
 
           <FieldSet>
-            <FormLabel>
-              Description
-              <Tooltip
-                icon={
-                  <InfoIcon className="w-4 h-4 mt-[2px] ml-0.5 dark:text-gray-400" />
-                }
-              >
-                <p className={cn('font-normal text-sm p-1 w-64')}>
-                  Add a readable description and how to use it.
-                </p>
-              </Tooltip>
-            </FormLabel>
+            <FormLabel>Description</FormLabel>
             <Textarea
               rows={4}
               value={description}
-              placeholder={`Provider a readable description and how to use it.`}
-              onChange={v => {
-                setDescription(v.target.value);
-              }}
+              placeholder="Provide a readable description and how to use it."
+              onChange={v => setDescription(v.target.value)}
             />
           </FieldSet>
+
           <ErrorMessage message={error} />
         </ModalBody>
+
         <ModalFooter>
-          <ICancelButton
-            className="px-4 rounded-[2px]"
-            onClick={() => {
-              props.setModalOpen(false);
-            }}
-          >
+          <ICancelButton onClick={() => props.setModalOpen(false)}>
             Cancel
           </ICancelButton>
           <IBlueBGButton
-            className="px-4 rounded-[2px]"
             type="button"
             onClick={onUpdateDescription}
+            isLoading={rapidaStore.loading}
           >
-            Update details
-            <MoveRight className="ml-2" strokeWidth={1.5} />
+            Save changes
           </IBlueBGButton>
         </ModalFooter>
       </ModalFitHeightBlock>

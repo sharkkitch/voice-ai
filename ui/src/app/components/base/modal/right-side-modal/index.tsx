@@ -73,7 +73,7 @@ export const RightSideModal: FC<SideModalProps> = ({
             }}
             className={cn(
               className,
-              'absolute right-0 top-0 h-full min-w-[45vw] overflow-hidden bg-white dark:bg-gray-900',
+              'absolute right-0 top-0 h-full min-w-80 overflow-hidden bg-white dark:bg-gray-900',
             )}
             style={{ x }}
             drag="x"
@@ -98,7 +98,7 @@ export const RightSideModal: FC<SideModalProps> = ({
                 onPointerDown={e => {
                   controls.start(e);
                 }}
-                className="h-1/2 my-auto w-2 cursor-grab touch-none rounded-[2px] bg-gray-300 dark:bg-slate-700 hover:bg-blue-600 active:cursor-grabbing"
+                className="h-1/2 my-auto w-2 cursor-grab touch-none rounded-[2px] bg-gray-300 dark:bg-slate-700 hover:bg-primary active:cursor-grabbing"
               ></button>
             </div>
             <div className="relative z-0 h-full overflow-auto flex flex-col">

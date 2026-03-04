@@ -111,21 +111,19 @@ export function ListingPage() {
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
           <PageTitleBlock>Tool Logs</PageTitleBlock>
-          <div className="text-xs opacity-75">
+          <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
             {`${activities.length}/${totalCount}`}
-          </div>
+          </span>
         </div>
       </PageHeaderBlock>
 
-      <BluredWrapper className="p-0">
-        <div className="flex justify-center items-center">
-          <SearchIconInput className="bg-light-background" />
-          <Datepicker
-            align="right"
-            className="bg-light-background"
-            onDateSelect={onDateSelect}
-          />
-        </div>
+      <BluredWrapper className="sticky top-0 z-11">
+        <SearchIconInput className="bg-light-background flex-1" />
+        <Datepicker
+          align="right"
+          className="bg-light-background"
+          onDateSelect={onDateSelect}
+        />
         <PaginationButtonBlock>
           <TablePagination
             columns={columns}
@@ -189,7 +187,7 @@ export function ListingPage() {
                 )}
 
                 <TableCell>
-                  <div className="divide-x dark:divide-gray-800 flex border w-fit">
+                  <div className="flex border border-gray-200 dark:border-gray-800 w-fit">
                     <IButton
                       className="rounded-none"
                       onClick={event => {
@@ -209,8 +207,9 @@ export function ListingPage() {
                         <Eye strokeWidth={1.5} className="h-4 w-4" />
                       </TooltipPlus>
                     </IButton>
+                    <span className="w-px self-stretch bg-gray-200 dark:bg-gray-800 shrink-0" />
                     <ILinkBorderButton
-                      className="rounded-none"
+                      className="rounded-none border-0"
                       href={`/deployment/assistant/${at.getAssistantid()}/sessions/${at.getAssistantconversationid()}`}
                     >
                       <TooltipPlus

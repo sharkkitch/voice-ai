@@ -35,46 +35,32 @@ import { CreateEndpoint } from '@rapidaai/react';
 import { ServiceError } from '@rapidaai/react';
 import { ChatCompletePrompt } from '@/utils/prompt';
 import { connectionConfig } from '@/configs';
-import {
-  BlueNoticeBlock,
-  YellowNoticeBlock,
-} from '@/app/components/container/message/notice-block';
+import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
+import { InputHelper } from '@/app/components/input-helper';
 import { ArrowUpRight, ExternalLink, Info } from 'lucide-react';
 import { ConfigureEndpointPromptDialog } from '@/app/components/base/modal/configure-endpoint-prompt-modal/index';
+import { CornerBorderOverlay } from '@/app/components/base/corner-border';
 
-/**
- *
- * @param props
- * @returns
- */
+/** Section divider used between IBM form sections */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
+
 export function CreateEndpointPage() {
-  /**
-   * authentication
-   */
   const { authId, token, projectId } = useCurrentCredential();
 
-  /**
-   * multistep form
-   */
   const [activeTab, setActiveTab] = useState('choose-model');
-
-  /**
-   * error
-   */
   const [errorMessage, setErrorMessage] = useState('');
-
-  /**
-   * global loader
-   */
   const { loading, showLoader, hideLoader } = useRapidaStore();
-
-  /**
-   * global navigator
-   */
   const navigator = useNavigate();
-  /**
-   * form element
-   */
+
   const [name, setName] = useState<string>(randomMeaningfullName('endpoint'));
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -115,9 +101,7 @@ export function CreateEndpointPage() {
   const onRemoveTag = (tagToRemove: string) => {
     setTags(prevTags => prevTags.filter(tag => tag !== tagToRemove));
   };
-  /**
-   *
-   */
+
   const afterCreateEndpoint = useCallback(
     (err: ServiceError | null, response: CreateEndpointResponse | null) => {
       hideLoader();
@@ -145,9 +129,6 @@ export function CreateEndpointPage() {
     },
     [],
   );
-  /**
-   *
-   */
 
   const onvalidateEndpointInstruction = () => {
     const err = ValidateTextProviderDefaultOptions(
@@ -166,7 +147,6 @@ export function CreateEndpointPage() {
       return;
     }
 
-    // Check if the content is not empty
     const hasNonEmptyContent = promptConfig.prompt.some(
       item => item.content.trim() !== '',
     );
@@ -175,7 +155,6 @@ export function CreateEndpointPage() {
       return;
     }
 
-    // If all validations pass, proceed to the next tab
     setErrorMessage('');
     setActiveTab('define-endpoint');
   };
@@ -195,7 +174,6 @@ export function CreateEndpointPage() {
     endpointProviderModelAttr.setEndpointmodeloptionsList(
       textProviderModel.parameters,
     );
-
     endpointProviderModelAttr.setChatcompleteprompt(
       ChatCompletePrompt(promptConfig),
     );
@@ -232,17 +210,14 @@ export function CreateEndpointPage() {
     parameters: { temperature: number; response_format: string };
     instruction: { role: string; content: string }[];
   }) => {
-    // Set the name and description
     setName(template.name);
     setDescription(template.description);
 
-    // Set prompt config from template instruction
     const promptMessages = template.instruction.map(inst => ({
       role: inst.role,
       content: inst.content,
     }));
 
-    // Extract variables from the template content (look for {{ variable }} patterns)
     const variableRegex = /\{\{\s*(\w+)(?:\[.*?\])?\s*\}\}/g;
     const variables: { name: string; type: string; defaultvalue: string }[] =
       [];
@@ -271,13 +246,11 @@ export function CreateEndpointPage() {
           : [{ name: 'messages', type: 'string', defaultvalue: '' }],
     });
 
-    // Get default parameters for the template provider
     const newParams = GetDefaultTextProviderConfigIfInvalid(
       template.provider,
       [],
     );
 
-    // Helper function to set or create a parameter
     const setOrCreateParam = (key: string, value: string) => {
       const existingParam = newParams.find(p => p.getKey() === key);
       if (existingParam) {
@@ -290,27 +263,19 @@ export function CreateEndpointPage() {
       }
     };
 
-    // Update temperature
     setOrCreateParam(
       'model.temperature',
       String(template.parameters.temperature),
     );
-
-    // Update response_format
     if (template.parameters.response_format) {
       setOrCreateParam(
         'model.response_format',
         template.parameters.response_format,
       );
     }
-
-    // Update model name
     setOrCreateParam('model.name', template.model);
-
-    // Update model id
     setOrCreateParam('model.id', `${template.provider}/${template.model}`);
 
-    // Set the provider and parameters
     setTextProviderModel({
       provider: template.provider,
       parameters: newParams,
@@ -319,7 +284,7 @@ export function CreateEndpointPage() {
 
   return (
     <>
-      <Helmet title="Create an Endpoint"></Helmet>
+      <Helmet title="Create an Endpoint" />
       <ConfigureEndpointPromptDialog
         modalOpen={isConfigureEndpointPromptOpen}
         setModalOpen={setIsConfigureEndpointPromptOpen}
@@ -328,93 +293,78 @@ export function CreateEndpointPage() {
       <ConfirmDialog
         showing={isShow}
         type="warning"
-        title={'Are you sure?'}
-        content={
-          'You want to cancel creating this endpoint? Any unsaved changes will be lost.'
-        }
-        confirmText={'Confirm'}
+        title="Are you sure?"
+        content="You want to cancel creating this endpoint? Any unsaved changes will be lost."
+        confirmText="Confirm"
         cancelText="Cancel"
-        onConfirm={() => {
-          navigator(-1);
-        }}
-        onCancel={() => {
-          setIsShow(false);
-        }}
-        onClose={() => {
-          setIsShow(false);
-        }}
+        onConfirm={() => navigator(-1)}
+        onCancel={() => setIsShow(false)}
+        onClose={() => setIsShow(false)}
       />
 
       <TabForm
-        formHeading="Complete all steps to create new endpoint"
+        formHeading="Complete all steps to create a new endpoint."
         activeTab={activeTab}
         onChangeActiveTab={() => {}}
         errorMessage={errorMessage}
         form={[
           {
             name: 'Choose Model',
-            description: 'The model you want to use for your endpoint.',
+            description: 'Select the LLM provider and configure your prompt template.',
             code: 'choose-model',
             body: (
-              <>
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
-                  <div className="ms-3 text-sm font-medium">
-                    Endpoints allow you to integrate Large Language Models
-                    (LLMs) into your application, providing a powerful interface
-                    for AI-driven functionalities.
-                  </div>
-                  <a
-                    target="_blank"
-                    href="https://doc.rapida.ai/endpoint/overview"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
-                    rel="noreferrer"
+              <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Carbon Clickable Tile — Usecase Template slot */}
+                  <button
+                    type="button"
+                    className="group relative w-full flex items-start justify-between gap-4 p-4 text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-100"
+                    onClick={() => setIsConfigureEndpointPromptOpen(true)}
                   >
-                    Read documentation
-                    <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
-                      strokeWidth={1.5}
-                    />
-                  </a>
-                </YellowNoticeBlock>
-                <div className="space-y-6 px-8 pb-8 max-w-4xl ">
-                  <BlueNoticeBlock
-                    className="p-4 px-6 rounded-md cursor-pointer border"
-                    onClick={() => {
-                      setIsConfigureEndpointPromptOpen(true);
-                    }}
-                  >
-                    <h2 className="mb-1 text-[15px] font-semibold text-blue-600">
-                      Quick Start with Usecase Template
-                    </h2>
-                    <div className="flex justify-between space-x-2">
-                      <p className="text-sm">
-                        Choose from pre-configured templates Click to browse
-                        available usecases and auto-fill your form
-                      </p>
-                      <ArrowUpRight
-                        className="text-blue-600 shrink-0"
-                        strokeWidth={1.5}
-                      />
+                    {/* Corner accent brackets */}
+                    <CornerBorderOverlay />
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400">
+                        Quick start
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Usecase Template
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-500 leading-relaxed">
+                        Browse pre-configured templates and auto-fill your form.
+                      </span>
                     </div>
-                  </BlueNoticeBlock>
-                  <TextProvider
-                    onChangeProvider={onChangeTextProvider}
-                    onChangeParameter={onChangeTextProviderParameter}
-                    parameters={textProviderModel.parameters}
-                    provider={textProviderModel.provider}
-                  />
-                  <ConfigPrompt
-                    instanceId={randomString(10)}
-                    existingPrompt={promptConfig}
-                    onChange={prompt => setPromptConfig(prompt)}
-                  />
+                    <ArrowUpRight
+                      className="shrink-0 mt-0.5 text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors"
+                      strokeWidth={1.5}
+                      size={16}
+                    />
+                  </button>
+
+                  {/* Model configuration section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Model Configuration" />
+                    <TextProvider
+                      onChangeProvider={onChangeTextProvider}
+                      onChangeParameter={onChangeTextProviderParameter}
+                      parameters={textProviderModel.parameters}
+                      provider={textProviderModel.provider}
+                    />
+                  </div>
+
+                  {/* Prompt template section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Prompt Template" />
+                    <ConfigPrompt
+                      instanceId={randomString(10)}
+                      existingPrompt={promptConfig}
+                      onChange={prompt => setPromptConfig(prompt)}
+                    />
+                  </div>
                 </div>
-              </>
             ),
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => setIsShow(true)}
               >
                 Cancel
@@ -422,7 +372,7 @@ export function CreateEndpointPage() {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={onvalidateEndpointInstruction}
               >
                 Configure instruction
@@ -433,55 +383,102 @@ export function CreateEndpointPage() {
             code: 'define-endpoint',
             name: 'Define Endpoint Profile',
             description:
-              'Provide the name, a brief description, and relevant tags.',
+              'Give your endpoint a name, description, and labels to make it easy to find and manage.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => setIsShow(true)}
               >
                 Cancel
               </ICancelButton>,
               <IBlueBGArrowButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 type="button"
                 isLoading={loading}
-                onClick={() => {
-                  createEndpoint();
-                }}
+                onClick={createEndpoint}
               >
                 Create endpoint
               </IBlueBGArrowButton>,
             ],
             body: (
-              <div className="space-y-6 px-8 py-8 max-w-4xl">
-                <FieldSet>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    name="name"
-                    onChange={e => {
-                      setName(e.target.value);
-                    }}
-                    value={name}
-                    className="form-input"
-                    placeholder="Enter a name"
-                  ></Input>
-                </FieldSet>
-                <FieldSet>
-                  <FormLabel>Description</FormLabel>
-                  <Textarea
-                    row={5}
-                    name="description"
-                    value={description}
-                    placeholder={"What's the purpose of the endpoint?"}
-                    onChange={t => setDescription(t.target.value)}
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                {/* Identity section */}
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Identity" />
+
+                  <FieldSet>
+                    <div className="flex items-baseline justify-between">
+                      <FormLabel
+                        htmlFor="name"
+                        className="text-xs tracking-wide uppercase"
+                      >
+                        Endpoint name{' '}
+                        <span className="text-red-500 ml-0.5 normal-case">
+                          *
+                        </span>
+                      </FormLabel>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+                        {name.length}/100
+                      </span>
+                    </div>
+                    <Input
+                      name="name"
+                      maxLength={100}
+                      onChange={e => setName(e.target.value)}
+                      value={name}
+                      placeholder="e.g. customer-support-v1"
+                    />
+                    <InputHelper>
+                      A unique identifier for this endpoint. Use lowercase
+                      letters, numbers, and hyphens.
+                    </InputHelper>
+                  </FieldSet>
+
+                  <FieldSet>
+                    <FormLabel
+                      htmlFor="description"
+                      className="text-xs tracking-wide uppercase"
+                    >
+                      Description
+                    </FormLabel>
+                    <Textarea
+                      row={4}
+                      name="description"
+                      value={description}
+                      placeholder="What does this endpoint do? When should it be used?"
+                      onChange={t => setDescription(t.target.value)}
+                    />
+                    <InputHelper>
+                      A clear description helps your team understand the purpose
+                      of this endpoint.
+                    </InputHelper>
+                  </FieldSet>
+                </div>
+
+                {/* Labels section */}
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      Labels
+                    </span>
+                    <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                    {tags.length > 0 && (
+                      <span className="text-xs tabular-nums bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                        {tags.length}
+                      </span>
+                    )}
+                  </div>
+                  <TagInput
+                    tags={tags}
+                    addTag={onAddTag}
+                    removeTag={onRemoveTag}
+                    allTags={EndpointTag}
                   />
-                </FieldSet>
-                <TagInput
-                  tags={tags}
-                  addTag={onAddTag}
-                  removeTag={onRemoveTag}
-                  allTags={EndpointTag}
-                />
+                  <InputHelper>
+                    Tags help you organize and filter endpoints across your
+                    workspace.
+                  </InputHelper>
+                </div>
               </div>
             ),
           },

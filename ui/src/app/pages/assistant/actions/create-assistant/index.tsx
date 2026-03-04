@@ -32,8 +32,14 @@ import {
   ValidateTextProviderDefaultOptions,
 } from '@/app/components/providers/text';
 import { BuildinToolConfig } from '@/app/components/tools';
-import { Card, CardDescription, CardTitle } from '@/app/components/base/cards';
+import {
+  BaseCard,
+  CardDescription,
+  CardTitle,
+} from '@/app/components/base/cards';
 import { ExternalLink, Info, Plus, SquareFunction } from 'lucide-react';
+import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
+import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { ActionableEmptyMessage } from '@/app/components/container/message/actionable-empty-message';
 import { ConfigureAssistantToolDialog } from '@/app/components/base/modal/assistant-configure-tool-modal';
 import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
@@ -46,6 +52,18 @@ import { ChatCompletePrompt } from '@/utils/prompt';
 import toast from 'react-hot-toast/headless';
 import { InputHelper } from '@/app/components/input-helper';
 import { ConfigureAssistantNextDialog } from '@/app/components/base/modal/assistant-configure-next-modal';
+
+/** Section divider — matches the one in create-endpoint */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+    </div>
+  );
+}
 
 /**
  *
@@ -319,38 +337,41 @@ export function CreateAssistantPage() {
         }}
       />
       <TabForm
-        formHeading="Complete all steps to create new assistant"
+        formHeading="Complete all steps to create a new assistant."
         activeTab={activeTab}
         onChangeActiveTab={() => {}}
         errorMessage={errorMessage}
         form={[
           {
             name: 'Configuration',
-            description: 'Select the llm you want to use for your assistant.',
+            description:
+              'Select the LLM provider and configure your prompt template.',
             code: 'choose-model',
             body: (
-              <div className="">
-                <YellowNoticeBlock className="flex items-center">
-                  <Info className="shrink-0 w-4 h-4" />
-                  <div className="ms-3 text-sm font-medium">
+              <>
+                <YellowNoticeBlock className="flex items-center gap-3 px-8 py-3">
+                  <Info className="shrink-0 w-4 h-4" strokeWidth={1.5} />
+                  <p className="text-sm flex-1">
                     Rapida Assistant enables you to deploy intelligent
                     conversational agents across multiple channels.
-                  </div>
+                  </p>
                   <a
                     target="_blank"
                     href="https://doc.rapida.ai/assistants/overview"
-                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    className="ml-auto flex items-center gap-1.5 text-sm font-medium text-yellow-700 hover:underline whitespace-nowrap"
                     rel="noreferrer"
                   >
-                    Read documentation
+                    Read docs
                     <ExternalLink
-                      className="shrink-0 w-4 h-4 ml-1.5"
+                      className="shrink-0 w-3.5 h-3.5"
                       strokeWidth={1.5}
                     />
                   </a>
                 </YellowNoticeBlock>
-                <div className="space-y-6 px-8 py-8 max-w-4xl">
-                  <div className="space-y-6">
+                <div className="px-8 pt-6 pb-8 max-w-4xl flex flex-col gap-8">
+                  {/* Model configuration section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Model Configuration" />
                     <TextProvider
                       onChangeParameter={onChangeParameter}
                       onChangeProvider={onChangeProvider}
@@ -358,17 +379,22 @@ export function CreateAssistantPage() {
                       provider={selectedModel.provider}
                     />
                   </div>
-                  <ConfigPrompt
-                    instanceId={randomString(10)}
-                    existingPrompt={template}
-                    onChange={prompt => setTemplate(prompt)}
-                  />
+
+                  {/* Prompt template section */}
+                  <div className="flex flex-col gap-6">
+                    <SectionDivider label="Prompt Template" />
+                    <ConfigPrompt
+                      instanceId={randomString(10)}
+                      existingPrompt={template}
+                      onChange={prompt => setTemplate(prompt)}
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             ),
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(goBack)}
               >
                 Cancel
@@ -376,7 +402,7 @@ export function CreateAssistantPage() {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => {
                   if (validateInstruction()) setActiveTab('tools');
                 }}
@@ -389,10 +415,10 @@ export function CreateAssistantPage() {
             code: 'tools',
             name: 'Tools (optional)',
             description:
-              'Let your assistant work with given differnt tools on behalf of you',
+              'Let your assistant work with different tools on behalf of you.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(goBack)}
               >
                 Cancel
@@ -400,6 +426,7 @@ export function CreateAssistantPage() {
               <IBlueBGArrowButton
                 type="button"
                 isLoading={loading}
+                className="w-full h-full"
                 onClick={() => {
                   if (tools.length === 0) {
                     setTools([]);
@@ -409,16 +436,15 @@ export function CreateAssistantPage() {
                   }
                   if (validateTool()) setActiveTab('define-assistant');
                 }}
-                className="px-4 rounded-[2px]"
               >
                 {tools.length === 0 ? 'Skip for now' : 'Continue'}
               </IBlueBGArrowButton>,
             ],
             body: (
-              <div className="flex grow flex-col">
-                <div className="flex items-center justify-between pl-4 bg-white dark:bg-gray-900 border-b">
-                  Tool and MCPs
-                  <div className="flex divide-x">
+              <div className="relative flex flex-col flex-1">
+                <PageHeaderBlock>
+                  <PageTitleBlock>Tools and MCPs</PageTitleBlock>
+                  <div className="flex items-stretch border-l border-gray-200 dark:border-gray-800">
                     <IBlueButton
                       onClick={() => {
                         setConfigureToolOpen(true);
@@ -428,7 +454,7 @@ export function CreateAssistantPage() {
                       <Plus className="w-4 h-4 ml-1.5" />
                     </IBlueButton>
                   </div>
-                </div>
+                </PageHeaderBlock>
                 <YellowNoticeBlock className="flex items-center">
                   <Info className="shrink-0 w-4 h-4" />
                   <div className="ms-3 text-sm font-medium">
@@ -436,69 +462,83 @@ export function CreateAssistantPage() {
                     it to perform actions like fetching real-time data,
                     processing complex tasks, and more.
                   </div>
-                </YellowNoticeBlock>
-                {tools.length > 0 ? (
-                  <div className="overflow-y-auto grid-cols-2 md:grid-cols-4 grid gap-2 px-4 py-2">
-                    {tools.map((itm, idx) => {
-                      const isMCP = itm.buildinToolConfig.code === 'mcp';
-
-                      return (
-                        <Card key={idx}>
-                          <header className="flex justify-between items-start">
-                            <div className="flex items-center gap-2">
-                              <SquareFunction
-                                className="w-7 h-7"
-                                strokeWidth={1.5}
-                              />
-                              {isMCP && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium">
-                                  MCP
-                                </span>
-                              )}
-                            </div>
-                            <CardOptionMenu
-                              options={[
-                                {
-                                  option: (
-                                    <span className="text-red-600">
-                                      Delete tool
-                                    </span>
-                                  ),
-                                  onActionClick: () => {
-                                    setTools(prevTools =>
-                                      prevTools.filter(tool => tool !== itm),
-                                    );
-                                  },
-                                },
-                                {
-                                  option: 'Edit tool',
-                                  onActionClick: () => {
-                                    setEditingTool(itm);
-                                    setConfigureToolOpen(true);
-                                  },
-                                },
-                              ]}
-                              classNames="h-8 w-8 p-1 opacity-60"
-                            />
-                          </header>
-                          <div className="flex-1 mt-3">
-                            <CardTitle>{itm.name}</CardTitle>
-                            <CardDescription>{itm.description}</CardDescription>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="justify-self-center justify-center items-center mx-auto my-auto w-full">
-                    <ActionableEmptyMessage
-                      title="No Tools"
-                      subtitle="There are no tools given added to the assistant"
-                      action="Add a tool"
-                      onActionClick={() => setConfigureToolOpen(true)}
+                  <a
+                    target="_blank"
+                    href="https://doc.rapida.ai/assistants/tools/"
+                    className="h-7 flex items-center font-medium hover:underline ml-auto text-yellow-600"
+                    rel="noreferrer"
+                  >
+                    Read documentation
+                    <ExternalLink
+                      className="shrink-0 w-4 h-4 ml-1.5"
+                      strokeWidth={1.5}
                     />
-                  </div>
-                )}
+                  </a>
+                </YellowNoticeBlock>
+                <div className="overflow-auto flex flex-col flex-1">
+                  {tools.length > 0 ? (
+                    <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-gray-200 dark:bg-gray-800 grow shrink-0 m-4">
+                      {tools.map((itm, idx) => {
+                        const isMCP = itm.buildinToolConfig.code === 'mcp';
+
+                        return (
+                          <BaseCard key={idx} className="p-4 md:p-5 col-span-1">
+                            <header className="flex justify-between items-start">
+                              <div className="flex items-center gap-2">
+                                <SquareFunction
+                                  className="w-7 h-7"
+                                  strokeWidth={1.5}
+                                />
+                                {isMCP && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium">
+                                    MCP
+                                  </span>
+                                )}
+                              </div>
+                              <CardOptionMenu
+                                options={[
+                                  {
+                                    option: (
+                                      <span className="text-red-600">
+                                        Delete tool
+                                      </span>
+                                    ),
+                                    onActionClick: () => {
+                                      setTools(prevTools =>
+                                        prevTools.filter(tool => tool !== itm),
+                                      );
+                                    },
+                                  },
+                                  {
+                                    option: 'Edit tool',
+                                    onActionClick: () => {
+                                      setEditingTool(itm);
+                                      setConfigureToolOpen(true);
+                                    },
+                                  },
+                                ]}
+                                classNames="h-8 w-8 p-1 opacity-60"
+                              />
+                            </header>
+                            <div className="flex-1 mt-3">
+                              <CardTitle>{itm.name}</CardTitle>
+                              <CardDescription>{itm.description}</CardDescription>
+                            </div>
+                          </BaseCard>
+                        );
+                      })}
+                    </section>
+                  ) : (
+                    <div className="flex flex-1 items-center justify-center">
+                      <ActionableEmptyMessage
+                        title="No Tools"
+                        subtitle="There are no tools given added to the assistant"
+                        action="Add a tool"
+                        onActionClick={() => setConfigureToolOpen(true)}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             ),
           },
@@ -509,7 +549,7 @@ export function CreateAssistantPage() {
               'Provide the name, a brief description, and relevant tags for your assistant to help identify and categorize it.',
             actions: [
               <ICancelButton
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
                 onClick={() => showDialog(goBack)}
               >
                 Cancel
@@ -518,37 +558,50 @@ export function CreateAssistantPage() {
                 isLoading={loading}
                 type="button"
                 onClick={createAssistant}
-                className="px-4 rounded-[2px]"
+                className="w-full h-full"
               >
                 Create assistant
               </IBlueBGArrowButton>,
             ],
             body: (
-              <div className="space-y-6 px-8 py-8 max-w-4xl">
-                <div className="h-fit pt-4 rounded-[2px] space-y-4">
+              <div className="px-8 pt-8 pb-8 max-w-2xl flex flex-col gap-10">
+                {/* Identity section */}
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Identity" />
+
                   <FieldSet>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel
+                      htmlFor="agent_name"
+                      className="text-xs tracking-wide uppercase"
+                    >
+                      Name{' '}
+                      <span className="text-red-500 ml-0.5 normal-case">*</span>
+                    </FormLabel>
                     <Input
                       name="agent_name"
                       onChange={e => {
                         setName(e.target.value);
                       }}
                       value={name}
-                      className="form-input"
-                      placeholder="eg: your emotion detector"
-                    ></Input>
+                      placeholder="e.g. customer-support-assistant"
+                    />
                     <InputHelper>
-                      Provide a name, that will appear in the assistant list and
+                      Provide a name that will appear in the assistant list and
                       help identify it.
                     </InputHelper>
                   </FieldSet>
 
                   <FieldSet>
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel
+                      htmlFor="description"
+                      className="text-xs tracking-wide uppercase"
+                    >
+                      Description (Optional)
+                    </FormLabel>
                     <Textarea
-                      row={5}
+                      row={4}
                       value={description}
-                      placeholder={"What's the purpose of the assistant?"}
+                      placeholder="What's the purpose of the assistant?"
                       onChange={t => setDescription(t.target.value)}
                     />
                     <InputHelper>
@@ -556,12 +609,21 @@ export function CreateAssistantPage() {
                       about.
                     </InputHelper>
                   </FieldSet>
+                </div>
+
+                {/* Labels section */}
+                <div className="flex flex-col gap-6">
+                  <SectionDivider label="Labels" />
                   <TagInput
                     tags={tags}
                     addTag={onAddTag}
                     removeTag={onRemoveTag}
                     allTags={AssistantTag}
                   />
+                  <InputHelper>
+                    Tags help you organize and filter assistants across your
+                    workspace.
+                  </InputHelper>
                 </div>
               </div>
             ),
