@@ -512,10 +512,11 @@ const PhoneAgentDebugger: React.FC<{
       {tab === 'arguments' && (
         <div className="flex-1 min-h-0 overflow-y-auto">
           {variables.length > 0 ? (
-            <div className="[&_label]:!text-sm [&_label]:!leading-6 [&_label]:!py-2 [&_label]:!px-3 [&_textarea]:!text-sm [&_textarea]:!leading-6">
+            <div className="[&_label]:!text-sm [&_label]:!leading-6 [&_label]:!py-2 [&_label]:!px-3 [&_textarea]:!text-sm [&_textarea]:!leading-6 [&_textarea]:!px-3 [&_textarea]:!py-2">
               {variables.map((x, idx) => (
                 <InputVarForm key={idx} var={x}>
-                  {x.getType() === InputVarType.textInput && (
+                  {(x.getType() === InputVarType.stringInput ||
+                    x.getType() === InputVarType.textInput) && (
                     <TextTextarea
                       id={x.getName()}
                       defaultValue={x.getDefaultvalue()}

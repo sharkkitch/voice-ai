@@ -237,7 +237,10 @@ func (r *genericRequestor) resumeSession(
 		case protos.StreamMode_STREAM_MODE_TEXT:
 			r.SwitchMode(type_enums.TextMode)
 		case protos.StreamMode_STREAM_MODE_AUDIO:
-			r.initializeTextToSpeech(ctx)
+			if err := r.initializeTextToSpeech(ctx); err != nil {
+				r.logger.Errorf("failed to initialize text-to-speech: %v", err)
+				return err
+			}
 			r.SwitchMode(type_enums.AudioMode)
 		}
 		return nil
@@ -310,7 +313,10 @@ func (r *genericRequestor) createSession(
 		case protos.StreamMode_STREAM_MODE_TEXT:
 			r.SwitchMode(type_enums.TextMode)
 		case protos.StreamMode_STREAM_MODE_AUDIO:
-			r.initializeTextToSpeech(ctx)
+			if err := r.initializeTextToSpeech(ctx); err != nil {
+				r.logger.Errorf("failed to initialize text-to-speech: %v", err)
+				return err
+			}
 			r.SwitchMode(type_enums.AudioMode)
 		}
 		return nil

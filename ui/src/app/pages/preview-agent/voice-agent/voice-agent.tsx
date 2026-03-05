@@ -6,6 +6,7 @@ import {
   AgentCallback,
   Assistant,
   Variable,
+  ConversationError,
 } from '@rapidaai/react';
 import { MessagingAction } from '@/app/pages/preview-agent/voice-agent/actions';
 import { ConversationMessages } from '@/app/pages/preview-agent/voice-agent/text/conversations';
@@ -26,7 +27,7 @@ import { useRapidaStore } from '@/hooks';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
 import { PageLoader } from '@/app/components/loader/page-loader';
-import { YellowNoticeBlock } from '@/app/components/container/message/notice-block';
+import { RedNoticeBlock, YellowNoticeBlock } from '@/app/components/container/message/notice-block';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -203,6 +204,7 @@ export const VoiceAgent: FC<{
   const [events, setEvents] = useState<EventEntry[]>([]);
   const [variables, setVariables] = useState<Variable[]>([]);
   const [msgTab, setMsgTab] = useState<MsgTab>('messages');
+  const [conversationError, setConversationError] = useState<ConversationError.AsObject | null>(null);
   const callbackRegistered = useRef(false);
   const eventsBottomRef = useRef<HTMLDivElement>(null);
 
@@ -281,6 +283,7 @@ export const VoiceAgent: FC<{
           ...p,
           { type: 'metric', ts: new Date(), payload: metric },
         ]),
+      onConversationError: error => setConversationError(error),
     });
   }, [voiceAgentContextValue]);
 
@@ -346,6 +349,21 @@ export const VoiceAgent: FC<{
                 />
               </a>
             </YellowNoticeBlock>
+          )}
+          {conversationError && (
+            <RedNoticeBlock className="flex items-center justify-between gap-3">
+              <Info className="shrink-0 w-4 h-4 text-red-600" />
+              <div className="text-sm font-medium flex-1">
+                {conversationError.message || 'An error occurred during the conversation.'}
+              </div>
+              <button
+                type="button"
+                onClick={() => setConversationError(null)}
+                className="shrink-0 text-xs text-red-600 hover:underline font-medium"
+              >
+                Dismiss
+              </button>
+            </RedNoticeBlock>
           )}
           {/* Tab bar */}
           <div className="flex items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -489,12 +507,12 @@ export const VoiceAgentDebugger: FC<{
         {tab === 'arguments' && (
           <div className="flex-1 min-h-0 overflow-y-auto">
             {variables.length > 0 ? (
-              <div className="[&_label]:!text-sm [&_label]:!leading-6 [&_label]:!py-2 [&_label]:!px-3 [&_textarea]:!text-sm [&_textarea]:!leading-6">
+              <div className="[&_label]:!text-sm [&_label]:!leading-6 [&_label]:!py-2 [&_label]:!px-3 [&_textarea]:!text-sm [&_textarea]:!leading-6 [&_textarea]:!px-3 [&_textarea]:!py-2">
                 {variables.map((x, idx) => (
                   <InputVarForm key={idx} var={x}>
-                    {x.getType() === InputVarType.textInput && (
+                    {(x.getType() === InputVarType.stringInput ||
+                      x.getType() === InputVarType.textInput) && (
                       <TextTextarea
-                        readOnly={voiceAgent.isConnected}
                         id={x.getName()}
                         defaultValue={x.getDefaultvalue()}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -505,7 +523,6 @@ export const VoiceAgentDebugger: FC<{
                     {x.getType() === InputVarType.paragraph && (
                       <ParagraphTextarea
                         id={x.getName()}
-                        readOnly={voiceAgent.isConnected}
                         defaultValue={x.getDefaultvalue()}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                           onChangeArgument(x.getName(), e.target.value)
@@ -514,7 +531,6 @@ export const VoiceAgentDebugger: FC<{
                     )}
                     {x.getType() === InputVarType.number && (
                       <NumberTextarea
-                        readOnly={voiceAgent.isConnected}
                         id={x.getName()}
                         defaultValue={x.getDefaultvalue()}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -524,7 +540,6 @@ export const VoiceAgentDebugger: FC<{
                     )}
                     {x.getType() === InputVarType.json && (
                       <JsonTextarea
-                        readOnly={voiceAgent.isConnected}
                         id={x.getName()}
                         defaultValue={x.getDefaultvalue()}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -534,7 +549,6 @@ export const VoiceAgentDebugger: FC<{
                     )}
                     {x.getType() === InputVarType.url && (
                       <UrlTextarea
-                        readOnly={voiceAgent.isConnected}
                         id={x.getName()}
                         defaultValue={x.getDefaultvalue()}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>

@@ -7,7 +7,6 @@ package adapter_internal
 
 import (
 	"context"
-	"sync"
 
 	internal_sentence_aggregator "github.com/rapidaai/api/assistant-api/internal/aggregator/text"
 	internal_audio "github.com/rapidaai/api/assistant-api/internal/audio"
@@ -163,45 +162,44 @@ func (listening *genericRequestor) initializeVAD(ctx context.Context, options ut
 	return nil
 }
 
-func (spk *genericRequestor) initializeTextToSpeech(context context.Context) error {
-	speakerOpts := spk.GetOptions()
-	var wg sync.WaitGroup
+func (spk *genericRequestor) initializeTextToSpeech(ctx context.Context) error {
 	outputTransformer, _ := spk.GetTextToSpeechTransformer()
-	// connect text to speech transformer if configured and mode is audio
-	if outputTransformer != nil {
-		speakerOpts = utils.MergeMaps(outputTransformer.GetOptions())
-
-		wg.Add(1)
-		utils.Go(context, func() {
-			defer wg.Done()
-			credentialId, err := speakerOpts.GetUint64("rapida.credential_id")
-			if err != nil {
-				spk.logger.Errorf("unable to find credential from options %+v", err)
-			}
-			credential, err := spk.VaultCaller().GetCredential(context, spk.Auth(), credentialId)
-			if err != nil {
-				spk.logger.Errorf("Api call to find credential failed %+v", err)
-			}
-
-			atransformer, err := internal_transformer.GetTextToSpeechTransformer(
-				context, spk.logger,
-				outputTransformer.GetName(),
-				credential,
-				func(pkt ...internal_type.Packet) error { return spk.OnPacket(context, pkt...) },
-				speakerOpts)
-			if err != nil {
-				spk.logger.Errorf("unable to create input audio transformer with error %v", err)
-			}
-			if err := atransformer.Initialize(); err != nil {
-				spk.logger.Errorf("unable to initilize transformer %v", err)
-			}
-			spk.textToSpeechTransformer = atransformer
-		})
+	if outputTransformer == nil {
+		return nil
 	}
-
-	wg.Wait()
-	return nil
-
+	speakerOpts := utils.MergeMaps(outputTransformer.GetOptions())
+	eGroup, ectx := errgroup.WithContext(ctx)
+	eGroup.Go(func() error {
+		credentialId, err := speakerOpts.GetUint64("rapida.credential_id")
+		if err != nil {
+			spk.logger.Errorf("tts: unable to find credential from options %+v", err)
+			return err
+		}
+		credential, err := spk.VaultCaller().GetCredential(ectx, spk.Auth(), credentialId)
+		if err != nil {
+			spk.logger.Errorf("tts: api call to find credential failed %+v", err)
+			return err
+		}
+		// Use the session ctx (not errgroup's ectx) so the transformer's stream
+		// lifecycle is tied to the session, not the short-lived errgroup.
+		atransformer, err := internal_transformer.GetTextToSpeechTransformer(
+			ctx, spk.logger,
+			outputTransformer.GetName(),
+			credential,
+			func(pkt ...internal_type.Packet) error { return spk.OnPacket(ctx, pkt...) },
+			speakerOpts)
+		if err != nil {
+			spk.logger.Errorf("tts: unable to create transformer %v", err)
+			return err
+		}
+		if err := atransformer.Initialize(); err != nil {
+			spk.logger.Errorf("tts: unable to initialize transformer %v", err)
+			return err
+		}
+		spk.textToSpeechTransformer = atransformer
+		return nil
+	})
+	return eGroup.Wait()
 }
 
 func (spk *genericRequestor) disconnectTextToSpeech(ctx context.Context) error {

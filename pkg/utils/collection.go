@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func MergeMaps(maps ...map[string]interface{}) map[string]interface{} {
+func MergeMaps(maps ...map[string]interface{}) Option {
 	result := make(map[string]interface{})
 	for _, m := range maps {
 		for k, v := range m {

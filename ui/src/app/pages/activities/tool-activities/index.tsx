@@ -117,12 +117,14 @@ export function ListingPage() {
       </PageHeaderBlock>
 
       <BluredWrapper className="sticky top-0 z-11">
-        <SearchIconInput className="bg-light-background flex-1" />
-        <Datepicker
-          align="right"
-          className="bg-light-background"
-          onDateSelect={onDateSelect}
-        />
+        <div className="flex">
+          <SearchIconInput className="bg-light-background flex-1" />
+          <Datepicker
+            align="right"
+            className="bg-light-background"
+            onDateSelect={onDateSelect}
+          />
+        </div>
         <PaginationButtonBlock>
           <TablePagination
             columns={columns}
@@ -159,7 +161,9 @@ export function ListingPage() {
                   </LinkCell>
                 )}
                 {visibleColumn('assistant_conversation_id') && (
-                  <LinkCell to={`/deployment/assistant/${at.getAssistantid()}/sessions/${at.getAssistantconversationid()}`}>
+                  <LinkCell
+                    to={`/deployment/assistant/${at.getAssistantid()}/sessions/${at.getAssistantconversationid()}`}
+                  >
                     {at.getAssistantconversationid()}
                   </LinkCell>
                 )}

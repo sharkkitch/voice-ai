@@ -132,12 +132,14 @@ export function ListingPage() {
       </PageHeaderBlock>
 
       <BluredWrapper className="sticky top-0 z-11">
-        <SearchIconInput className="bg-light-background flex-1" />
-        <Datepicker
-          align="right"
-          className="bg-light-background"
-          onDateSelect={onDateSelect}
-        />
+        <div className="flex">
+          <SearchIconInput className="bg-light-background flex-1" />
+          <Datepicker
+            align="right"
+            className="bg-light-background"
+            onDateSelect={onDateSelect}
+          />
+        </div>
         <PaginationButtonBlock>
           <TablePagination
             columns={columns}

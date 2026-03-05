@@ -116,12 +116,14 @@ export function ListingPage() {
       </PageHeaderBlock>
 
       <BluredWrapper className="sticky top-0 z-11">
-        <SearchIconInput className="bg-light-background flex-1" />
-        <Datepicker
-          align="right"
-          className="bg-light-background"
-          onDateSelect={onDateSelect}
-        />
+        <div className="flex">
+          <SearchIconInput className="bg-light-background flex-1" />
+          <Datepicker
+            align="right"
+            className="bg-light-background"
+            onDateSelect={onDateSelect}
+          />
+        </div>
 
         <PaginationButtonBlock>
           <TablePagination
@@ -154,13 +156,17 @@ export function ListingPage() {
             return (
               <TableRow key={idx} data-id={at.getId()}>
                 {visibleColumn('webhookid') && (
-                  <LinkCell to={`/deployment/assistant/${at.getAssistantid()}/manage/configure-webhook`}>
+                  <LinkCell
+                    to={`/deployment/assistant/${at.getAssistantid()}/manage/configure-webhook`}
+                  >
                     {at.getWebhookid()}
                   </LinkCell>
                 )}
 
                 {visibleColumn('sessionid') && (
-                  <LinkCell to={`/deployment/assistant/${at.getAssistantid()}/sessions/${at.getAssistantconversationid()}`}>
+                  <LinkCell
+                    to={`/deployment/assistant/${at.getAssistantid()}/sessions/${at.getAssistantconversationid()}`}
+                  >
                     {at.getAssistantconversationid()}
                   </LinkCell>
                 )}
