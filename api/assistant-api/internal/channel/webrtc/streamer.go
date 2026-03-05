@@ -20,6 +20,7 @@ import (
 	"github.com/pion/rtp"
 	pionwebrtc "github.com/pion/webrtc/v4"
 	"github.com/pion/webrtc/v4/pkg/media"
+	assistant_config "github.com/rapidaai/api/assistant-api/config"
 	internal_audio "github.com/rapidaai/api/assistant-api/internal/audio"
 	internal_audio_resampler "github.com/rapidaai/api/assistant-api/internal/audio/resampler"
 	channel_base "github.com/rapidaai/api/assistant-api/internal/channel/base"
@@ -47,6 +48,7 @@ type webrtcStreamer struct {
 
 	// WebRTC-specific components
 	config     *webrtc_internal.Config
+	webrtcCfg  *assistant_config.WebRTCConfig // nil = local/default behaviour
 	grpcStream grpc.BidiStreamingServer[protos.WebTalkRequest, protos.WebTalkResponse]
 
 	// Session state
@@ -85,6 +87,7 @@ func NewWebRTCStreamer(
 	ctx context.Context,
 	logger commons.Logger,
 	grpcStream grpc.BidiStreamingServer[protos.WebTalkRequest, protos.WebTalkResponse],
+	webrtcCfg *assistant_config.WebRTCConfig,
 ) (internal_type.Streamer, error) {
 	resampler, err := internal_audio_resampler.GetResampler(logger)
 	if err != nil {
@@ -105,6 +108,7 @@ func NewWebRTCStreamer(
 			channel_base.WithOutputFrameSize(webrtc_internal.OpusFrameBytes),
 		),
 		config:      webrtc_internal.DefaultConfig(),
+		webrtcCfg:   webrtcCfg,
 		grpcStream:  grpcStream,
 		sessionID:   uuid.New().String(),
 		resampler:   resampler,
@@ -166,9 +170,30 @@ func (s *webrtcStreamer) createPeerConnection() error {
 		return fmt.Errorf("failed to register interceptors: %w", err)
 	}
 
+	settingEngine := pionwebrtc.SettingEngine{}
+	if s.webrtcCfg != nil {
+		if s.webrtcCfg.ExternalIP != "" {
+			if err := settingEngine.SetICEAddressRewriteRules(pionwebrtc.ICEAddressRewriteRule{
+				External:        []string{s.webrtcCfg.ExternalIP},
+				AsCandidateType: pionwebrtc.ICECandidateTypeHost,
+			}); err != nil {
+				return fmt.Errorf("failed to set ICE address rewrite rules: %w", err)
+			}
+		}
+		if s.webrtcCfg.UDPPortRangeStart > 0 && s.webrtcCfg.UDPPortRangeEnd > 0 {
+			if err := settingEngine.SetEphemeralUDPPortRange(
+				uint16(s.webrtcCfg.UDPPortRangeStart),
+				uint16(s.webrtcCfg.UDPPortRangeEnd),
+			); err != nil {
+				return fmt.Errorf("failed to set UDP port range: %w", err)
+			}
+		}
+	}
+
 	api := pionwebrtc.NewAPI(
 		pionwebrtc.WithMediaEngine(mediaEngine),
 		pionwebrtc.WithInterceptorRegistry(registry),
+		pionwebrtc.WithSettingEngine(settingEngine),
 	)
 
 	iceServers := make([]pionwebrtc.ICEServer, len(s.config.ICEServers))

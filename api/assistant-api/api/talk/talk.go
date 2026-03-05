@@ -175,7 +175,7 @@ func (cApi *ConversationGrpcApi) WebTalk(stream assistant_api.WebRTC_WebTalkServ
 		cApi.logger.Errorf("unable to resolve the source from the context")
 		return errors.New("illegal source")
 	}
-	streamer, err := internal_webrtc.NewWebRTCStreamer(stream.Context(), cApi.logger, stream)
+	streamer, err := internal_webrtc.NewWebRTCStreamer(stream.Context(), cApi.logger, stream, cApi.cfg.WebRTCConfig)
 	if err != nil {
 		cApi.logger.Errorf("failed to create grpc streamer: %v", err)
 		return err
