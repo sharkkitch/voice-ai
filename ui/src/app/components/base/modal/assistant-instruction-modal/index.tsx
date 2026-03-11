@@ -6,8 +6,8 @@ import { CheckCircle, ExternalLink } from 'lucide-react';
 import { ModalBody } from '@/app/components/base/modal/modal-body';
 import { ModalFooter } from '@/app/components/base/modal/modal-footer';
 import { ICancelButton, ILinkButton } from '@/app/components/form/button';
-import { FieldSet } from '@/app/components/form/fieldset';
 import { CodeHighlighting } from '@/app/components/code-highlighting';
+import { DeploymentSectionHeader } from '@/app/components/base/modal/deployment-modal-primitives';
 
 interface AssistantInstructionDialogProps
   extends ModalProps,
@@ -19,59 +19,61 @@ export const AssistantWebwidgetDeploymentDialog: FC<AssistantInstructionDialogPr
   memo(({ assistantId, ...mldAttr }) => {
     return (
       <GenericModal {...mldAttr}>
-        <ModalFitHeightBlock className="w-[1000px]">
+        <ModalFitHeightBlock className="w-[720px]">
           <ModalHeader
             onClose={() => {
               mldAttr.setModalOpen(false);
             }}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Deployment Completed Successfully!
-              </div>
-            </div>
-            <div className="text-gray-600 dark:text-gray-400">
-              Your AI assistant has been deployed to web widget. Follow the
-              integration steps below to start receiving messages.
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Deployment completed
+              </span>
             </div>
           </ModalHeader>
-          <ModalBody>
-            <FieldSet>
-              <div className="text-muted-foreground">
-                Add the Rapida.js script to your HTML
-              </div>
+
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Your assistant has been deployed. Add the following snippets to
+              your website to start receiving messages.
+            </p>
+          </div>
+
+          <ModalBody className="gap-0 !p-0">
+            <DeploymentSectionHeader label="1. Add script to your HTML" />
+            <div className="px-4 py-3">
               <CodeHighlighting
-                className="h-[20px]"
-                lang="html"
+                className="min-h-[20px]"
                 code='<script src="https://cdn-01.rapida.ai/public/scripts/app.min.js" defer></script>'
-              ></CodeHighlighting>
-            </FieldSet>
-            <FieldSet>
-              <div className="text-muted-foreground">
-                Add the chatbot configuration script
-              </div>
+              />
+            </div>
+
+            <DeploymentSectionHeader label="2. Initialize the assistant" />
+            <div className="px-4 py-3">
               <CodeHighlighting
-                lang="html"
-                className="h-[320px]"
+                className="min-h-[240px]"
                 code={`<script>
 window.chatbotConfig = {
-  theme: {
-    color: "black"
-  },
-  assistant_id: ${assistantId},
+  assistant_id: "${assistantId}",
   token: "{RAPIDA_PROJECT_KEY}",
   user: {
-    id: "{UNIQUE_IDENITFIER}",
-    name: "{NAME}"
-  }
+    id: "{UNIQUE_IDENTIFIER}",
+    name: "{NAME}",
+  },
+  layout: "docked-right",
+  position: "bottom-right",
+  showLauncher: true,
+  name: "Rapida Assistant",
+  theme: {
+    mode: "light",
+  },
 };
 </script>`}
-              ></CodeHighlighting>
-            </FieldSet>
+              />
+            </div>
           </ModalBody>
+
           <ModalFooter>
             <ICancelButton onClick={() => mldAttr.setModalOpen(false)}>
               Close

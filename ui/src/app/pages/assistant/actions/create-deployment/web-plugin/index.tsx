@@ -243,10 +243,10 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
   const handleSkipVoiceOutput = () => {
     setErrorMessage('');
     setVoiceOutputEnable(false);
-    handleDeployWebPlugin();
+    handleDeployWebPlugin(false);
   };
 
-  const handleDeployWebPlugin = () => {
+  const handleDeployWebPlugin = (includeVoiceOutput = true) => {
     showLoader('block');
     setErrorMessage('');
 
@@ -275,7 +275,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
       }
     }
 
-    if (voiceOutputEnable) {
+    if (includeVoiceOutput) {
       if (!audioOutputConfig.provider) {
         hideLoader();
         setErrorMessage(
@@ -292,6 +292,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
         setErrorMessage(err);
         return;
       }
+      setVoiceOutputEnable(true);
     }
 
     const req = new CreateAssistantDeploymentRequest();
@@ -325,7 +326,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
       webDeployment.setInputaudio(inputAudio);
     }
 
-    if (voiceOutputEnable) {
+    if (includeVoiceOutput) {
       const outputAudio = new DeploymentAudioProvider();
       outputAudio.setAudioprovider(audioOutputConfig.provider);
       outputAudio.setAudiooptionsList(audioOutputConfig.parameters);
@@ -482,9 +483,10 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
                 </ICancelButton>,
                 <ISecondaryButton
                   className="w-full h-full"
+                  isLoading={loading}
                   onClick={handleSkipVoiceOutput}
                 >
-                  Skip
+                  Deploy without voice output
                 </ISecondaryButton>,
                 <IBlueBGArrowButton
                   type="button"
@@ -492,7 +494,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
                   isLoading={loading}
                   onClick={handleDeployWebPlugin}
                 >
-                  Deploy Web Widget
+                  Deploy with voice output
                 </IBlueBGArrowButton>,
               ],
             },
