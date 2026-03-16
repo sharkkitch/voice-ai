@@ -30,7 +30,7 @@ export const ConfigureFireRedVAD: React.FC<{
         min={1}
         max={30}
         step={1}
-        value={get('microphone.vad.min_silence_frame', '10')}
+        value={get('microphone.vad.min_silence_frame', '20')}
         onChange={v => set('microphone.vad.min_silence_frame', v)}
       />
       <SliderField
@@ -39,7 +39,7 @@ export const ConfigureFireRedVAD: React.FC<{
         min={1}
         max={20}
         step={1}
-        value={get('microphone.vad.min_speech_frame', '3')}
+        value={get('microphone.vad.min_speech_frame', '8')}
         onChange={v => set('microphone.vad.min_speech_frame', v)}
       />
     </>

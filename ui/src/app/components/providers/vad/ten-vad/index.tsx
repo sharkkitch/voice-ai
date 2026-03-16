@@ -20,8 +20,26 @@ export const ConfigureTenVAD: React.FC<{
         max={1}
         step={0.05}
         parse={parseFloat}
-        value={get('microphone.vad.threshold', '0.6')}
+        value={get('microphone.vad.threshold', '0.5')}
         onChange={v => set('microphone.vad.threshold', v)}
+      />
+      <SliderField
+        label="Min Silence Frames"
+        hint="Minimum number of consecutive silence frames before ending a speech segment."
+        min={1}
+        max={30}
+        step={1}
+        value={get('microphone.vad.min_silence_frame', '20')}
+        onChange={v => set('microphone.vad.min_silence_frame', v)}
+      />
+      <SliderField
+        label="Min Speech Frames"
+        hint="Minimum number of consecutive speech frames before starting a speech segment."
+        min={1}
+        max={20}
+        step={1}
+        value={get('microphone.vad.min_speech_frame', '8')}
+        onChange={v => set('microphone.vad.min_speech_frame', v)}
       />
     </>
   );

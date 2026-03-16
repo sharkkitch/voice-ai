@@ -56,7 +56,7 @@ export const ConversationMessages: FC<{ vag: VoiceAgent }> = ({ vag }) => {
   }, []);
 
   return (
-    <div className="parent group [&_.feedback-btn]:hidden [&_.message-cntnt:last-of-type_.feedback-btn]:flex !font-mono">
+    <div className="parent group [&_.feedback-btn]:hidden [&_.message-cntnt:last-of-type_.feedback-btn]:flex font-mono!">
       {groupedMessages.map((group, groupIdx) => {
         const isUser = group.role === MessageRole.User;
         const isLastGroup = groupIdx === groupedMessages.length - 1;
@@ -70,7 +70,7 @@ export const ConversationMessages: FC<{ vag: VoiceAgent }> = ({ vag }) => {
               {isUser ? (
                 <TextImage name={user?.name || queryName || 'user'} size={10} />
               ) : (
-                <div className="bg-blue-600 w-10 h-10 flex items-center justify-center rounded-[2px]">
+                <div className="bg-blue-600 w-10 h-10 flex items-center justify-center rounded-xs">
                   <RapidaIcon className="text-white h-full w-full p-1.5" />
                 </div>
               )}
@@ -90,10 +90,10 @@ export const ConversationMessages: FC<{ vag: VoiceAgent }> = ({ vag }) => {
             <div className="text-md space-y-2">
               {group.items.map((msg, idx) =>
                 msg.messages.map((x, midx) => (
-                  <div key={`${idx}-${midx}`}>
+                  <div key={`${idx}-${midx}`} data-key={msg.id}>
                     <MarkdownPreview
                       source={x}
-                      className="!prose dark:!prose-invert !prose-sm !font-mono !max-w-6xl"
+                      className="prose! dark:prose-invert! prose-sm! font-mono! max-w-6xl!"
                       style={{
                         background: 'transparent',
                         fontSize: '14px',
