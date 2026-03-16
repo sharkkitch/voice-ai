@@ -24,7 +24,6 @@ import (
 	internal_assistant_entity "github.com/rapidaai/api/assistant-api/internal/entity/assistants"
 	internal_conversation_entity "github.com/rapidaai/api/assistant-api/internal/entity/conversations"
 	internal_knowledge_gorm "github.com/rapidaai/api/assistant-api/internal/entity/knowledges"
-	internal_telemetry_entity "github.com/rapidaai/api/assistant-api/internal/entity/telemetry"
 	observe "github.com/rapidaai/api/assistant-api/internal/observe"
 	observe_exporters "github.com/rapidaai/api/assistant-api/internal/observe/exporters"
 	internal_services "github.com/rapidaai/api/assistant-api/internal/services"
@@ -147,7 +146,7 @@ type genericRequestor struct {
 
 	// packet dispatcher channels — critical preempts normal, normal preempts low
 	criticalCh chan packetEnvelope // interrupts and directives        (cap 16)
-	normalCh   chan packetEnvelope // audio, STT, LLM, TTS pipeline    (cap 256)
+	normalCh   chan packetEnvelope // audio, STT, LLM, TTS pipeline    (cap 4096)
 	lowCh      chan packetEnvelope // recording, metrics, persistence   (cap 512)
 }
 
@@ -199,7 +198,7 @@ func NewGenericRequestor(
 
 		// dispatcher channels
 		criticalCh: make(chan packetEnvelope, 16),
-		normalCh:   make(chan packetEnvelope, 256),
+		normalCh:   make(chan packetEnvelope, 4096),
 		lowCh:      make(chan packetEnvelope, 512),
 	}
 }
@@ -340,18 +339,6 @@ func (r *genericRequestor) GetID() string {
 	return r.contextID
 }
 
-// isAssistantActive reports whether the assistant is currently generating or
-// has recently generated a response (i.e. the LLM/TTS pipeline is active).
-// Used by handleEndOfSpeech to decide whether a confirmed user utterance
-// should trigger a full interruption cascade before starting a new turn.
-func (dm *genericRequestor) isAssistantActive() bool {
-	dm.msgMu.RLock()
-	defer dm.msgMu.RUnlock()
-	return dm.interactionState == LLMGenerating ||
-		dm.interactionState == LLMGenerated ||
-		dm.interactionState == Interrupt
-}
-
 // GetMode returns the current stream mode (text or audio).
 func (r *genericRequestor) GetMode() type_enums.MessageMode {
 	return r.msgMode
@@ -365,19 +352,40 @@ func (r *genericRequestor) SwitchMode(mm type_enums.MessageMode) {
 }
 
 // Transition advances the interaction state machine.
+//
+// Valid transitions:
+//
+//	LLMGenerating | LLMGenerated | Interrupt → Interrupt    (VAD soft-interrupt)
+//	LLMGenerating | LLMGenerated | Interrupt → Interrupted  (word-interrupt, rotates contextID)
+//	Unknown | Interrupted                    → LLMGenerating (new turn starts)
+//	LLMGenerating                            → LLMGenerated  (LLM finished, TTS may still play)
+//	Any except Unknown                       → LLMGenerated  (also used for error recovery)
+//
+// Blocked:
+//
+//	* → Unknown                          (no explicit reset)
+//	Unknown     → Interrupt | Interrupted (nothing active — no LLM, no TTS)
+//	Interrupted → Interrupted             (already interrupted)
+//	Interrupt   → Interrupt               (already soft-interrupted)
 func (r *genericRequestor) Transition(newState InteractionState) error {
 	r.msgMu.Lock()
 	defer r.msgMu.Unlock()
 	switch newState {
 	case Unknown:
-		return fmt.Errorf("Transition: invalid transition: cannot transition to Unknown state")
+		return fmt.Errorf("Transition: cannot transition to Unknown state")
 	case Interrupt:
 		if r.interactionState == Interrupted || r.interactionState == Interrupt {
-			return fmt.Errorf("Transition: invalid transition: agent can't interrupt multiple times")
+			return fmt.Errorf("Transition: cannot soft-interrupt from state %s", r.interactionState)
+		}
+		if r.interactionState == Unknown {
+			return fmt.Errorf("Transition: nothing active to soft-interrupt in state %s", r.interactionState)
 		}
 	case Interrupted:
 		if r.interactionState == Interrupted {
-			return fmt.Errorf("Transition: invalid transition: agent can't interrupted multiple times")
+			return fmt.Errorf("Transition: already interrupted")
+		}
+		if r.interactionState == Unknown {
+			return fmt.Errorf("Transition: nothing active to interrupt in state %s", r.interactionState)
 		}
 		r.contextID = uuid.NewString()
 	}
@@ -385,23 +393,12 @@ func (r *genericRequestor) Transition(newState InteractionState) error {
 	return nil
 }
 
-// loadTelemetryProviders fetches enabled telemetry provider configurations
-// (with their options) for the current assistant from the database.
-func (r *genericRequestor) loadTelemetryProviders(ctx context.Context) ([]*internal_telemetry_entity.AssistantTelemetryProvider, error) {
-	var providers []*internal_telemetry_entity.AssistantTelemetryProvider
-	err := r.postgres.DB(ctx).
-		Preload("Options").
-		Where("assistant_id = ? AND enabled = true", r.assistant.Id).
-		Find(&providers).Error
-	return providers, err
-}
-
 // initializeCollectors builds EventCollector and MetricCollector from the
 // assistant's telemetry provider configuration stored in the database.
 // Connection details come from the provider's Options key-value pairs.
 // Collectors default to no-op when no providers are configured.
 func (r *genericRequestor) initializeCollectors(ctx context.Context) {
-	providers, err := r.loadTelemetryProviders(ctx)
+	providers, err := r.GetTelemetryProvider(ctx)
 	if err != nil {
 		r.logger.Errorf("observe: failed to load telemetry providers: %v", err)
 	}

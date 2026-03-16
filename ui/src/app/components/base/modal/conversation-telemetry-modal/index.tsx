@@ -360,8 +360,20 @@ export function SentrySearch({
     {
       id: 'name',
       label: 'Event Name',
-      type: 'string',
-      placeholder: 'session, stt, llm…',
+      type: 'select',
+      options: [
+        'session',
+        'stt',
+        'llm',
+        'tts',
+        'vad',
+        'eos',
+        'denoise',
+        'audio',
+        'tool',
+        'behavior',
+        'knowledge',
+      ],
     },
     {
       id: 'scope',

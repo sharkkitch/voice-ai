@@ -27,11 +27,10 @@ import (
 type AssistantTelemetryProvider struct {
 	gorm_model.Audited
 	gorm_model.Organizational
-	AssistantId  uint64 `json:"assistantId"  gorm:"type:bigint;not null"`
-	ProviderType string `json:"providerType" gorm:"type:varchar(50);not null"`
-	Enabled      bool   `json:"enabled"      gorm:"default:true"`
-
-	Options []*AssistantTelemetryProviderOption `json:"options" gorm:"foreignKey:AssistantTelemetryProviderId"`
+	AssistantId  uint64                              `json:"assistantId"  gorm:"type:bigint;not null"`
+	ProviderType string                              `json:"providerType" gorm:"type:varchar(50);not null"`
+	Enabled      bool                                `json:"enabled"      gorm:"default:true"`
+	Options      []*AssistantTelemetryProviderOption `json:"options" gorm:"foreignKey:AssistantTelemetryProviderId"`
 }
 
 func (AssistantTelemetryProvider) TableName() string {

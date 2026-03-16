@@ -43,11 +43,10 @@ func (eService assistantDeploymentService) CreateWebPluginDeployment(
 	auth types.SimplePrinciple,
 	assistantId uint64,
 	greeting, mistake *string,
-	idealTimeout *uint64,
-	idealTimeoutBackoff *uint64,
-	idealTimeoutMessage *string, maxSessionDuration *uint64,
+	IdleTimeout *uint64,
+	IdleTimeoutBackoff *uint64,
+	IdleTimeoutMessage *string, maxSessionDuration *uint64,
 	suggestion []string,
-	helpCenterEnabled, productCatalogEnabled, articleCatalogEnabled bool,
 	inputAudio, outputAudio *protos.DeploymentAudioProvider,
 ) (*internal_assistant_entity.AssistantWebPluginDeployment, error) {
 	db := eService.postgres.DB(ctx)
@@ -59,17 +58,14 @@ func (eService assistantDeploymentService) CreateWebPluginDeployment(
 				},
 				AssistantId: assistantId,
 			},
-			Greeting:            greeting,
-			Mistake:             mistake,
-			IdealTimeout:        idealTimeout,
-			IdealTimeoutBackoff: idealTimeoutBackoff,
-			IdealTimeoutMessage: idealTimeoutMessage,
-			MaxSessionDuration:  maxSessionDuration,
+			Greeting:           greeting,
+			Mistake:            mistake,
+			IdleTimeout:        IdleTimeout,
+			IdleTimeoutBackoff: IdleTimeoutBackoff,
+			IdleTimeoutMessage: IdleTimeoutMessage,
+			MaxSessionDuration: maxSessionDuration,
 		},
-		Suggestion:            suggestion,
-		HelpCenterEnabled:     helpCenterEnabled,
-		ProductCatalogEnabled: productCatalogEnabled,
-		ArticleCatalogEnabled: articleCatalogEnabled,
+		Suggestion: suggestion,
 	}
 
 	tx := db.Create(deployment)
@@ -147,9 +143,9 @@ func (eService assistantDeploymentService) CreateDebuggerDeployment(
 	auth types.SimplePrinciple,
 	assistantId uint64,
 	greeting, mistake *string,
-	idealTimeout *uint64,
-	idealTimeoutBackoff *uint64,
-	idealTimeoutMessage *string, maxSessionDuration *uint64,
+	IdleTimeout *uint64,
+	IdleTimeoutBackoff *uint64,
+	IdleTimeoutMessage *string, maxSessionDuration *uint64,
 	inputAudio, outputAudio *protos.DeploymentAudioProvider,
 ) (*internal_assistant_entity.AssistantDebuggerDeployment, error) {
 	db := eService.postgres.DB(ctx)
@@ -162,12 +158,12 @@ func (eService assistantDeploymentService) CreateDebuggerDeployment(
 				},
 				AssistantId: assistantId,
 			},
-			Greeting:            greeting,
-			Mistake:             mistake,
-			IdealTimeout:        idealTimeout,
-			IdealTimeoutBackoff: idealTimeoutBackoff,
-			IdealTimeoutMessage: idealTimeoutMessage,
-			MaxSessionDuration:  maxSessionDuration,
+			Greeting:           greeting,
+			Mistake:            mistake,
+			IdleTimeout:        IdleTimeout,
+			IdleTimeoutBackoff: IdleTimeoutBackoff,
+			IdleTimeoutMessage: IdleTimeoutMessage,
+			MaxSessionDuration: maxSessionDuration,
 		},
 	}
 
@@ -191,9 +187,9 @@ func (eService assistantDeploymentService) CreateApiDeployment(
 	auth types.SimplePrinciple,
 	assistantId uint64,
 	greeting, mistake *string,
-	idealTimeout *uint64,
-	idealTimeoutBackoff *uint64,
-	idealTimeoutMessage *string, maxSessionDuration *uint64,
+	IdleTimeout *uint64,
+	IdleTimeoutBackoff *uint64,
+	IdleTimeoutMessage *string, maxSessionDuration *uint64,
 	inputAudio, outputAudio *protos.DeploymentAudioProvider,
 ) (*internal_assistant_entity.AssistantApiDeployment, error) {
 	db := eService.postgres.DB(ctx)
@@ -206,12 +202,12 @@ func (eService assistantDeploymentService) CreateApiDeployment(
 				},
 				AssistantId: assistantId,
 			},
-			Greeting:            greeting,
-			Mistake:             mistake,
-			IdealTimeout:        idealTimeout,
-			IdealTimeoutBackoff: idealTimeoutBackoff,
-			IdealTimeoutMessage: idealTimeoutMessage,
-			MaxSessionDuration:  maxSessionDuration,
+			Greeting:           greeting,
+			Mistake:            mistake,
+			IdleTimeout:        IdleTimeout,
+			IdleTimeoutBackoff: IdleTimeoutBackoff,
+			IdleTimeoutMessage: IdleTimeoutMessage,
+			MaxSessionDuration: maxSessionDuration,
 		},
 	}
 
@@ -235,9 +231,9 @@ func (eService assistantDeploymentService) CreateWhatsappDeployment(
 	auth types.SimplePrinciple,
 	assistantId uint64,
 	greeting, mistake *string,
-	idealTimeout *uint64,
-	idealTimeoutBackoff *uint64,
-	idealTimeoutMessage *string, maxSessionDuration *uint64,
+	idleTimeout *uint64,
+	idleTimeoutBackoff *uint64,
+	idleTimeoutMessage *string, maxSessionDuration *uint64,
 	whatsappProvider string,
 	whatsappOptions []*protos.Metadata,
 ) (*internal_assistant_entity.AssistantWhatsappDeployment, error) {
@@ -251,12 +247,12 @@ func (eService assistantDeploymentService) CreateWhatsappDeployment(
 				},
 				AssistantId: assistantId,
 			},
-			Greeting:            greeting,
-			Mistake:             mistake,
-			IdealTimeout:        idealTimeout,
-			IdealTimeoutBackoff: idealTimeoutBackoff,
-			IdealTimeoutMessage: idealTimeoutMessage,
-			MaxSessionDuration:  maxSessionDuration,
+			Greeting:           greeting,
+			Mistake:            mistake,
+			IdleTimeout:        idleTimeout,
+			IdleTimeoutBackoff: idleTimeoutBackoff,
+			IdleTimeoutMessage: idleTimeoutMessage,
+			MaxSessionDuration: maxSessionDuration,
 		},
 		AssistantDeploymentWhatsapp: internal_assistant_entity.AssistantDeploymentWhatsapp{
 			WhatsappProvider: whatsappProvider,
@@ -307,9 +303,9 @@ func (eService assistantDeploymentService) CreatePhoneDeployment(
 	auth types.SimplePrinciple,
 	assistantId uint64,
 	greeting, mistake *string,
-	idealTimeout *uint64,
-	idealTimeoutBackoff *uint64,
-	idealTimeoutMessage *string, maxSessionDuration *uint64,
+	IdleTimeout *uint64,
+	IdleTimeoutBackoff *uint64,
+	IdleTimeoutMessage *string, maxSessionDuration *uint64,
 	phoneProvider string,
 	inputAudio, outputAudio *protos.DeploymentAudioProvider,
 	opts []*protos.Metadata,
@@ -324,12 +320,12 @@ func (eService assistantDeploymentService) CreatePhoneDeployment(
 				},
 				AssistantId: assistantId,
 			},
-			Greeting:            greeting,
-			Mistake:             mistake,
-			IdealTimeout:        idealTimeout,
-			IdealTimeoutBackoff: idealTimeoutBackoff,
-			IdealTimeoutMessage: idealTimeoutMessage,
-			MaxSessionDuration:  maxSessionDuration,
+			Greeting:           greeting,
+			Mistake:            mistake,
+			IdleTimeout:        IdleTimeout,
+			IdleTimeoutBackoff: IdleTimeoutBackoff,
+			IdleTimeoutMessage: IdleTimeoutMessage,
+			MaxSessionDuration: maxSessionDuration,
 		},
 		AssistantDeploymentTelephony: internal_assistant_entity.AssistantDeploymentTelephony{
 			TelephonyProvider: phoneProvider,
@@ -391,8 +387,8 @@ func (eService assistantDeploymentService) GetAssistantApiDeployment(ctx context
 	qry := db.
 		Preload("InputAudio", "audio_type = ?", "input").
 		Preload("InputAudio.AudioOptions").
-		Preload("OuputAudio", "audio_type = ?", "output").
-		Preload("OuputAudio.AudioOptions").
+		Preload("OutputAudio", "audio_type = ?", "output").
+		Preload("OutputAudio.AudioOptions").
 		Where("assistant_id = ?", assistantId)
 	tx := qry.Order(clause.OrderByColumn{
 		Column: clause.Column{Name: "created_date"},
@@ -413,8 +409,8 @@ func (eService assistantDeploymentService) GetAssistantDebuggerDeployment(ctx co
 	qry := db.
 		Preload("InputAudio", "audio_type = ?", "input").
 		Preload("InputAudio.AudioOptions").
-		Preload("OuputAudio", "audio_type = ?", "output").
-		Preload("OuputAudio.AudioOptions").
+		Preload("OutputAudio", "audio_type = ?", "output").
+		Preload("OutputAudio.AudioOptions").
 		Where("assistant_id = ?", assistantId)
 	tx := qry.Order(clause.OrderByColumn{
 		Column: clause.Column{Name: "created_date"},
@@ -437,8 +433,8 @@ func (eService assistantDeploymentService) GetAssistantPhoneDeployment(ctx conte
 		Preload("TelephonyOption").
 		Preload("InputAudio", "audio_type = ?", "input").
 		Preload("InputAudio.AudioOptions").
-		Preload("OuputAudio", "audio_type = ?", "output").
-		Preload("OuputAudio.AudioOptions").
+		Preload("OutputAudio", "audio_type = ?", "output").
+		Preload("OutputAudio.AudioOptions").
 		Where("assistant_id = ?", assistantId)
 	tx := qry.Order(clause.OrderByColumn{
 		Column: clause.Column{Name: "created_date"},
@@ -459,8 +455,8 @@ func (eService assistantDeploymentService) GetAssistantWebpluginDeployment(ctx c
 	qry := db.
 		Preload("InputAudio", "audio_type = ?", "input").
 		Preload("InputAudio.AudioOptions").
-		Preload("OuputAudio", "audio_type = ?", "output").
-		Preload("OuputAudio.AudioOptions").
+		Preload("OutputAudio", "audio_type = ?", "output").
+		Preload("OutputAudio.AudioOptions").
 		Where("assistant_id = ?", assistantId)
 	tx := qry.Order(clause.OrderByColumn{
 		Column: clause.Column{Name: "created_date"},

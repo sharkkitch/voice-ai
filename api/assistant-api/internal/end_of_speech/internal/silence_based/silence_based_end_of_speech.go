@@ -80,8 +80,9 @@ func NewSilenceBasedEndOfSpeech(logger commons.Logger, callback func(context.Con
 		_ = callback(context.Background(), internal_type.ConversationEventPacket{
 			Name: "eos",
 			Data: map[string]string{
-				"type":    "initialized",
-				"init_ms": fmt.Sprintf("%d", time.Since(start).Milliseconds()),
+				"type":     "initialized",
+				"provider": eos.Name(),
+				"init_ms":  fmt.Sprintf("%d", time.Since(start).Milliseconds()),
 			},
 			Time: time.Now(),
 		})
@@ -106,19 +107,11 @@ func (eos *SilenceBasedEOS) Analyze(ctx context.Context, pkt internal_type.Packe
 		seg := SpeechSegment{ContextID: p.ContextId(), Text: p.Text, Timestamp: time.Now()}
 		eos.state.segment = seg
 		eos.mu.Unlock()
-		// let the client know about interim speech
 		eos.callback(ctx,
 			internal_type.InterimEndOfSpeechPacket{Speech: seg.Text, ContextID: seg.ContextID},
-			internal_type.ConversationEventPacket{
-				Name: "eos",
-				Data: map[string]string{"type": "interim", "speech": seg.Text},
-			},
+			internal_type.ConversationEventPacket{Name: "eos", Data: map[string]string{"type": "interim", "speech": seg.Text}},
 		)
-		eos.send(command{
-			ctx:     ctx,
-			segment: seg,
-			fireNow: true,
-		})
+		eos.send(command{ctx: ctx, segment: seg, fireNow: true})
 
 	case internal_type.InterruptionPacket:
 		eos.mu.RLock()

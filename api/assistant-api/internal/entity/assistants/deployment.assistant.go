@@ -85,12 +85,12 @@ type AssistantDeployment struct {
 
 type AssistantDeploymentBehavior struct {
 	AssistantDeployment
-	Greeting            *string `json:"greeting" gorm:"type:string;size:50;not null;"`
-	Mistake             *string `json:"mistake" gorm:"type:string;size:50;not null;"`
-	IdealTimeout        *uint64 `json:"idealTimeout"`
-	IdealTimeoutBackoff *uint64 `json:"idealTimeoutBackoff"`
-	IdealTimeoutMessage *string `json:"idealTimeoutMessage" gorm:"type:string;size:50;not null;"`
-	MaxSessionDuration  *uint64 `json:"maxSessionDuration"`
+	Greeting           *string `json:"greeting" gorm:"type:string;size:50;not null;"`
+	Mistake            *string `json:"mistake" gorm:"type:string;size:50;not null;"`
+	IdleTimeout        *uint64 `json:"idealTimeout"`
+	IdleTimeoutBackoff *uint64 `json:"idealTimeoutBackoff"`
+	IdleTimeoutMessage *string `json:"idealTimeoutMessage" gorm:"type:string;size:50;not null;"`
+	MaxSessionDuration *uint64 `json:"maxSessionDuration"`
 }
 
 type AssistantWebPluginDeployment struct {
@@ -98,20 +98,15 @@ type AssistantWebPluginDeployment struct {
 
 	Suggestion gorm_types.StringArray `json:"suggestion" gorm:"column:suggestions;type:string"`
 
-	//
-	HelpCenterEnabled     bool `json:"helpCenterEnabled" gorm:"type:bool"`
-	ProductCatalogEnabled bool `json:"productCatalogEnabled" gorm:"type:bool"`
-	ArticleCatalogEnabled bool `json:"articleCatalogEnabled" gorm:"type:bool"`
-
-	InputAudio *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
-	OuputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	InputAudio  *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	OutputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
 }
 
 type AssistantPhoneDeployment struct {
 	AssistantDeploymentBehavior
 	AssistantDeploymentTelephony
-	InputAudio *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
-	OuputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	InputAudio  *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	OutputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
 }
 
 type AssistantWhatsappDeployment struct {
@@ -123,14 +118,14 @@ type AssistantWhatsappDeployment struct {
  */
 type AssistantApiDeployment struct {
 	AssistantDeploymentBehavior
-	InputAudio *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
-	OuputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	InputAudio  *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	OutputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
 }
 
 /**
  */
 type AssistantDebuggerDeployment struct {
 	AssistantDeploymentBehavior
-	InputAudio *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
-	OuputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	InputAudio  *AssistantDeploymentAudio `json:"inputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
+	OutputAudio *AssistantDeploymentAudio `json:"outputAudio"  gorm:"foreignKey:AssistantDeploymentId"`
 }

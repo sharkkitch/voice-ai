@@ -368,6 +368,9 @@ type EndOfSpeechPacket struct {
 	ContextID string
 
 	Speech string
+
+	// Language detected by the STT provider for this turn.
+	Language string
 }
 
 func (f EndOfSpeechPacket) ContextId() string {
@@ -445,6 +448,9 @@ func (f VadAudioPacket) ContextId() string { return f.ContextID }
 type ExecuteLLMPacket struct {
 	ContextID string
 	Input     string
+
+	// Language detected by the STT provider for this turn.
+	Language string
 }
 
 func (f ExecuteLLMPacket) ContextId() string { return f.ContextID }
@@ -517,6 +523,9 @@ type SaveMessagePacket struct {
 	ContextID   string
 	MessageRole string
 	Text        string
+
+	// Language detected by the STT provider for this turn (user messages only).
+	Language string
 }
 
 func (f SaveMessagePacket) ContextId() string { return f.ContextID }

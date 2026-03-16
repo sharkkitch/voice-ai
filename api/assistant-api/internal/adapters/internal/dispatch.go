@@ -33,11 +33,9 @@ type packetEnvelope struct {
 
 func (talking *genericRequestor) callEndOfSpeech(ctx context.Context, vl internal_type.Packet) error {
 	if talking.endOfSpeech != nil {
-		utils.Go(ctx, func() {
-			if err := talking.endOfSpeech.Analyze(ctx, vl); err != nil {
-				talking.logger.Errorf("end of speech analyze error: %v", err)
-			}
-		})
+		if err := talking.endOfSpeech.Analyze(ctx, vl); err != nil {
+			talking.logger.Errorf("end of speech analyze error: %v", err)
+		}
 		return nil
 	}
 	return errors.New("end of speech analyzer not configured")
@@ -281,12 +279,10 @@ func (talking *genericRequestor) handleUserText(ctx context.Context, vl internal
 	// is idle (e.g. greeting already delivered in text mode), skipping the
 	// interrupt avoids an unnecessary contextID rotation that would put the
 	// greeting and the user's response on different IDs.
-	if talking.isAssistantActive() {
-		talking.handleInterruption(ctx, internal_type.InterruptionPacket{ContextID: talking.GetID(), Source: internal_type.InterruptionSourceWord})
-	}
+	talking.handleInterruption(ctx, internal_type.InterruptionPacket{ContextID: talking.GetID(), Source: internal_type.InterruptionSourceWord})
 	vl.ContextID = talking.GetID()
 	if err := talking.callEndOfSpeech(ctx, vl); err != nil {
-		talking.OnPacket(ctx, internal_type.EndOfSpeechPacket{ContextID: talking.GetID(), Speech: vl.Text})
+		talking.OnPacket(ctx, internal_type.EndOfSpeechPacket{ContextID: vl.ContextID, Speech: vl.Text})
 	}
 }
 
@@ -310,8 +306,10 @@ func (talking *genericRequestor) handleUserAudio(ctx context.Context, vl interna
 // =============================================================================
 
 func (talking *genericRequestor) handleDenoise(ctx context.Context, vl internal_type.DenoiseAudioPacket) {
-	if err := talking.denoiser.Denoise(ctx, vl); err != nil {
-		talking.logger.Warnf("denoiser returned unexpected error: %+v", err)
+	if talking.denoiser != nil {
+		if err := talking.denoiser.Denoise(ctx, vl); err != nil {
+			talking.logger.Warnf("denoiser returned unexpected error: %+v", err)
+		}
 	}
 }
 
@@ -364,7 +362,7 @@ func (talking *genericRequestor) handleSpeechToText(ctx context.Context, vl inte
 	vl.ContextID = talking.GetID()
 	if err := talking.callEndOfSpeech(ctx, vl); err != nil {
 		if !vl.Interim {
-			talking.OnPacket(ctx, internal_type.EndOfSpeechPacket{ContextID: vl.ContextID, Speech: vl.Script})
+			talking.OnPacket(ctx, internal_type.EndOfSpeechPacket{ContextID: vl.ContextID, Speech: vl.Script, Language: vl.Language})
 		}
 	}
 }
@@ -379,52 +377,11 @@ func (talking *genericRequestor) handleInterimEndOfSpeech(ctx context.Context, v
 }
 
 func (talking *genericRequestor) handleEndOfSpeech(ctx context.Context, vl internal_type.EndOfSpeechPacket) {
-	// Guard: drop stale EOS packets from a previous turn whose silence
-	// timer fired after the contextID was already rotated.
-	if vl.ContextID != "" && vl.ContextID != talking.GetID() {
-		talking.OnPacket(ctx, internal_type.ConversationEventPacket{
-			ContextID: vl.ContextID,
-			Name:      "eos",
-			Data:      map[string]string{"type": "discarded", "reason": "stale_context", "current_context": talking.GetID()},
-			Time:      time.Now(),
-		})
-		return
-	}
-
 	talking.stopIdleTimeoutTimer()
-
-	// If the assistant is currently active (generating, generated, or
-	// soft-interrupted by VAD), this EOS is a confirmed voice interruption
-	// backed by STT. Cancel the old turn before starting the new one.
-	if talking.isAssistantActive() {
-		oldContextID := talking.GetID()
-		if err := talking.Transition(Interrupted); err == nil {
-			if err := talking.OnPacket(ctx,
-				internal_type.RecordAssistantAudioPacket{ContextID: oldContextID, Truncate: true},
-				internal_type.InterruptTTSPacket{ContextID: oldContextID},
-				internal_type.InterruptLLMPacket{ContextID: oldContextID},
-			); err != nil {
-				talking.logger.Errorf("eos interrupt: failed to enqueue cancel packets: %v", err)
-			}
-			utils.Go(ctx, func() {
-				if err := talking.Notify(ctx, &protos.ConversationInterruption{
-					Type: protos.ConversationInterruption_INTERRUPTION_TYPE_WORD,
-					Time: timestamppb.Now(),
-				}); err != nil {
-					talking.logger.Errorf("eos interrupt: failed to notify client: %v", err)
-				}
-			})
-		}
-		// If Transition failed (already Interrupted by a word-interrupt),
-		// the cascade was already handled — just proceed with the new turn.
-	}
-
-	contextID := talking.GetID()
-
 	if err := talking.Transition(LLMGenerating); err != nil {
 		talking.logger.Errorf("messaging transition error: %v", err)
 	}
-
+	contextID := talking.GetID()
 	if err := talking.Notify(ctx, &protos.ConversationUserMessage{
 		Id:        contextID,
 		Message:   &protos.ConversationUserMessage_Text{Text: vl.Speech},
@@ -436,8 +393,8 @@ func (talking *genericRequestor) handleEndOfSpeech(ctx context.Context, vl inter
 	}
 
 	talking.OnPacket(ctx,
-		internal_type.SaveMessagePacket{ContextID: contextID, MessageRole: "user", Text: vl.Speech},
-		internal_type.ExecuteLLMPacket{ContextID: contextID, Input: vl.Speech})
+		internal_type.SaveMessagePacket{ContextID: contextID, MessageRole: "user", Text: vl.Speech, Language: vl.Language},
+		internal_type.ExecuteLLMPacket{ContextID: contextID, Input: vl.Speech, Language: vl.Language})
 }
 
 // =============================================================================
@@ -474,7 +431,6 @@ func (talking *genericRequestor) handleInterruption(ctx context.Context, vl inte
 		if vl.StartAt < 5 {
 			return
 		}
-
 		if err := talking.callEndOfSpeech(ctx, vl); err != nil {
 			talking.logger.Errorf("end of speech error: %v", err)
 		}
@@ -521,6 +477,9 @@ func (talking *genericRequestor) handleInterruptLLM(ctx context.Context, vl inte
 // handleExecuteLLM runs the LLM executor in a goroutine so the dispatcher
 // is not blocked for the duration of the LLM response (which can be seconds).
 func (talking *genericRequestor) handleExecuteLLM(ctx context.Context, vl internal_type.ExecuteLLMPacket) {
+	if vl.Language != "" {
+		talking.args["language"] = vl.Language
+	}
 	utils.Go(ctx, func() {
 		if err := talking.assistantExecutor.Execute(ctx, talking, internal_type.UserTextPacket{ContextID: vl.ContextID, Text: vl.Input}); err != nil {
 			talking.logger.Errorf("assistant executor error: %v", err)
@@ -534,7 +493,7 @@ func (talking *genericRequestor) handleLLMDelta(ctx context.Context, vl internal
 		talking.OnPacket(ctx, internal_type.ConversationEventPacket{
 			ContextID: vl.ContextID,
 			Name:      "llm",
-			Data:      map[string]string{"type": "discarded", "reason": "stale_context", "current_context": talking.GetID()},
+			Data:      map[string]string{"type": "discarded", "reason": "stale_context", "current_context": talking.GetID(), "text": vl.Text},
 			Time:      time.Now(),
 		})
 		return
@@ -552,7 +511,7 @@ func (talking *genericRequestor) handleLLMDone(ctx context.Context, vl internal_
 		talking.OnPacket(ctx, internal_type.ConversationEventPacket{
 			ContextID: vl.ContextID,
 			Name:      "llm",
-			Data:      map[string]string{"type": "discarded", "reason": "stale_context", "packet": "done", "current_context": talking.GetID()},
+			Data:      map[string]string{"type": "discarded", "reason": "stale_context", "packet": "done", "current_context": talking.GetID(), "text": vl.Text},
 			Time:      time.Now(),
 		})
 		return
@@ -573,6 +532,7 @@ func (talking *genericRequestor) handleLLMError(ctx context.Context, vl internal
 		AssistantConversationId: talking.Conversation().Id,
 		Message:                 fmt.Sprintf("llm: %v", vl.Error),
 	})
+	talking.Transition(LLMGenerated)
 }
 
 // =============================================================================
@@ -667,7 +627,7 @@ func (talking *genericRequestor) handleSpeakText(ctx context.Context, vl interna
 			if err := talking.Notify(ctx, &protos.ConversationAssistantMessage{
 				Time:      timestamppb.Now(),
 				Id:        vl.ContextID,
-				Completed: true,
+				Completed: false,
 				Message:   &protos.ConversationAssistantMessage_Text{Text: vl.Text},
 			}); err != nil {
 				talking.logger.Tracef(ctx, "error while outputting chunk to the user: %w", err)
@@ -739,6 +699,12 @@ func (talking *genericRequestor) handleSaveMessage(ctx context.Context, vl inter
 	if err := talking.onCreateMessage(ctx, vl); err != nil {
 		talking.logger.Errorf("Error in onCreateMessage: %v", err)
 	}
+	if vl.Language != "" {
+		talking.OnPacket(ctx, internal_type.MessageMetadataPacket{
+			ContextID: vl.ContextID,
+			Metadata:  []*protos.Metadata{{Key: "language", Value: vl.Language}},
+		})
+	}
 }
 
 func (talking *genericRequestor) handleConversationMetric(ctx context.Context, vl internal_type.ConversationMetricPacket) {
@@ -788,8 +754,23 @@ func (talking *genericRequestor) handleMessageMetric(ctx context.Context, vl int
 }
 
 func (talking *genericRequestor) handleMessageMetadata(ctx context.Context, vl internal_type.MessageMetadataPacket) {
-	if len(vl.Metadata) > 0 {
-		talking.logger.Debugf("message metadata received for context %s", vl.ContextID)
+	if len(vl.Metadata) == 0 {
+		return
+	}
+	talking.logger.Debugf("message metadata received for context %s", vl.ContextID)
+	metadata := make(map[string]interface{}, len(vl.Metadata))
+	for _, m := range vl.Metadata {
+		metadata[m.Key] = m.Value
+	}
+	dbCtx, cancel := context.WithTimeout(context.Background(), dbWriteTimeout)
+	defer cancel()
+	if _, err := talking.conversationService.ApplyMessageMetadata(
+		dbCtx, talking.Auth(),
+		talking.Conversation().Id,
+		vl.ContextID,
+		metadata,
+	); err != nil {
+		talking.logger.Errorf("Error in ApplyMessageMetadata: %v", err)
 	}
 }
 

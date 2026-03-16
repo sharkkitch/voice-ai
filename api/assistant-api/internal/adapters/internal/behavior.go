@@ -77,6 +77,7 @@ func (r *genericRequestor) initializeGreeting(ctx context.Context, behavior *int
 		return
 	}
 
+	r.Transition(Interrupted)
 	if err := r.OnPacket(ctx,
 		internal_type.StaticPacket{ContextID: r.GetID(), Text: greetingContent},
 		internal_type.ConversationEventPacket{
@@ -91,7 +92,7 @@ func (r *genericRequestor) initializeGreeting(ctx context.Context, behavior *int
 
 // initializeIdleTimeout starts the idle timeout timer if configured.
 func (r *genericRequestor) initializeIdleTimeout(ctx context.Context, behavior *internal_assistant_entity.AssistantDeploymentBehavior) {
-	if behavior.IdealTimeout == nil || *behavior.IdealTimeout <= 0 {
+	if behavior.IdleTimeout == nil || *behavior.IdleTimeout <= 0 {
 		return
 	}
 	r.startIdleTimeoutTimer(ctx)
@@ -130,6 +131,7 @@ func (r *genericRequestor) OnError(ctx context.Context) error {
 		mistakeContent = r.templateParser.Parse(*behavior.Mistake, r.GetArgs())
 	}
 
+	r.Transition(Interrupted)
 	if err := r.OnPacket(ctx,
 		internal_type.StaticPacket{ContextID: r.GetID(), Text: mistakeContent},
 		internal_type.ConversationEventPacket{
@@ -154,13 +156,13 @@ func (r *genericRequestor) onIdleTimeout(ctx context.Context) error {
 		return nil
 	}
 
-	if behavior.IdealTimeout == nil || *behavior.IdealTimeout == 0 {
+	if behavior.IdleTimeout == nil || *behavior.IdleTimeout == 0 {
 		return nil
 	}
 
 	// Check if max backoff retries reached
-	if behavior.IdealTimeoutBackoff != nil && *behavior.IdealTimeoutBackoff > 0 {
-		if r.idleTimeoutCount >= *behavior.IdealTimeoutBackoff {
+	if behavior.IdleTimeoutBackoff != nil && *behavior.IdleTimeoutBackoff > 0 {
+		if r.idleTimeoutCount >= *behavior.IdleTimeoutBackoff {
 			r.OnPacket(ctx, internal_type.DirectivePacket{
 				ContextID: r.GetID(),
 				Directive: protos.ConversationDirective_END_CONVERSATION,
@@ -180,9 +182,10 @@ func (r *genericRequestor) onIdleTimeout(ctx context.Context) error {
 	}
 
 	maxCount := 0
-	if behavior.IdealTimeoutBackoff != nil {
-		maxCount = int(*behavior.IdealTimeoutBackoff)
+	if behavior.IdleTimeoutBackoff != nil {
+		maxCount = int(*behavior.IdleTimeoutBackoff)
 	}
+	r.Transition(Interrupted)
 	if err := r.OnPacket(ctx,
 		internal_type.StaticPacket{ContextID: r.GetID(), Text: timeoutContent},
 		internal_type.ConversationEventPacket{
@@ -205,8 +208,8 @@ func (r *genericRequestor) onIdleTimeout(ctx context.Context) error {
 func (r *genericRequestor) getIdleTimeoutMessage(behavior *internal_assistant_entity.AssistantDeploymentBehavior) string {
 	const defaultTimeoutMessage = "Are you still there?"
 
-	if behavior.IdealTimeoutMessage != nil && strings.TrimSpace(*behavior.IdealTimeoutMessage) != "" {
-		return r.templateParser.Parse(*behavior.IdealTimeoutMessage, r.GetArgs())
+	if behavior.IdleTimeoutMessage != nil && strings.TrimSpace(*behavior.IdleTimeoutMessage) != "" {
+		return r.templateParser.Parse(*behavior.IdleTimeoutMessage, r.GetArgs())
 	}
 
 	return defaultTimeoutMessage
@@ -225,11 +228,11 @@ func (r *genericRequestor) startIdleTimeoutTimer(ctx context.Context, inputDurat
 		return
 	}
 
-	if behavior.IdealTimeout == nil || *behavior.IdealTimeout == 0 {
+	if behavior.IdleTimeout == nil || *behavior.IdleTimeout == 0 {
 		return
 	}
 
-	timeoutDuration := time.Duration(*behavior.IdealTimeout) * time.Second
+	timeoutDuration := time.Duration(*behavior.IdleTimeout) * time.Second
 	if len(inputDuration) > 0 && inputDuration[0] > 0 {
 		timeoutDuration += inputDuration[0]
 	}

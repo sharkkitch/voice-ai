@@ -41,9 +41,6 @@ func (deploymentApi *assistantDeploymentApi) CreateAssistantWebpluginDeployment(
 		&deployment.GetPlugin().IdealTimeoutMessage,
 		&deployment.GetPlugin().MaxSessionDuration,
 		deployment.GetPlugin().GetSuggestion(),
-		deployment.GetPlugin().GetHelpCenterEnabled(),
-		deployment.GetPlugin().GetProductCatalogEnabled(),
-		deployment.GetPlugin().GetArticleCatalogEnabled(),
 		deployment.GetPlugin().GetInputAudio(),
 		deployment.GetPlugin().GetOutputAudio(),
 	)

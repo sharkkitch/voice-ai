@@ -12,6 +12,7 @@ import (
 
 	internal_assistant_entity "github.com/rapidaai/api/assistant-api/internal/entity/assistants"
 	internal_conversation_entity "github.com/rapidaai/api/assistant-api/internal/entity/conversations"
+	internal_telemetry_entity "github.com/rapidaai/api/assistant-api/internal/entity/telemetry"
 	internal_services "github.com/rapidaai/api/assistant-api/internal/services"
 	"github.com/rapidaai/pkg/types"
 	"github.com/rapidaai/pkg/utils"
@@ -54,26 +55,33 @@ func (gr *genericRequestor) GetSpeechToTextTransformer() (
 	return nil, errors.New("audio is not enabled for the source")
 }
 
+func (gr *genericRequestor) GetTelemetryProvider(ctx context.Context) ([]*internal_telemetry_entity.AssistantTelemetryProvider, error) {
+	if gr.assistant != nil && gr.assistant.AssistantTelemetryProviders != nil {
+		return gr.assistant.AssistantTelemetryProviders, nil
+	}
+	return nil, errors.New("telemetry is not enabled for assistant")
+}
+
 func (gr *genericRequestor) GetTextToSpeechTransformer() (*internal_assistant_entity.AssistantDeploymentAudio, error) {
 	switch gr.source {
 	case utils.PhoneCall:
-		if a := gr.assistant; a != nil && a.AssistantPhoneDeployment != nil && a.AssistantPhoneDeployment.OuputAudio != nil {
-			return a.AssistantPhoneDeployment.OuputAudio, nil
+		if a := gr.assistant; a != nil && a.AssistantPhoneDeployment != nil && a.AssistantPhoneDeployment.OutputAudio != nil {
+			return a.AssistantPhoneDeployment.OutputAudio, nil
 		}
 
 	case utils.SDK:
-		if a := gr.assistant; a != nil && a.AssistantApiDeployment != nil && a.AssistantApiDeployment.OuputAudio != nil {
-			return a.AssistantApiDeployment.OuputAudio, nil
+		if a := gr.assistant; a != nil && a.AssistantApiDeployment != nil && a.AssistantApiDeployment.OutputAudio != nil {
+			return a.AssistantApiDeployment.OutputAudio, nil
 		}
 
 	case utils.WebPlugin:
-		if a := gr.assistant; a != nil && a.AssistantWebPluginDeployment != nil && a.AssistantWebPluginDeployment.OuputAudio != nil {
-			return a.AssistantWebPluginDeployment.OuputAudio, nil
+		if a := gr.assistant; a != nil && a.AssistantWebPluginDeployment != nil && a.AssistantWebPluginDeployment.OutputAudio != nil {
+			return a.AssistantWebPluginDeployment.OutputAudio, nil
 		}
 
 	case utils.Debugger:
-		if a := gr.assistant; a != nil && a.AssistantDebuggerDeployment != nil && a.AssistantDebuggerDeployment.OuputAudio != nil {
-			return a.AssistantDebuggerDeployment.OuputAudio, nil
+		if a := gr.assistant; a != nil && a.AssistantDebuggerDeployment != nil && a.AssistantDebuggerDeployment.OutputAudio != nil {
+			return a.AssistantDebuggerDeployment.OutputAudio, nil
 		}
 	}
 	return nil, errors.New("audio is not enabled for the source")
@@ -93,10 +101,11 @@ func (gr *genericRequestor) GetAssistant(
 
 		// these are very specific for deployment
 
-		InjectTool:          true,
-		InjectAnalysis:      true,
-		InjectWebhook:       true,
-		InjectConversations: false,
+		InjectTool:              true,
+		InjectAnalysis:          true,
+		InjectWebhook:           true,
+		InjectConversations:     false,
+		InjectTelemetryProvider: true,
 	}
 	switch gr.source {
 	case utils.PhoneCall:

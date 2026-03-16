@@ -37,8 +37,21 @@ const (
 // SpeechSegment represents accumulated speech with metadata.
 type SpeechSegment struct {
 	ContextID string
-	Text      string
+	Committed string // accumulated final transcripts
+	Pending   string // latest interim transcript (not yet finalized)
 	Timestamp time.Time
+	Language  string
+}
+
+// FullText returns the complete transcript including any pending interim text.
+func (s SpeechSegment) FullText() string {
+	if s.Pending == "" {
+		return s.Committed
+	}
+	if s.Committed == "" {
+		return s.Pending
+	}
+	return s.Committed + " " + s.Pending
 }
 
 type command struct {
@@ -167,15 +180,15 @@ func (eos *PipecatEOS) Analyze(ctx context.Context, pkt internal_type.Packet) er
 			return nil
 		}
 		eos.mu.Lock()
-		seg := SpeechSegment{ContextID: p.ContextId(), Text: p.Text, Timestamp: time.Now()}
+		seg := SpeechSegment{ContextID: p.ContextId(), Committed: p.Text, Timestamp: time.Now()}
 		eos.state.segment = seg
 		eos.mu.Unlock()
 
 		eos.callback(ctx,
-			internal_type.InterimEndOfSpeechPacket{Speech: seg.Text, ContextID: seg.ContextID},
+			internal_type.InterimEndOfSpeechPacket{Speech: seg.Committed, ContextID: seg.ContextID},
 			internal_type.ConversationEventPacket{
 				Name: "eos",
-				Data: map[string]string{"type": "interim", "speech": seg.Text},
+				Data: map[string]string{"type": "interim", "speech": seg.Committed},
 			},
 		)
 		eos.send(command{ctx: ctx, segment: seg, fireNow: true})
@@ -184,7 +197,7 @@ func (eos *PipecatEOS) Analyze(ctx context.Context, pkt internal_type.Packet) er
 		eos.mu.RLock()
 		seg := eos.state.segment
 		eos.mu.RUnlock()
-		if seg.Text == "" {
+		if seg.FullText() == "" {
 			return nil
 		}
 		timeout := eos.computeTimeout()
@@ -192,40 +205,46 @@ func (eos *PipecatEOS) Analyze(ctx context.Context, pkt internal_type.Packet) er
 
 	case internal_type.SpeechToTextPacket:
 		eos.mu.Lock()
+
+		seg := eos.state.segment
+		if seg.ContextID == "" {
+			seg.ContextID = p.ContextId()
+		}
+		seg.Timestamp = time.Now()
+
 		if p.Interim {
-			seg := eos.state.segment
-			eos.mu.Unlock()
-			if seg.Text == "" {
-				return nil
+			seg.Pending = p.Script
+		} else {
+			if seg.Committed != "" {
+				seg.Committed = fmt.Sprintf("%s %s", seg.Committed, p.Script)
+			} else {
+				seg.Committed = p.Script
 			}
-			timeout := eos.computeTimeout()
-			eos.send(command{ctx: ctx, segment: seg, timeout: timeout})
+			seg.Pending = ""
+		}
+
+		if p.Language != "" {
+			seg.Language = p.Language
+		}
+
+		eos.state.segment = seg
+		fullText := seg.FullText()
+		eos.mu.Unlock()
+
+		if fullText == "" {
 			return nil
 		}
 
-		newSeg := SpeechSegment{
-			ContextID: p.ContextId(),
-			Timestamp: time.Now(),
-			Text:      eos.state.segment.Text,
-		}
-		if newSeg.Text != "" {
-			newSeg.Text = fmt.Sprintf("%s %s", eos.state.segment.Text, p.Script)
-		} else {
-			newSeg.Text = p.Script
-		}
-		eos.state.segment = newSeg
-		eos.mu.Unlock()
-
 		eos.callback(ctx,
-			internal_type.InterimEndOfSpeechPacket{Speech: newSeg.Text, ContextID: newSeg.ContextID},
+			internal_type.InterimEndOfSpeechPacket{Speech: fullText, ContextID: seg.ContextID},
 			internal_type.ConversationEventPacket{
 				Name: "eos",
-				Data: map[string]string{"type": "interim", "speech": newSeg.Text},
+				Data: map[string]string{"type": "interim", "speech": fullText},
 			},
 		)
 
 		timeout := eos.computeTimeout()
-		eos.send(command{ctx: ctx, segment: newSeg, timeout: timeout})
+		eos.send(command{ctx: ctx, segment: seg, timeout: timeout})
 	}
 
 	return nil
@@ -370,7 +389,8 @@ func (eos *PipecatEOS) worker() {
 }
 
 func (eos *PipecatEOS) fire(ctx context.Context, seg SpeechSegment) {
-	if seg.Text == "" {
+	speech := seg.FullText()
+	if speech == "" {
 		return
 	}
 
@@ -378,24 +398,33 @@ func (eos *PipecatEOS) fire(ctx context.Context, seg SpeechSegment) {
 		ctx = context.Background()
 	}
 
-	wordCount := len(strings.Fields(seg.Text))
+	wordCount := len(strings.Fields(speech))
 	triggerAt := time.Now()
-	_ = eos.callback(ctx,
-		internal_type.EndOfSpeechPacket{Speech: seg.Text, ContextID: seg.ContextID},
-		internal_type.ConversationEventPacket{
-			Name: "eos",
-			Data: map[string]string{
-				"type":               "detected",
-				"provider":           eosName,
-				"context_id":         seg.ContextID,
-				"speech":             seg.Text,
-				"word_count":         fmt.Sprintf("%d", wordCount),
-				"char_count":         fmt.Sprintf("%d", len(seg.Text)),
-				"text_to_trigger_ms": fmt.Sprintf("%d", triggerAt.Sub(seg.Timestamp).Milliseconds()),
-			},
-			Time: triggerAt,
+	event := internal_type.ConversationEventPacket{
+		Name: "eos",
+		Data: map[string]string{
+			"type":               "detected",
+			"provider":           eosName,
+			"context_id":         seg.ContextID,
+			"speech":             speech,
+			"word_count":         fmt.Sprintf("%d", wordCount),
+			"char_count":         fmt.Sprintf("%d", len(speech)),
+			"text_to_trigger_ms": fmt.Sprintf("%d", triggerAt.Sub(seg.Timestamp).Milliseconds()),
 		},
-	)
+		Time: triggerAt,
+	}
+
+	if seg.Committed != "" {
+		_ = eos.callback(ctx,
+			internal_type.EndOfSpeechPacket{Speech: speech, ContextID: seg.ContextID, Language: seg.Language},
+			event,
+		)
+	} else {
+		_ = eos.callback(ctx,
+			internal_type.InterimEndOfSpeechPacket{Speech: speech, ContextID: seg.ContextID},
+			event,
+		)
+	}
 
 	eos.send(command{reset: true})
 }

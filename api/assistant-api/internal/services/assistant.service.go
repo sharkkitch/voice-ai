@@ -29,6 +29,9 @@ type GetAssistantOption struct {
 
 	InjectAnalysis bool
 	InjectWebhook  bool
+
+	//
+	InjectTelemetryProvider bool
 }
 
 func NewDefaultGetAssistantOption() *GetAssistantOption {
@@ -43,6 +46,7 @@ func NewDefaultGetAssistantOption() *GetAssistantOption {
 		InjectWhatsappDeployment:     true,
 		InjectTool:                   true,
 		InjectConversations:          true,
+		InjectTelemetryProvider:      true,
 	}
 }
 
@@ -187,7 +191,6 @@ type AssistantDeploymentService interface {
 		greeting, mistake *string,
 		idealTimeout *uint64, idealTimeoutBackoff *uint64, idealTimeoutMessage *string, maxSessionDuration *uint64,
 		suggestion []string,
-		helpCenterEnabled, productCatalogEnabled, articleCatalogEnabled bool,
 		inputAudio, outputAudio *workflow_api.DeploymentAudioProvider,
 	) (*internal_assistant_entity.AssistantWebPluginDeployment, error)
 

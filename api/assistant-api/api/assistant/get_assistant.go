@@ -12,6 +12,7 @@ import (
 	internal_services "github.com/rapidaai/api/assistant-api/internal/services"
 	"github.com/rapidaai/pkg/types"
 	"github.com/rapidaai/pkg/utils"
+	"github.com/rapidaai/protos"
 	assistant_api "github.com/rapidaai/protos"
 )
 
@@ -25,7 +26,7 @@ func (assistantApi *assistantGrpcApi) GetAssistant(ctx context.Context, cepm *as
 		)
 	}
 
-	ep, err := assistantApi.assistantService.Get(
+	agent, err := assistantApi.assistantService.Get(
 		ctx,
 		iAuth,
 		cepm.
@@ -41,14 +42,10 @@ func (assistantApi *assistantGrpcApi) GetAssistant(ctx context.Context, cepm *as
 	}
 
 	out := &assistant_api.Assistant{}
-	err = utils.Cast(ep, out)
+	err = utils.Cast(agent, out)
 	if err != nil {
 		assistantApi.logger.Errorf("unable to cast assistant %v", err)
 	}
+	return utils.Success[protos.GetAssistantResponse, *protos.Assistant](out)
 
-	return &assistant_api.GetAssistantResponse{
-		Data:    out,
-		Success: true,
-		Code:    200,
-	}, nil
 }

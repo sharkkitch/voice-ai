@@ -17,14 +17,21 @@ COPY api/assistant-api ./api/assistant-api
 COPY cmd/assistant/ ./cmd/assistant/
 
 # ---- Download turn detector models ----
-RUN mkdir -p ./api/assistant-api/internal/end_of_speech/internal/livekit/models && \
+# LiveKit model_q8.onnx ships with unused opset imports (ai.onnx.ml v5 etc.)
+# that ORT 1.16 rejects. Strip them with a one-liner after download.
+RUN pip install --no-cache-dir onnx && \
+    mkdir -p ./api/assistant-api/internal/end_of_speech/internal/livekit/models && \
     curl -fsSL -o ./api/assistant-api/internal/end_of_speech/internal/livekit/models/model_q8.onnx \
         "https://huggingface.co/livekit/turn-detector/resolve/v1.2.2-en/onnx/model_q8.onnx" && \
+    python3 -c "import onnx; m=onnx.load('api/assistant-api/internal/end_of_speech/internal/livekit/models/model_q8.onnx'); \
+      used={n.domain for n in m.graph.node}; keep=[o for o in m.opset_import if o.domain=='' or o.domain in used]; \
+      del m.opset_import[:]; m.opset_import.extend(keep); onnx.save(m, 'api/assistant-api/internal/end_of_speech/internal/livekit/models/model_q8.onnx')" && \
     curl -fsSL -o ./api/assistant-api/internal/end_of_speech/internal/livekit/models/tokenizer.json \
         "https://huggingface.co/livekit/turn-detector/resolve/v1.2.2-en/tokenizer.json" && \
     mkdir -p ./api/assistant-api/internal/end_of_speech/internal/pipecat/models && \
     curl -fsSL -o ./api/assistant-api/internal/end_of_speech/internal/pipecat/models/smart-turn-v3.2-cpu.onnx \
-        "https://huggingface.co/pipecat-ai/smart-turn-v3/resolve/main/smart-turn-v3.2-cpu.onnx"
+        "https://huggingface.co/pipecat-ai/smart-turn-v3/resolve/main/smart-turn-v3.2-cpu.onnx" && \
+    pip uninstall -y onnx
 
 # ---- Install TEN VAD shared library ----
 COPY api/assistant-api/internal/vad/internal/ten_vad/lib/Linux/x64/libten_vad.so /opt/ten_vad/lib/

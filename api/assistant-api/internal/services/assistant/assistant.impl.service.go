@@ -13,6 +13,7 @@ import (
 
 	"github.com/rapidaai/api/assistant-api/config"
 	internal_assistant_entity "github.com/rapidaai/api/assistant-api/internal/entity/assistants"
+	internal_telemetry_entity "github.com/rapidaai/api/assistant-api/internal/entity/telemetry"
 	internal_services "github.com/rapidaai/api/assistant-api/internal/services"
 	"github.com/rapidaai/pkg/commons"
 	"github.com/rapidaai/pkg/connectors"
@@ -199,6 +200,24 @@ func (eService *assistantService) Get(ctx context.Context,
 			})
 	}
 
+	if opts.InjectTelemetryProvider {
+		wg.Add(1)
+		utils.Go(ctx,
+			func() {
+				defer wg.Done()
+				var providers []*internal_telemetry_entity.AssistantTelemetryProvider
+				tx := db.Preload("Options").
+					Where("assistant_id = ? AND enabled = true", assistantId).
+					Find(&providers)
+				if tx.Error != nil {
+					eService.logger.Warnf("unable to find assistant telemetry providers with error %+v", tx.Error)
+					return
+				}
+				assistant.AssistantTelemetryProviders = providers
+
+			})
+	}
+
 	if opts.InjectKnowledgeConfiguration {
 		wg.Add(1)
 		utils.Go(ctx,
@@ -247,9 +266,9 @@ func (eService *assistantService) Get(ctx context.Context,
 				var deployment *internal_assistant_entity.AssistantApiDeployment
 				tx := db.
 					Preload("InputAudio", "audio_type = ?", "input").
-					Preload("OuputAudio", "audio_type = ?", "output").
+					Preload("OutputAudio", "audio_type = ?", "output").
 					Preload("InputAudio.AudioOptions").
-					Preload("OuputAudio.AudioOptions").
+					Preload("OutputAudio.AudioOptions").
 					Order(clause.OrderByColumn{
 						Column: clause.Column{Name: "created_date"},
 						Desc:   true,
@@ -269,9 +288,9 @@ func (eService *assistantService) Get(ctx context.Context,
 				var deployment *internal_assistant_entity.AssistantDebuggerDeployment
 				tx := db.
 					Preload("InputAudio", "audio_type = ?", "input").
-					Preload("OuputAudio", "audio_type = ?", "output").
+					Preload("OutputAudio", "audio_type = ?", "output").
 					Preload("InputAudio.AudioOptions").
-					Preload("OuputAudio.AudioOptions").
+					Preload("OutputAudio.AudioOptions").
 					Where("assistant_id = ?", assistantId).
 					Order(clause.OrderByColumn{
 						Column: clause.Column{Name: "created_date"},
@@ -279,6 +298,7 @@ func (eService *assistantService) Get(ctx context.Context,
 					}).
 					First(&deployment)
 				if tx.Error != nil {
+					eService.logger.Warnf("unable to find assistant tools with error %+v", tx.Error)
 					return
 				}
 				assistant.AssistantDebuggerDeployment = deployment
@@ -292,9 +312,9 @@ func (eService *assistantService) Get(ctx context.Context,
 				var deployment *internal_assistant_entity.AssistantWebPluginDeployment
 				tx := db.
 					Preload("InputAudio", "audio_type = ?", "input").
-					Preload("OuputAudio", "audio_type = ?", "output").
+					Preload("OutputAudio", "audio_type = ?", "output").
 					Preload("InputAudio.AudioOptions").
-					Preload("OuputAudio.AudioOptions").
+					Preload("OutputAudio.AudioOptions").
 					Order(clause.OrderByColumn{
 						Column: clause.Column{Name: "created_date"},
 						Desc:   true,
@@ -328,9 +348,9 @@ func (eService *assistantService) Get(ctx context.Context,
 				var deployment *internal_assistant_entity.AssistantPhoneDeployment
 				tx := db.Debug().
 					Preload("InputAudio", "audio_type = ?", "input").
-					Preload("OuputAudio", "audio_type = ?", "output").
+					Preload("OutputAudio", "audio_type = ?", "output").
 					Preload("InputAudio.AudioOptions").
-					Preload("OuputAudio.AudioOptions").
+					Preload("OutputAudio.AudioOptions").
 					Preload("TelephonyOption").
 					Order(clause.OrderByColumn{
 						Column: clause.Column{Name: "created_date"},

@@ -37,9 +37,11 @@ func TestGetEndOfSpeech_LiveKitIdentifier(t *testing.T) {
 
 	endOfSpeech, err := GetEndOfSpeech(t.Context(), logger, mockCallback, utils.Option{EndOfSpeechOptionsKeyProvider: LiveKitEndOfSpeech})
 
-	// Currently not implemented, should fail
-	assert.Error(t, err)
-	assert.Nil(t, endOfSpeech)
+	require.NoError(t, err)
+	assert.NotNil(t, endOfSpeech)
+	if endOfSpeech != nil {
+		defer endOfSpeech.Close()
+	}
 }
 
 func TestEndOfSpeechIdentifier_Constants(t *testing.T) {

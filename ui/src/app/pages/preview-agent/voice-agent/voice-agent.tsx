@@ -22,7 +22,7 @@ import {
 import { InputVarForm } from '@/app/pages/endpoint/view/try-playground/experiment-prompt/components/input-var-form';
 import { InputVarType } from '@/models/common';
 import { InputGroup } from '@/app/components/input-group';
-import { ChevronLeft, ExternalLink, Info } from 'lucide-react';
+import { ChevronLeft, ExternalLink, Info, X } from 'lucide-react';
 import { useRapidaStore } from '@/hooks';
 import { PageTitleBlock } from '@/app/components/blocks/page-title-block';
 import { PageHeaderBlock } from '@/app/components/blocks/page-header-block';
@@ -50,6 +50,17 @@ type EventEntry = {
 };
 
 type MsgTab = 'messages' | 'events';
+
+/** Returns the display label for an event — matches the 2nd column in the events table. */
+function getEventLabel(entry: EventEntry): string {
+  if (entry.type === 'pipelineEvent') return entry.payload?.name ?? 'pipeline';
+  if (entry.type === 'userMessage') return 'user';
+  if (entry.type === 'assistantMessage') return 'assistant';
+  if (entry.type === 'configuration') return 'session';
+  if (entry.type === 'interrupt') return 'interrupt';
+  if (entry.type === 'metric') return 'metric';
+  return entry.type;
+}
 
 // ---------------------------------------------------------------------------
 // Conversation event row
@@ -207,6 +218,7 @@ export const VoiceAgent: FC<{
   const [events, setEvents] = useState<EventEntry[]>([]);
   const [variables, setVariables] = useState<Variable[]>([]);
   const [msgTab, setMsgTab] = useState<MsgTab>('messages');
+  const [eventFilters, setEventFilters] = useState<Set<string>>(new Set());
   const [conversationError, setConversationError] =
     useState<ConversationError.AsObject | null>(null);
   const callbackRegistered = useRef(false);
@@ -300,6 +312,31 @@ export const VoiceAgent: FC<{
       );
     }
   }, [events.length, msgTab]);
+
+  // Derive unique labels from events for the filter bar
+  const availableEventLabels = useMemo(() => {
+    const labels = new Set<string>();
+    events.forEach(e => labels.add(getEventLabel(e)));
+    return Array.from(labels);
+  }, [events]);
+
+  // Filter events — empty set means show all
+  const filteredEvents = useMemo(() => {
+    if (eventFilters.size === 0) return events;
+    return events.filter(e => eventFilters.has(getEventLabel(e)));
+  }, [events, eventFilters]);
+
+  const toggleEventFilter = (label: string) => {
+    setEventFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  };
 
   if (loading) return <PageLoader />;
 
@@ -409,27 +446,70 @@ export const VoiceAgent: FC<{
 
         {/* Events tab — structured conversation event rows */}
         {msgTab === 'events' && (
-          <div className="flex-1 min-h-0 overflow-y-auto py-1">
-            {events.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm/6 font-mono">
-                No events yet…
+          <div className="flex flex-col flex-1 min-h-0">
+            {/* Filter bar */}
+            {availableEventLabels.length > 0 && (
+              <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-800">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 select-none">
+                  Filter
+                </span>
+                {availableEventLabels.map(label => {
+                  const isActive =
+                    eventFilters.size === 0 || eventFilters.has(label);
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => toggleEventFilter(label)}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] text-xs transition-colors',
+                        'border dark:border-gray-900',
+                        isActive
+                          ? 'bg-blue-600/10 text-blue-600 font-medium'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500',
+                      )}
+                    >
+                      {label}
+                      {eventFilters.has(label) && (
+                        <X className="w-3 h-3" strokeWidth={1.5} />
+                      )}
+                    </button>
+                  );
+                })}
+                {eventFilters.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setEventFilters(new Set())}
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 ml-1"
+                  >
+                    Clear all
+                  </button>
+                )}
               </div>
-            ) : (
-              <table className="w-full table-fixed font-mono text-sm/6 border-collapse">
-                <colgroup>
-                  <col className="w-[9rem]" />
-                  <col className="w-[6rem]" />
-                  <col className="w-[10rem]" />
-                  <col />
-                </colgroup>
-                <tbody>
-                  {events.map((entry, i) => (
-                    <ConversationEventRow key={i} entry={entry} />
-                  ))}
-                </tbody>
-              </table>
             )}
-            <div ref={eventsBottomRef} />
+
+            <div className="flex-1 min-h-0 overflow-y-auto py-1">
+              {filteredEvents.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm/6 font-mono">
+                  {events.length === 0 ? 'No events yet…' : 'No events match the selected filters.'}
+                </div>
+              ) : (
+                <table className="w-full table-fixed font-mono text-sm/6 border-collapse">
+                  <colgroup>
+                    <col className="w-[9rem]" />
+                    <col className="w-[6rem]" />
+                    <col className="w-[10rem]" />
+                    <col />
+                  </colgroup>
+                  <tbody>
+                    {filteredEvents.map((entry, i) => (
+                      <ConversationEventRow key={i} entry={entry} />
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <div ref={eventsBottomRef} />
+            </div>
           </div>
         )}
 

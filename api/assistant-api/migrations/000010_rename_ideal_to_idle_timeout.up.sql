@@ -1,0 +1,19 @@
+ALTER TABLE public.assistant_api_deployments RENAME COLUMN ideal_timeout TO idle_timeout;
+ALTER TABLE public.assistant_api_deployments RENAME COLUMN ideal_timeout_backoff TO idle_timeout_backoff;
+ALTER TABLE public.assistant_api_deployments RENAME COLUMN ideal_timeout_message TO idle_timeout_message;
+
+ALTER TABLE public.assistant_debugger_deployments RENAME COLUMN ideal_timeout TO idle_timeout;
+ALTER TABLE public.assistant_debugger_deployments RENAME COLUMN ideal_timeout_backoff TO idle_timeout_backoff;
+ALTER TABLE public.assistant_debugger_deployments RENAME COLUMN ideal_timeout_message TO idle_timeout_message;
+
+ALTER TABLE public.assistant_phone_deployments RENAME COLUMN ideal_timeout TO idle_timeout;
+ALTER TABLE public.assistant_phone_deployments RENAME COLUMN ideal_timeout_backoff TO idle_timeout_backoff;
+ALTER TABLE public.assistant_phone_deployments RENAME COLUMN ideal_timeout_message TO idle_timeout_message;
+
+ALTER TABLE public.assistant_whatsapp_deployments RENAME COLUMN ideal_timeout TO idle_timeout;
+ALTER TABLE public.assistant_whatsapp_deployments RENAME COLUMN ideal_timeout_backoff TO idle_timeout_backoff;
+ALTER TABLE public.assistant_whatsapp_deployments RENAME COLUMN ideal_timeout_message TO idle_timeout_message;
+
+ALTER TABLE public.assistant_web_plugin_deployments RENAME COLUMN ideal_timeout TO idle_timeout;
+ALTER TABLE public.assistant_web_plugin_deployments RENAME COLUMN ideal_timeout_backoff TO idle_timeout_backoff;
+ALTER TABLE public.assistant_web_plugin_deployments RENAME COLUMN ideal_timeout_message TO idle_timeout_message;
