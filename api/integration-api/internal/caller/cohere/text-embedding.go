@@ -6,8 +6,8 @@ import (
 
 	cohere "github.com/cohere-ai/cohere-go/v2"
 
-	internal_callers "github.com/rapidaai/api/integration-api/internal/type"
 	internal_caller_metrics "github.com/rapidaai/api/integration-api/internal/caller/metrics"
+	internal_callers "github.com/rapidaai/api/integration-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
 	"github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"

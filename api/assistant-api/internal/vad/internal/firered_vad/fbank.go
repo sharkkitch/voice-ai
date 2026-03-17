@@ -14,16 +14,16 @@ import (
 // -----------------------------------------------------------------------------
 
 const (
-	featDim        = 80    // Number of mel filterbank bins
-	sampleRate     = 16000 // Input sample rate (Hz)
-	frameLengthMs  = 25    // Frame length in milliseconds
-	frameShiftMs   = 10    // Frame shift in milliseconds
+	featDim        = 80                                // Number of mel filterbank bins
+	sampleRate     = 16000                             // Input sample rate (Hz)
+	frameLengthMs  = 25                                // Frame length in milliseconds
+	frameShiftMs   = 10                                // Frame shift in milliseconds
 	frameLenSample = sampleRate * frameLengthMs / 1000 // 400 samples
 	frameShiftSamp = sampleRate * frameShiftMs / 1000  // 160 samples
-	fftSize        = 512   // Next power of 2 >= frameLenSample
-	preemphCoeff   = 0.97  // Pre-emphasis coefficient (Kaldi default)
-	melLowFreq     = 20.0  // Mel filterbank low frequency
-	melHighFreq    = 8000.0 // Nyquist for 16 kHz
+	fftSize        = 512                               // Next power of 2 >= frameLenSample
+	preemphCoeff   = 0.97                              // Pre-emphasis coefficient (Kaldi default)
+	melLowFreq     = 20.0                              // Mel filterbank low frequency
+	melHighFreq    = 8000.0                            // Nyquist for 16 kHz
 )
 
 // -----------------------------------------------------------------------------

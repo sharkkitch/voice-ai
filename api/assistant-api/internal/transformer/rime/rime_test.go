@@ -65,9 +65,9 @@ func TestGetTextToSpeechConnectionString_Default(t *testing.T) {
 func TestGetTextToSpeechConnectionString_WithOverrides(t *testing.T) {
 	cred := newVaultCredential(map[string]interface{}{"key": "k"})
 	opts := utils.Option{
-		"speak.voice.id":   "aria",
-		"speak.model":      "mist",
-		"speak.language":   "fra",
+		"speak.voice.id":    "aria",
+		"speak.model":       "mist",
+		"speak.language":    "fra",
 		"speak.speed_alpha": "1.2",
 	}
 	opt, _ := NewRimeOption(newTestLogger(), cred, opts)

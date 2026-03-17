@@ -417,7 +417,6 @@ func BenchmarkSileroVAD_Process_MemoryPressure_LargeChunks(b *testing.B) {
 func BenchmarkSileroVAD_Process_WithCallback(b *testing.B) {
 	logger, _ := commons.NewApplicationLogger()
 
-
 	callbackCount := 0
 	callback := func(context.Context, ...internal_type.Packet) error {
 		callbackCount++

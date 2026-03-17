@@ -181,8 +181,6 @@ func (td *TurnDetector) Predict(text string) (float64, error) {
 	return prob, nil
 }
 
-
-
 // Destroy releases all ONNX Runtime resources.
 func (td *TurnDetector) Destroy() {
 	if td == nil {

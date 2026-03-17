@@ -17,9 +17,9 @@ const (
 	whisperHopLength  = 160
 	whisperNMels      = 80
 	whisperChunkSec   = 8
-	whisperMaxSamples = whisperChunkSec * whisperSampleRate // 128000
+	whisperMaxSamples = whisperChunkSec * whisperSampleRate  // 128000
 	whisperMaxFrames  = whisperMaxSamples / whisperHopLength // 800
-	whisperNFreqBins  = whisperNFFT/2 + 1                   // 201
+	whisperNFreqBins  = whisperNFFT/2 + 1                    // 201
 	whisperFFTSize    = 512                                  // next power of 2 >= nFFT
 )
 

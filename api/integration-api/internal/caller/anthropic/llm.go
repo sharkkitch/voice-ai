@@ -9,8 +9,8 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 
-	internal_callers "github.com/rapidaai/api/integration-api/internal/type"
 	internal_caller_metrics "github.com/rapidaai/api/integration-api/internal/caller/metrics"
+	internal_callers "github.com/rapidaai/api/integration-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
 	"github.com/rapidaai/pkg/utils"
 	protos "github.com/rapidaai/protos"
