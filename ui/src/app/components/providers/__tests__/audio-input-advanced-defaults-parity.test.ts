@@ -34,10 +34,14 @@ const {
 
 const legacyVadDefaults: Record<string, Record<string, string>> = {
   silero_vad: {
-    'microphone.vad.threshold': '0.6',
+    'microphone.vad.threshold': '0.5',
+    'microphone.vad.min_silence_frame': '20',
+    'microphone.vad.min_speech_frame': '8',
   },
   ten_vad: {
-    'microphone.vad.threshold': '0.6',
+    'microphone.vad.threshold': '0.5',
+    'microphone.vad.min_silence_frame': '20',
+    'microphone.vad.min_speech_frame': '8',
   },
   firered_vad: {
     'microphone.vad.threshold': '0.5',

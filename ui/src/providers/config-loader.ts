@@ -94,6 +94,11 @@ const PROVIDER_PATH_ALIASES: Record<string, string> = {
   sarvamai: 'sarvam',
   'google-speech-service': 'google',
 };
+const MODEL_SELECTOR_CATEGORIES: ReadonlySet<ProviderConfigCategory> = new Set([
+  'stt',
+  'tts',
+  'text',
+]);
 const TEXT_MODEL_DATA_CANDIDATES = ['text-models.json', 'models.json'] as const;
 const TEXT_CUSTOM_MODEL_PROVIDERS = new Set(['azure-foundry', 'vertexai']);
 
@@ -145,8 +150,10 @@ function synthesizeProviderConfig(provider: string): ProviderConfig | null {
   const resolvedProvider = resolveProviderPath(provider);
 
   for (const dataFile of TEXT_MODEL_DATA_CANDIDATES) {
-    const catalog = loadProviderData(resolvedProvider, dataFile);
-    if (!Array.isArray(catalog) || catalog.length === 0) continue;
+    const probed = tryLoadProviderJson<any[]>(resolvedProvider, dataFile);
+    if (!Array.isArray(probed) || probed.length === 0) continue;
+    const catalog = probed;
+    dataCache[`${resolvedProvider}/${dataFile}`] = catalog;
 
     const defaultModel = catalog.find(
       item => typeof item?.id === 'string' && item.id.trim().length > 0,
@@ -297,10 +304,14 @@ export function isModelSelectorParameter(param: ParameterConfig): boolean {
   );
 }
 
-function getModelSelectorParameter(config: CategoryConfig): ParameterConfig | null {
+function getModelSelectorParameter(
+  config: CategoryConfig,
+  category?: ProviderConfigCategory,
+): ParameterConfig | null {
   if (config.modelSelectionKey) {
     return config.parameters.find(p => p.key === config.modelSelectionKey) ?? null;
   }
+  if (category && !MODEL_SELECTOR_CATEGORIES.has(category)) return null;
   return config.parameters.find(isModelSelectorParameter) ?? null;
 }
 
@@ -310,7 +321,7 @@ function getSelectedModelConfig(
   categoryConfig: CategoryConfig,
   currentMetadata: MetadataLike[],
 ): { modelConfig: ModelConfigOverrides; cacheScope: string } | null {
-  const modelParam = getModelSelectorParameter(categoryConfig);
+  const modelParam = getModelSelectorParameter(categoryConfig, category);
   if (!modelParam?.data) return null;
 
   const valueField = modelParam.valueField || 'id';
@@ -396,7 +407,7 @@ export function resolveCategoryParameters(
   categoryConfig: CategoryConfig,
   currentMetadata: MetadataLike[] = [],
 ): ParameterConfig[] {
-  const modelSelector = getModelSelectorParameter(categoryConfig);
+  const modelSelector = getModelSelectorParameter(categoryConfig, category);
   if (!modelSelector?.data) {
     return categoryConfig.parameters.map(param => ({ ...param }));
   }

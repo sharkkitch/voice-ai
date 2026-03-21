@@ -47,13 +47,17 @@ export const ConfigRenderer: React.FC<{
   const getParamValue = (key: string) =>
     parameters?.find(p => p.getKey() === key)?.getValue() ?? '';
 
+  const isModelSelector = (param: ParameterConfig): boolean =>
+    isModelSelectorParameter(param) &&
+    (category === 'stt' || category === 'tts' || category === 'text');
+
   const applyUpdates = (
     updates: { key: string; value: string }[],
     sourceParam?: ParameterConfig,
   ) => {
     const updatedParams = [...(parameters || [])];
     const currentModelValue =
-      sourceParam && isModelSelectorParameter(sourceParam)
+      sourceParam && isModelSelector(sourceParam)
         ? getParamValue(sourceParam.key)
         : '';
 
@@ -69,7 +73,7 @@ export const ConfigRenderer: React.FC<{
       }
     }
 
-    if (!sourceParam || !isModelSelectorParameter(sourceParam)) {
+    if (!sourceParam || !isModelSelector(sourceParam)) {
       onParameterChange(updatedParams);
       return;
     }
