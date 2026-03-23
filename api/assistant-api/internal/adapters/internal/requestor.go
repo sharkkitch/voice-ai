@@ -8,6 +8,7 @@ package adapter_internal
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -426,12 +427,22 @@ func (r *genericRequestor) initializeCollectors(ctx context.Context) {
 	var eventExporters []observe.EventExporter
 	var metricExporters []observe.MetricExporter
 
-	// OpenSearch is the platform's own telemetry store — register only when reachable.
-	if r.opensearch != nil && r.opensearch.IsConnected(ctx) {
-		evtExp, metExp, err := observe_exporters.GetExporter(ctx, r.logger, &r.config.AppConfig, r.opensearch, string(observe.OPENSEARCH), nil)
-		if err == nil && evtExp != nil {
-			eventExporters = append(eventExporters, evtExp)
-			metricExporters = append(metricExporters, metExp)
+	// Register one default telemetry exporter from env config (asset-store style).
+	if r.config != nil && r.config.TelemetryConfig != nil {
+		envProviderType := r.config.TelemetryConfig.Type()
+		if envProviderType != "" {
+			envOpts := r.config.TelemetryConfig.ToMap()
+			evtExp, metExp, err := observe_exporters.GetExporter(
+				ctx, r.logger, &r.config.AppConfig, r.opensearch, string(envProviderType), envOpts,
+			)
+			if err != nil {
+				r.logger.Errorf("observe: env telemetry exporter creation failed for type %s: %v", envProviderType, err)
+			} else if evtExp == nil || metExp == nil {
+				r.logger.Warnf("observe: env telemetry exporter returned nil for type %s", envProviderType)
+			} else {
+				eventExporters = append(eventExporters, evtExp)
+				metricExporters = append(metricExporters, metExp)
+			}
 		}
 	}
 
@@ -443,7 +454,12 @@ func (r *genericRequestor) initializeCollectors(ctx context.Context) {
 			continue
 		}
 		if evtExp == nil || metExp == nil {
-			r.logger.Errorf("observe: exporter returned nil for provider %d (%s)", p.Id, p.ProviderType)
+			endpoint := strings.TrimSpace(fmt.Sprintf("%v", opts["endpoint"]))
+			if (p.ProviderType == string(observe.OTLP_HTTP) || p.ProviderType == string(observe.OTLP_GRPC)) && endpoint == "" {
+				r.logger.Warnf("observe: skipping provider %d (%s): missing endpoint", p.Id, p.ProviderType)
+				continue
+			}
+			r.logger.Warnf("observe: exporter returned nil for provider %d (%s)", p.Id, p.ProviderType)
 			continue
 		}
 		eventExporters = append(eventExporters, evtExp)

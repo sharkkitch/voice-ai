@@ -40,6 +40,9 @@ export const AssistantManageLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
           <TabLink to={`/deployment/assistant/${assistantId}/configure-webhook`}>
             Webhooks
           </TabLink>
+          <TabLink to={`/deployment/assistant/${assistantId}/configure-telemetry`}>
+            Telemetry
+          </TabLink>
           <TabLink to={`/deployment/assistant/${assistantId}/edit-assistant`}>
             Settings
           </TabLink>

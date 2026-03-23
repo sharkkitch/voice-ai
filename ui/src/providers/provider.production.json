@@ -662,5 +662,95 @@
             }
         ],
         "website": "https://www.nvidia.com/en-us/ai-data-science/products/riva/"
+    },
+    {
+        "code": "otlp_http",
+        "name": "OTLP HTTP",
+        "description": "OpenTelemetry exporter over HTTP/protobuf.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
+    },
+    {
+        "code": "otlp_grpc",
+        "name": "OTLP gRPC",
+        "description": "OpenTelemetry exporter over gRPC.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
+    },
+    {
+        "code": "datadog",
+        "name": "Datadog",
+        "description": "Datadog tracing via OTLP-compatible collector.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
+    },
+    {
+        "code": "xray",
+        "name": "AWS X-Ray",
+        "description": "AWS X-Ray tracing via ADOT Collector.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
+    },
+    {
+        "code": "google_trace",
+        "name": "Google Trace",
+        "description": "Google Cloud Trace via OTLP collector.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
+    },
+    {
+        "code": "azure_monitor",
+        "name": "Azure Monitor",
+        "description": "Azure Monitor / Application Insights via OTLP.",
+        "featureList": [
+            "telemetry"
+        ],
+        "configurations": [
+            {
+                "name": "endpoint",
+                "type": "string",
+                "label": "Endpoint"
+            }
+        ]
     }
 ]

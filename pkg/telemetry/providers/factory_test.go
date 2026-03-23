@@ -59,3 +59,47 @@ func TestNewExporterFromOptions_DatadogMissingEndpoint(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, exp)
 }
+
+func TestNewExporterFromOptions_LoggingMissingLogger(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.LOGGING.String(), nil, FactoryDependencies{})
+	require.Error(t, err)
+	assert.Nil(t, exp)
+}
+
+func TestNewExporterFromOptions_OpenSearchMissingLogger(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.OPENSEARCH.String(), nil, FactoryDependencies{})
+	require.Error(t, err)
+	assert.Nil(t, exp)
+}
+
+func TestNewExporterFromOptions_OTLPGRPCSkipsWhenNoEndpoint(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.OTLP_GRPC.String(), map[string]interface{}{}, FactoryDependencies{
+		Logger: factoryTestLogger(t),
+	})
+	require.NoError(t, err)
+	assert.Nil(t, exp)
+}
+
+func TestNewExporterFromOptions_XRayMissingEndpoint(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.XRAY.String(), map[string]interface{}{}, FactoryDependencies{
+		Logger: factoryTestLogger(t),
+	})
+	require.Error(t, err)
+	assert.Nil(t, exp)
+}
+
+func TestNewExporterFromOptions_GoogleTraceMissingEndpoint(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.GOOGLE_TRACE.String(), map[string]interface{}{}, FactoryDependencies{
+		Logger: factoryTestLogger(t),
+	})
+	require.Error(t, err)
+	assert.Nil(t, exp)
+}
+
+func TestNewExporterFromOptions_AzureMonitorMissingEndpoint(t *testing.T) {
+	exp, err := NewExporterFromOptions(context.Background(), telemetry.AZURE_MONITOR.String(), map[string]interface{}{}, FactoryDependencies{
+		Logger: factoryTestLogger(t),
+	})
+	require.Error(t, err)
+	assert.Nil(t, exp)
+}

@@ -56,10 +56,13 @@ func (gr *genericRequestor) GetSpeechToTextTransformer() (
 }
 
 func (gr *genericRequestor) GetTelemetryProvider(ctx context.Context) ([]*internal_telemetry_entity.AssistantTelemetryProvider, error) {
-	if gr.assistant != nil && gr.assistant.AssistantTelemetryProviders != nil {
-		return gr.assistant.AssistantTelemetryProviders, nil
+	if gr.assistant == nil {
+		return nil, errors.New("assistant is not initialized")
 	}
-	return nil, errors.New("telemetry is not enabled for assistant")
+	if gr.assistant.AssistantTelemetryProviders == nil {
+		return []*internal_telemetry_entity.AssistantTelemetryProvider{}, nil
+	}
+	return gr.assistant.AssistantTelemetryProviders, nil
 }
 
 func (gr *genericRequestor) GetTextToSpeechTransformer() (*internal_assistant_entity.AssistantDeploymentAudio, error) {

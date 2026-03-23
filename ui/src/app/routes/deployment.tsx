@@ -23,6 +23,9 @@ import {
   DeploymentConfigureAssistantWebhookPage,
   DeploymentCreateAssistantWebhookPage,
   DeploymentUpdateAssistantWebhookPage,
+  DeploymentConfigureAssistantTelemetryPage,
+  DeploymentCreateAssistantTelemetryPage,
+  DeploymentUpdateAssistantTelemetryPage,
   DeploymentConversationDetailPage,
   DeploymentCreateAssistantAnalysisPage,
   DeploymentUpdateAssistantAnalysisPage,
@@ -180,6 +183,22 @@ export function DeploymentRoute() {
             key={'/deployment/webhook'}
             path={'configure-webhook/:webhookId'}
             element={<DeploymentUpdateAssistantWebhookPage />}
+          />
+
+          <Route
+            key={'/deployment/telemetry'}
+            path={'configure-telemetry/'}
+            element={<DeploymentConfigureAssistantTelemetryPage />}
+          />
+          <Route
+            key={'/deployment/telemetry'}
+            path={'configure-telemetry/create'}
+            element={<DeploymentCreateAssistantTelemetryPage />}
+          />
+          <Route
+            key={'/deployment/telemetry'}
+            path={'configure-telemetry/:telemetryId'}
+            element={<DeploymentUpdateAssistantTelemetryPage />}
           />
 
           <Route
