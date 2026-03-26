@@ -4507,9 +4507,6 @@
   .align-middle {
     vertical-align: middle;
   }
-  .align-top {
-    vertical-align: top;
-  }
   .font-mono {
     font-family: var(--font-mono);
   }
@@ -6530,6 +6527,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-red-600) !important;
+      }
+    }
+  }
+  .hover\:text-red-800 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-red-800);
       }
     }
   }
@@ -10555,6 +10559,24 @@
       &:hover {
         @media (hover: hover) {
           color: var(--color-primary);
+        }
+      }
+    }
+  }
+  .dark\:hover\:text-red-200 {
+    @media (prefers-color-scheme: dark) {
+      &:not(.light *) {
+        &:hover {
+          @media (hover: hover) {
+            color: var(--color-red-200);
+          }
+        }
+      }
+    }
+    &:is(.dark *) {
+      &:hover {
+        @media (hover: hover) {
+          color: var(--color-red-200);
         }
       }
     }

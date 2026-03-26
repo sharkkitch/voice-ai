@@ -36,11 +36,13 @@ import {
 import { connectionConfig } from '@/configs';
 import { useConfirmDialog } from '@/app/pages/assistant/actions/hooks/use-confirmation';
 import { TabForm } from '@/app/components/form/tab-form';
-import { ISecondaryButton } from '../../../../../components/form/button/index';
 import {
   IBlueBGArrowButton,
   ICancelButton,
 } from '@/app/components/form/button';
+import { InputCheckbox } from '@/app/components/form/checkbox';
+import { InputHelper } from '@/app/components/input-helper';
+import { BaseCard } from '@/app/components/base/cards';
 
 const STEPS = [
   {
@@ -85,6 +87,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
   const [activeTab, setActiveTab] = useState('experience');
   const [errorMessage, setErrorMessage] = useState('');
   const [voiceInputEnable, setVoiceInputEnable] = useState(false);
+  const [voiceOutputEnable, setVoiceOutputEnable] = useState(true);
 
   const [experienceConfig, setExperienceConfig] = useState<ExperienceConfig>({
     greeting: undefined,
@@ -164,6 +167,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
 
           if (deployment?.getOutputaudio()) {
             const provider = deployment.getOutputaudio()!;
+            setVoiceOutputEnable(true);
             setAudioOutputConfig({
               provider: provider.getAudioprovider() || 'cartesia',
               parameters: GetDefaultTextToSpeechIfInvalid(
@@ -173,6 +177,8 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
                 ),
               ),
             });
+          } else {
+            setVoiceOutputEnable(false);
           }
         }
       })
@@ -203,20 +209,21 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
     const idx = STEPS.findIndex(s => s.code === activeTab);
 
     if (activeTab === 'voice-input') {
-      if (!audioInputConfig.provider) {
-        setErrorMessage('Please select a speech-to-text provider.');
-        return;
+      if (voiceInputEnable) {
+        if (!audioInputConfig.provider) {
+          setErrorMessage('Please select a speech-to-text provider.');
+          return;
+        }
+        const err = ValidateSpeechToTextIfInvalid(
+          audioInputConfig.provider,
+          audioInputConfig.parameters,
+          getProviderCredentialIds(audioInputConfig.provider),
+        );
+        if (err) {
+          setErrorMessage(err);
+          return;
+        }
       }
-      const err = ValidateSpeechToTextIfInvalid(
-        audioInputConfig.provider,
-        audioInputConfig.parameters,
-        getProviderCredentialIds(audioInputConfig.provider),
-      );
-      if (err) {
-        setErrorMessage(err);
-        return;
-      }
-      setVoiceInputEnable(true);
     }
 
     if (idx < STEPS.length - 1) {
@@ -224,15 +231,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
     }
   };
 
-  const handleSkipVoiceInput = () => {
-    setErrorMessage('');
-    setVoiceInputEnable(false);
-    setActiveTab('voice-output');
-  };
-
-  // includeVoiceOutput is passed directly to avoid React state timing issues
-  // on the last step where Skip and Deploy are on the same step.
-  const handleDeployApi = (includeVoiceOutput: boolean) => {
+  const handleDeployApi = () => {
     showLoader('block');
     setErrorMessage('');
 
@@ -256,7 +255,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       }
     }
 
-    if (includeVoiceOutput) {
+    if (voiceOutputEnable) {
       if (!audioOutputConfig.provider) {
         hideLoader();
         setErrorMessage(
@@ -301,7 +300,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       deployment.setInputaudio(inputAudio);
     }
 
-    if (includeVoiceOutput) {
+    if (voiceOutputEnable) {
       const outputAudio = new DeploymentAudioProvider();
       outputAudio.setAudioprovider(audioOutputConfig.provider);
       outputAudio.setAudiooptionsList(audioOutputConfig.parameters);
@@ -395,10 +394,29 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
               description:
                 'Configure the speech-to-text provider for capturing user audio.',
               body: (
-                <ConfigureAudioInputProvider
-                  audioInputConfig={audioInputConfig}
-                  setAudioInputConfig={setAudioInputConfig}
-                />
+                <div>
+                  <div className="px-6 pt-6 pb-4">
+                    <BaseCard className="p-4 gap-2">
+                      <InputCheckbox
+                        checked={voiceInputEnable}
+                        onChange={e => setVoiceInputEnable(e.target.checked)}
+                      >
+                        Enable voice input (Speech-to-Text)
+                      </InputCheckbox>
+                      <InputHelper>
+                        {voiceInputEnable
+                          ? 'Voice input is currently enabled.'
+                          : 'Voice input is disabled. This deployment will not transcribe user speech, and existing STT settings will be removed when you save.'}
+                      </InputHelper>
+                    </BaseCard>
+                  </div>
+                  {voiceInputEnable && (
+                    <ConfigureAudioInputProvider
+                      audioInputConfig={audioInputConfig}
+                      setAudioInputConfig={setAudioInputConfig}
+                    />
+                  )}
+                </div>
               ),
               actions: [
                 <ICancelButton
@@ -409,12 +427,6 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
                 >
                   Cancel
                 </ICancelButton>,
-                <ISecondaryButton
-                  className="w-full h-full"
-                  onClick={handleSkipVoiceInput}
-                >
-                  Skip
-                </ISecondaryButton>,
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
@@ -430,10 +442,29 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
               description:
                 'Configure the text-to-speech provider for audio responses.',
               body: (
-                <ConfigureAudioOutputProvider
-                  audioOutputConfig={audioOutputConfig}
-                  setAudioOutputConfig={setAudioOutputConfig}
-                />
+                <div>
+                  <div className="px-6 pt-6 pb-4">
+                    <BaseCard className="p-4 gap-2">
+                      <InputCheckbox
+                        checked={voiceOutputEnable}
+                        onChange={e => setVoiceOutputEnable(e.target.checked)}
+                      >
+                        Enable voice output (Text-to-Speech)
+                      </InputCheckbox>
+                      <InputHelper>
+                        {voiceOutputEnable
+                          ? 'Voice output is currently enabled.'
+                          : 'Voice output is disabled. Assistant responses will be text only.'}
+                      </InputHelper>
+                    </BaseCard>
+                  </div>
+                  {voiceOutputEnable && (
+                    <ConfigureAudioOutputProvider
+                      audioOutputConfig={audioOutputConfig}
+                      setAudioOutputConfig={setAudioOutputConfig}
+                    />
+                  )}
+                </div>
               ),
               actions: [
                 <ICancelButton
@@ -444,17 +475,11 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
                 >
                   Cancel
                 </ICancelButton>,
-                <ISecondaryButton
-                  className="w-full h-full"
-                  onClick={() => handleDeployApi(false)}
-                >
-                  Skip
-                </ISecondaryButton>,
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
                   isLoading={loading}
-                  onClick={() => handleDeployApi(true)}
+                  onClick={handleDeployApi}
                 >
                   Deploy API
                 </IBlueBGArrowButton>,

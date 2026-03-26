@@ -39,8 +39,10 @@ import { useConfirmDialog } from '@/app/pages/assistant/actions/hooks/use-confir
 import {
   IBlueBGArrowButton,
   ICancelButton,
-  ISecondaryButton,
 } from '@/app/components/form/button';
+import { InputCheckbox } from '@/app/components/form/checkbox';
+import { InputHelper } from '@/app/components/input-helper';
+import { BaseCard } from '@/app/components/base/cards';
 
 const STEPS = [
   {
@@ -88,7 +90,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
   const [showInstruction, setShowInstruction] = useState(false);
   const [deploymentId, setDeploymentId] = useState<string | null>(null);
   const [voiceInputEnable, setVoiceInputEnable] = useState(false);
-  const [voiceOutputEnable, setVoiceOutputEnable] = useState(false);
+  const [voiceOutputEnable, setVoiceOutputEnable] = useState(true);
 
   const [experienceConfig, setExperienceConfig] =
     useState<WebWidgetExperienceConfig>({
@@ -220,20 +222,21 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
     }
 
     if (activeTab === 'voice-input') {
-      if (!audioInputConfig.provider) {
-        setErrorMessage('Please select a speech-to-text provider.');
-        return;
+      if (voiceInputEnable) {
+        if (!audioInputConfig.provider) {
+          setErrorMessage('Please select a speech-to-text provider.');
+          return;
+        }
+        const err = ValidateSpeechToTextIfInvalid(
+          audioInputConfig.provider,
+          audioInputConfig.parameters,
+          getProviderCredentialIds(audioInputConfig.provider),
+        );
+        if (err) {
+          setErrorMessage(err);
+          return;
+        }
       }
-      const err = ValidateSpeechToTextIfInvalid(
-        audioInputConfig.provider,
-        audioInputConfig.parameters,
-        getProviderCredentialIds(audioInputConfig.provider),
-      );
-      if (err) {
-        setErrorMessage(err);
-        return;
-      }
-      setVoiceInputEnable(true);
     }
 
     if (idx < STEPS.length - 1) {
@@ -241,19 +244,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
     }
   };
 
-  const handleSkipVoiceInput = () => {
-    setErrorMessage('');
-    setVoiceInputEnable(false);
-    setActiveTab('voice-output');
-  };
-
-  const handleSkipVoiceOutput = () => {
-    setErrorMessage('');
-    setVoiceOutputEnable(false);
-    handleDeployWebPlugin(false);
-  };
-
-  const handleDeployWebPlugin = (includeVoiceOutput = true) => {
+  const handleDeployWebPlugin = () => {
     showLoader('block');
     setErrorMessage('');
 
@@ -283,7 +274,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
       }
     }
 
-    if (includeVoiceOutput) {
+    if (voiceOutputEnable) {
       if (!audioOutputConfig.provider) {
         hideLoader();
         setErrorMessage(
@@ -334,7 +325,7 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
       webDeployment.setInputaudio(inputAudio);
     }
 
-    if (includeVoiceOutput) {
+    if (voiceOutputEnable) {
       const outputAudio = new DeploymentAudioProvider();
       outputAudio.setAudioprovider(audioOutputConfig.provider);
       outputAudio.setAudiooptionsList(audioOutputConfig.parameters);
@@ -440,10 +431,29 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
               description:
                 'Configure the speech-to-text provider for capturing user audio.',
               body: (
-                <ConfigureAudioInputProvider
-                  audioInputConfig={audioInputConfig}
-                  setAudioInputConfig={setAudioInputConfig}
-                />
+                <div>
+                  <div className="px-6 pt-6 pb-4">
+                    <BaseCard className="p-4 gap-2">
+                      <InputCheckbox
+                        checked={voiceInputEnable}
+                        onChange={e => setVoiceInputEnable(e.target.checked)}
+                      >
+                        Enable voice input (Speech-to-Text)
+                      </InputCheckbox>
+                      <InputHelper>
+                        {voiceInputEnable
+                          ? 'Voice input is currently enabled.'
+                          : 'Voice input is disabled. This deployment will not transcribe user speech, and existing STT settings will be removed when you save.'}
+                      </InputHelper>
+                    </BaseCard>
+                  </div>
+                  {voiceInputEnable && (
+                    <ConfigureAudioInputProvider
+                      audioInputConfig={audioInputConfig}
+                      setAudioInputConfig={setAudioInputConfig}
+                    />
+                  )}
+                </div>
               ),
               actions: [
                 <ICancelButton
@@ -454,12 +464,6 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
                 >
                   Cancel
                 </ICancelButton>,
-                <ISecondaryButton
-                  className="w-full h-full"
-                  onClick={handleSkipVoiceInput}
-                >
-                  Skip
-                </ISecondaryButton>,
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
@@ -475,10 +479,29 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
               description:
                 'Configure the text-to-speech provider for audio responses.',
               body: (
-                <ConfigureAudioOutputProvider
-                  audioOutputConfig={audioOutputConfig}
-                  setAudioOutputConfig={setAudioOutputConfig}
-                />
+                <div>
+                  <div className="px-6 pt-6 pb-4">
+                    <BaseCard className="p-4 gap-2">
+                      <InputCheckbox
+                        checked={voiceOutputEnable}
+                        onChange={e => setVoiceOutputEnable(e.target.checked)}
+                      >
+                        Enable voice output (Text-to-Speech)
+                      </InputCheckbox>
+                      <InputHelper>
+                        {voiceOutputEnable
+                          ? 'Voice output is currently enabled.'
+                          : 'Voice output is disabled. Assistant responses will be text only.'}
+                      </InputHelper>
+                    </BaseCard>
+                  </div>
+                  {voiceOutputEnable && (
+                    <ConfigureAudioOutputProvider
+                      audioOutputConfig={audioOutputConfig}
+                      setAudioOutputConfig={setAudioOutputConfig}
+                    />
+                  )}
+                </div>
               ),
               actions: [
                 <ICancelButton
@@ -489,20 +512,13 @@ const ConfigureAssistantWebDeployment: FC<{ assistantId: string }> = ({
                 >
                   Cancel
                 </ICancelButton>,
-                <ISecondaryButton
-                  className="w-full h-full"
-                  isLoading={loading}
-                  onClick={handleSkipVoiceOutput}
-                >
-                  Deploy without voice output
-                </ISecondaryButton>,
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
                   isLoading={loading}
-                  onClick={() => handleDeployWebPlugin(true)}
+                  onClick={handleDeployWebPlugin}
                 >
-                  Deploy with voice output
+                  Deploy Web Widget
                 </IBlueBGArrowButton>,
               ],
             },
