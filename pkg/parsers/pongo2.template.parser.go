@@ -6,6 +6,9 @@
 package parsers
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/flosch/pongo2/v6"
 
 	"github.com/rapidaai/pkg/commons"
@@ -43,7 +46,7 @@ func (stp *pongo2StringTemplateParser) Parse(template string, argument map[strin
 		stp.logger.Errorf("error while parsing the template with pongo2: %v", err)
 		return template
 	}
-	formattedTemplate, err := tpl.Execute(pongo2.Context(utils.NormalizeInterface(argument)))
+	formattedTemplate, err := tpl.Execute(pongo2.Context(CanonicalizePromptArguments(utils.NormalizeInterface(argument))))
 	if err != nil {
 		stp.logger.Errorf("error while executing the template with pongo2: %v", err)
 		return template
@@ -61,7 +64,7 @@ func (stp *pongo2MessageTemplateParser) Parse(template *types.Message, argument 
 				continue
 			}
 
-			formattedTemplate, err := tpl.Execute(pongo2.Context(argument))
+			formattedTemplate, err := tpl.Execute(pongo2.Context(CanonicalizePromptArguments(argument)))
 			if err != nil {
 				stp.logger.Errorf("error while executing the template with pongo2: %v", err)
 				continue
@@ -70,4 +73,72 @@ func (stp *pongo2MessageTemplateParser) Parse(template *types.Message, argument 
 		}
 	}
 	return template
+}
+
+// canonicalizePromptArguments expands dotted top-level keys (for example
+// "message.language") into nested maps so pongo2 receives valid identifiers.
+// It processes plain keys first, then dotted keys in lexical order so
+// conflicts resolve deterministically.
+func CanonicalizePromptArguments(in map[string]interface{}) map[string]interface{} {
+	if len(in) == 0 {
+		return map[string]interface{}{}
+	}
+
+	out := make(map[string]interface{}, len(in))
+	dottedKeys := make([]string, 0)
+
+	for key, value := range in {
+		if strings.Contains(key, ".") {
+			dottedKeys = append(dottedKeys, key)
+			continue
+		}
+
+		if nested, ok := value.(map[string]interface{}); ok {
+			value = CanonicalizePromptArguments(nested)
+		}
+		out[key] = value
+	}
+
+	sort.Strings(dottedKeys)
+	for _, key := range dottedKeys {
+		value := in[key]
+		if nested, ok := value.(map[string]interface{}); ok {
+			value = CanonicalizePromptArguments(nested)
+		}
+		setNestedPromptArgument(out, strings.Split(key, "."), value)
+	}
+
+	return out
+}
+
+func setNestedPromptArgument(target map[string]interface{}, parts []string, value interface{}) {
+	current := target
+	for i, part := range parts {
+		if strings.TrimSpace(part) == "" {
+			return
+		}
+
+		if i == len(parts)-1 {
+			if _, exists := current[part]; exists {
+				return
+			}
+			current[part] = value
+			return
+		}
+
+		next, exists := current[part]
+		if !exists {
+			child := make(map[string]interface{})
+			current[part] = child
+			current = child
+			continue
+		}
+
+		child, ok := next.(map[string]interface{})
+		if !ok {
+			child = make(map[string]interface{})
+			current[part] = child
+		}
+		current = child
+	}
 }

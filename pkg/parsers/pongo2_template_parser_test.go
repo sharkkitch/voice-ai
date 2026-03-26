@@ -126,6 +126,57 @@ func TestPongo2StringTemplateParser_Parse(t *testing.T) {
 	}
 }
 
+func TestPongo2StringTemplateParser_Parse_DottedKeys(t *testing.T) {
+	logger, _ := commons.NewApplicationLogger()
+	parser := NewPongo2StringTemplateParser(logger)
+
+	tests := []struct {
+		name     string
+		template string
+		argument map[string]interface{}
+		expected string
+	}{
+		{
+			name:     "supports dotted keys as nested variables",
+			template: "lang={{ message.language }} text={{ message.text }}",
+			argument: map[string]interface{}{
+				"message.language": "en",
+				"message.text":     "hello",
+			},
+			expected: "lang=en text=hello",
+		},
+		{
+			name:     "dotted keys deterministically override scalar parent",
+			template: "lang={{ message.language }} text={{ message.text }}",
+			argument: map[string]interface{}{
+				"message":          "scalar",
+				"message.language": "en",
+				"message.text":     "hello",
+			},
+			expected: "lang=en text=hello",
+		},
+		{
+			name:     "existing nested value is preserved over dotted fallback",
+			template: "lang={{ message.language }} text={{ message.text }}",
+			argument: map[string]interface{}{
+				"message": map[string]interface{}{
+					"language": "fr",
+					"text":     "bonjour",
+				},
+				"message.language": "en",
+			},
+			expected: "lang=fr text=bonjour",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.Parse(tt.template, tt.argument)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestPongo2TemplateParser_Parse(t *testing.T) {
 	tests := []struct {
 		name     string

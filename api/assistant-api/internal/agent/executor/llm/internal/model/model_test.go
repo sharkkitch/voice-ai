@@ -612,6 +612,34 @@ func TestExecute_MessageLanguage_UsesUserTextPacketLanguage(t *testing.T) {
 	stream.mu.Unlock()
 }
 
+func TestExecute_MessageLanguage_DottedPromptVariable_DoesNotBreakTemplateParsing(t *testing.T) {
+	e := newTestExecutor()
+	stream := newMockStream()
+	e.stream = stream
+	comm, _ := newTestComm()
+	comm.assistant.AssistantProviderModel.Template = gorm_types.PromptMap{
+		"prompt": []map[string]string{
+			{"role": "system", "content": "lang={{ message.language }} text={{ message.text }}"},
+		},
+		"promptVariables": []map[string]string{
+			{"name": "message.language", "defaultValue": "English"},
+		},
+	}
+
+	err := e.Execute(context.Background(), comm, internal_type.UserTextPacket{
+		ContextID: "ctx-dotted-variable",
+		Text:      "bonjour",
+		Language:  "fr",
+	})
+	require.NoError(t, err)
+
+	stream.mu.Lock()
+	require.Len(t, stream.sendCalls, 1)
+	require.NotNil(t, stream.sendCalls[0].GetConversations()[0].GetSystem())
+	assert.Equal(t, "lang=fr text=bonjour", stream.sendCalls[0].GetConversations()[0].GetSystem().GetContent())
+	stream.mu.Unlock()
+}
+
 // =============================================================================
 // Tests: handleResponse — 5 cases
 // =============================================================================

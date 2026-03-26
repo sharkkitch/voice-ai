@@ -13,6 +13,7 @@ import (
 	"time"
 
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
+	"github.com/rapidaai/pkg/parsers"
 	type_enums "github.com/rapidaai/pkg/types/enums"
 	"github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"
@@ -85,13 +86,13 @@ func (e *modelAssistantExecutor) Pipeline(ctx context.Context, communication int
 				PromptArgs:    promptArgs,
 			})
 		}
-		return e.Pipeline(ctx, communication, &LLMRequestEventPipeline{
+		return e.Pipeline(ctx, communication, &LLMRequestPipeline{
 			InputPipeline: p.InputPipeline,
 			UserMessage:   p.UserMessage,
 			History:       p.History,
 			PromptArgs:    promptArgs,
 		})
-	case *LLMRequestEventPipeline:
+	case *LLMRequestPipeline:
 		communication.OnPacket(ctx, internal_type.ConversationEventPacket{
 			ContextID: p.Packet.ContextID,
 			Name:      "llm",
@@ -287,9 +288,11 @@ func (e *modelAssistantExecutor) validateToolIDMatch(calls []*protos.ToolCall, t
 func (e *modelAssistantExecutor) buildChatRequest(communication internal_type.Communication, contextID string, promptArguments map[string]interface{}, messages ...*protos.Message) *protos.ChatRequest {
 	assistant := communication.Assistant()
 	template := assistant.AssistantProviderModel.Template.GetTextChatCompleteTemplate()
+	defaultArgs := parsers.CanonicalizePromptArguments(e.inputBuilder.PromptArguments(template.Variables))
+	runtimeArgs := parsers.CanonicalizePromptArguments(promptArguments)
 	systemMessages := e.inputBuilder.Message(
 		template.Prompt,
-		utils.MergeMaps(e.inputBuilder.PromptArguments(template.Variables), promptArguments),
+		utils.MergeMaps(defaultArgs, runtimeArgs),
 	)
 	req := e.inputBuilder.Chat(
 		contextID,

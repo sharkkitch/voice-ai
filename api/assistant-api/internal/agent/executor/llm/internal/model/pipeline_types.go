@@ -69,7 +69,7 @@ type SessionArgumentationPipeline struct {
 	PromptArgs  map[string]interface{}
 }
 
-type LLMRequestEventPipeline struct {
+type LLMRequestPipeline struct {
 	InputPipeline
 	UserMessage *protos.Message
 	History     []*protos.Message
