@@ -129,6 +129,14 @@ type noModeCommunication struct {
 	source                      utils.RapidaSource
 }
 
+type unknownPipeline struct {
+	stop bool
+}
+
+func (p *unknownPipeline) IsStop() bool {
+	return p.stop
+}
+
 func (m *mockCommunication) OnPacket(ctx context.Context, pkts ...internal_type.Packet) error {
 	return m.collector.collect(ctx, pkts...)
 }
@@ -441,7 +449,9 @@ func TestPipeline_LocalHistoryPipeline_AppendsHistory(t *testing.T) {
 	comm, _ := newTestComm()
 
 	err := e.Pipeline(context.Background(), comm, &LocalHistoryPipeline{
-		Message: &protos.Message{Role: "assistant"},
+		PipelinePacket: PipelinePacket{
+			Message: &protos.Message{Role: "assistant"},
+		},
 	})
 	require.NoError(t, err)
 
@@ -459,6 +469,37 @@ func TestPipeline_LocalHistoryPipeline_NilMessageNoOp(t *testing.T) {
 	assert.Empty(t, historySnapshot(e))
 }
 
+func TestPipeline_InputPipeline_Stop_NoOp(t *testing.T) {
+	e := newTestExecutor()
+	stream := newMockStream()
+	e.stream = stream
+	comm, _ := newTestComm()
+
+	err := e.Pipeline(context.Background(), comm, &InputPipeline{
+		PipelinePacket: PipelinePacket{
+			Stop: true,
+			Packet: internal_type.UserTextPacket{
+				ContextID: "ctx-stop",
+				Text:      "ignored",
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	stream.mu.Lock()
+	defer stream.mu.Unlock()
+	require.Len(t, stream.sendCalls, 0)
+}
+
+func TestPipeline_RejectsUnsupportedPipelineType(t *testing.T) {
+	e := newTestExecutor()
+	comm, _ := newTestComm()
+
+	err := e.Pipeline(context.Background(), comm, &unknownPipeline{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported pipeline type")
+}
+
 func TestPipeline_PrepareHistoryPipeline_ChainsToSendAndAppend(t *testing.T) {
 	e := newTestExecutor()
 	stream := newMockStream()
@@ -472,11 +513,13 @@ func TestPipeline_PrepareHistoryPipeline_ChainsToSendAndAppend(t *testing.T) {
 	e.mu.Unlock()
 
 	pipeline := &PrepareHistoryPipeline{
-		InputPipeline: InputPipeline{Packet: internal_type.UserTextPacket{
-			ContextID: "ctx-prepare",
-			Text:      "new input",
-			Language:  "en",
-		}},
+		PipelinePacket: PipelinePacket{
+			Packet: internal_type.UserTextPacket{
+				ContextID: "ctx-prepare",
+				Text:      "new input",
+				Language:  "en",
+			},
+		},
 	}
 	err := e.Pipeline(context.Background(), comm, pipeline)
 	require.NoError(t, err)

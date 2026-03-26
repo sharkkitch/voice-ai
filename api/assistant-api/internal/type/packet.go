@@ -463,6 +463,10 @@ type ExecuteLLMPacket struct {
 
 	// Language detected by the STT provider for this turn.
 	Language string
+
+	// Normalized carries the canonical normalized packet for this turn when
+	// produced by the input normalizer pipeline.
+	Normalized *NormalizedTextPacket
 }
 
 func (f ExecuteLLMPacket) ContextId() string { return f.ContextID }

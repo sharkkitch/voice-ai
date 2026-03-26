@@ -23,7 +23,17 @@ import (
 // into pipeline types; pipeline types get their stages executed.
 func (e *modelAssistantExecutor) Pipeline(ctx context.Context, communication internal_type.Communication, v Pipeline) error {
 	switch p := v.(type) {
-	case *LocalHistoryPipeline:
+	case *InputPipeline:
+		if p.IsStop() {
+			return nil
+		}
+		return e.Pipeline(ctx, communication, &PrepareHistoryProcessPipeline{
+			PipelinePacket: p.PipelinePacket,
+		})
+	case *LocalHistoryOutputPipeline:
+		if p.IsStop() {
+			return nil
+		}
 		if p.Message == nil {
 			return nil
 		}
@@ -31,68 +41,79 @@ func (e *modelAssistantExecutor) Pipeline(ctx context.Context, communication int
 		e.history = append(e.history, p.Message)
 		e.mu.Unlock()
 		return nil
-	case *PrepareHistoryPipeline:
+	case *PrepareHistoryProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
 		e.mu.RLock()
 		history := make([]*protos.Message, len(e.history))
 		copy(history, e.history)
 		e.mu.RUnlock()
-		return e.Pipeline(ctx, communication, &AssistantArgumentationPipeline{
-			InputPipeline: InputPipeline{
-				Packet: p.Packet,
+		packet := p.PipelinePacket
+		packet.UserMessage = &protos.Message{
+			Role: "user",
+			Message: &protos.Message_User{
+				User: &protos.UserMessage{Content: p.Packet.Text},
 			},
-			UserMessage: &protos.Message{
-				Role: "user",
-				Message: &protos.Message_User{
-					User: &protos.UserMessage{Content: p.Packet.Text},
-				},
-			},
-			History:    history,
-			PromptArgs: map[string]interface{}{},
+		}
+		packet.History = history
+		packet.PromptArgs = map[string]interface{}{}
+		return e.Pipeline(ctx, communication, &AssistantArgumentationProcessPipeline{
+			PipelinePacket: packet,
 		})
-	case *ArgumentationPipeline:
-		return e.Pipeline(ctx, communication, &AssistantArgumentationPipeline{
-			InputPipeline: p.InputPipeline,
-			UserMessage:   p.UserMessage,
-			History:       p.History,
-			PromptArgs:    p.PromptArgs,
+	case *ArgumentationProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
+		return e.Pipeline(ctx, communication, &AssistantArgumentationProcessPipeline{
+			PipelinePacket: p.PipelinePacket,
 		})
-	case *AssistantArgumentationPipeline:
-		return e.Pipeline(ctx, communication, &ConversationArgumentationPipeline{
-			InputPipeline: p.InputPipeline,
-			UserMessage:   p.UserMessage,
-			History:       p.History,
-			PromptArgs:    utils.MergeMaps(p.PromptArgs, e.buildAssistantArgumentationContext(communication)),
+	case *AssistantArgumentationProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
+		packet := p.PipelinePacket
+		packet.PromptArgs = utils.MergeMaps(p.PromptArgs, e.buildAssistantArgumentationContext(communication))
+		return e.Pipeline(ctx, communication, &ConversationArgumentationProcessPipeline{
+			PipelinePacket: packet,
 		})
-	case *ConversationArgumentationPipeline:
-		return e.Pipeline(ctx, communication, &MessageArgumentationPipeline{
-			InputPipeline: p.InputPipeline,
-			UserMessage:   p.UserMessage,
-			History:       p.History,
-			PromptArgs:    utils.MergeMaps(p.PromptArgs, e.buildConversationArgumentationContext(communication)),
+	case *ConversationArgumentationProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
+		packet := p.PipelinePacket
+		packet.PromptArgs = utils.MergeMaps(p.PromptArgs, e.buildConversationArgumentationContext(communication))
+		return e.Pipeline(ctx, communication, &MessageArgumentationProcessPipeline{
+			PipelinePacket: packet,
 		})
-	case *MessageArgumentationPipeline:
-		return e.Pipeline(ctx, communication, &SessionArgumentationPipeline{
-			InputPipeline: p.InputPipeline,
-			UserMessage:   p.UserMessage,
-			History:       p.History,
-			PromptArgs:    utils.MergeMaps(p.PromptArgs, e.buildMessageArgumentationContext(p.Packet)),
+	case *MessageArgumentationProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
+		packet := p.PipelinePacket
+		packet.PromptArgs = utils.MergeMaps(p.PromptArgs, e.buildMessageArgumentationContext(p.Packet))
+		return e.Pipeline(ctx, communication, &SessionArgumentationProcessPipeline{
+			PipelinePacket: packet,
 		})
-	case *SessionArgumentationPipeline:
+	case *SessionArgumentationProcessPipeline:
+		if p.IsStop() {
+			return nil
+		}
 		promptArgs := utils.MergeMaps(p.PromptArgs, e.buildSessionArgumentationContext(communication))
+		packet := p.PipelinePacket
+		packet.PromptArgs = promptArgs
 		if p.Mode == "tool_followup" {
-			return e.Pipeline(ctx, communication, &ToolFollowUpExecutePipeline{
-				InputPipeline: p.InputPipeline,
-				History:       p.History,
-				PromptArgs:    promptArgs,
+			return e.Pipeline(ctx, communication, &ToolFollowUpOutputPipeline{
+				PipelinePacket: packet,
 			})
 		}
-		return e.Pipeline(ctx, communication, &LLMRequestPipeline{
-			InputPipeline: p.InputPipeline,
-			UserMessage:   p.UserMessage,
-			History:       p.History,
-			PromptArgs:    promptArgs,
+		return e.Pipeline(ctx, communication, &LLMRequestOutputPipeline{
+			PipelinePacket: packet,
 		})
-	case *LLMRequestPipeline:
+	case *LLMRequestOutputPipeline:
+		if p.IsStop() {
+			return nil
+		}
 		communication.OnPacket(ctx, internal_type.ConversationEventPacket{
 			ContextID: p.Packet.ContextID,
 			Name:      "llm",
@@ -107,12 +128,18 @@ func (e *modelAssistantExecutor) Pipeline(ctx context.Context, communication int
 		if err := e.chat(ctx, communication, p.Packet, p.PromptArgs, p.UserMessage, p.History...); err != nil {
 			return err
 		}
-		return e.Pipeline(ctx, communication, &LocalHistoryPipeline{
-			Message: p.UserMessage,
+		return e.Pipeline(ctx, communication, &LocalHistoryOutputPipeline{
+			PipelinePacket: PipelinePacket{Message: p.UserMessage},
 		})
-	case *ToolFollowUpExecutePipeline:
+	case *ToolFollowUpOutputPipeline:
+		if p.IsStop() {
+			return nil
+		}
 		return e.chatWithHistory(ctx, communication, p.Packet.ContextID, p.PromptArgs)
 	case *LLMResponsePipeline:
+		if p.IsStop() {
+			return nil
+		}
 		if err := e.stageValidateResponse(ctx, communication, p); err != nil {
 			return err
 		}

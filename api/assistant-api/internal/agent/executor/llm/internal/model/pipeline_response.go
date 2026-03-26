@@ -21,8 +21,10 @@ func (e *modelAssistantExecutor) executeResponse(ctx context.Context, communicat
 		return
 	}
 	if err := e.Pipeline(ctx, communication, &LLMResponsePipeline{
-		Response:  resp,
-		ContextID: resp.GetRequestId(),
+		PipelinePacket: PipelinePacket{
+			Response:  resp,
+			ContextID: resp.GetRequestId(),
+		},
 	}); err != nil {
 		e.logger.Errorf("response pipeline failed: %v", err)
 		communication.OnPacket(ctx, internal_type.LLMErrorPacket{

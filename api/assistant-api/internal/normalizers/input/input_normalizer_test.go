@@ -12,15 +12,16 @@ import (
 
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
+	rapida_language "github.com/rapidaai/pkg/language"
 	rapida_types "github.com/rapidaai/pkg/types"
 )
 
 type parserStub struct {
 	calls int
-	out   rapida_types.Language
+	out   *rapida_language.LanguageIdentificationResult
 }
 
-func (p *parserStub) Parse(_ string, _ map[string]interface{}) rapida_types.Language {
+func (p *parserStub) Parse(_ string) *rapida_language.LanguageIdentificationResult {
 	p.calls++
 	return p.out
 }
@@ -41,6 +42,15 @@ func newTestNormalizer(t *testing.T, onPacket func(...internal_type.Packet) erro
 		t.Fatalf("unexpected initialize error: %v", err)
 	}
 	return n
+}
+
+func mustLanguage(t *testing.T, code string) rapida_types.Language {
+	t.Helper()
+	lang := rapida_types.LookupLanguage(code)
+	if lang == nil {
+		t.Fatalf("language %q not found", code)
+	}
+	return *lang
 }
 
 func TestInputNormalizer_Normalize_EndOfSpeechBuildsNormalizedTextPacket(t *testing.T) {
@@ -82,7 +92,8 @@ func TestInputNormalizer_Normalize_EndOfSpeechBuildsNormalizedTextPacket(t *test
 }
 
 func TestInputNormalizer_Normalize_UserTextUsesParserWhenNoChunkLanguage(t *testing.T) {
-	parser := &parserStub{out: rapida_types.GetLanguageByName("es")}
+	parsed := mustLanguage(t, "es")
+	parser := &parserStub{out: &rapida_language.LanguageIdentificationResult{Language: parsed, Confidence: 0.99}}
 	emitted := make([]internal_type.Packet, 0)
 	n := newTestNormalizer(t, func(pkts ...internal_type.Packet) error {
 		emitted = append(emitted, pkts...)
@@ -103,7 +114,8 @@ func TestInputNormalizer_Normalize_UserTextUsesParserWhenNoChunkLanguage(t *test
 }
 
 func TestInputNormalizer_Normalize_UserTextUsesProvidedLanguage(t *testing.T) {
-	parser := &parserStub{out: rapida_types.GetLanguageByName("en")}
+	parsed := mustLanguage(t, "en")
+	parser := &parserStub{out: &rapida_language.LanguageIdentificationResult{Language: parsed, Confidence: 0.99}}
 	emitted := make([]internal_type.Packet, 0)
 	n := newTestNormalizer(t, func(pkts ...internal_type.Packet) error {
 		emitted = append(emitted, pkts...)
@@ -111,7 +123,7 @@ func TestInputNormalizer_Normalize_UserTextUsesProvidedLanguage(t *testing.T) {
 	})
 	n.parser = parser
 
-	if err := n.Normalize(context.Background(), internal_type.UserTextPacket{ContextID: "ctx-2", Text: "hola como estas"}); err != nil {
+	if err := n.Normalize(context.Background(), internal_type.UserTextPacket{ContextID: "ctx-2", Text: "hola como estas", Language: "fr"}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if parser.calls != 0 {
@@ -120,6 +132,58 @@ func TestInputNormalizer_Normalize_UserTextUsesProvidedLanguage(t *testing.T) {
 	out := emitted[0].(internal_type.NormalizedTextPacket)
 	if out.Language.ISO639_1 != "fr" {
 		t.Fatalf("expected canonical language fr, got %q", out.Language.ISO639_1)
+	}
+}
+
+func TestInputNormalizer_Normalize_UnknownChunkLanguageDoesNotBiasEnglish(t *testing.T) {
+	parsed := mustLanguage(t, "es")
+	parser := &parserStub{out: &rapida_language.LanguageIdentificationResult{Language: parsed, Confidence: 0.99}}
+	emitted := make([]internal_type.Packet, 0)
+	n := newTestNormalizer(t, func(pkts ...internal_type.Packet) error {
+		emitted = append(emitted, pkts...)
+		return nil
+	})
+	n.parser = parser
+
+	err := n.Normalize(context.Background(), internal_type.EndOfSpeechPacket{
+		ContextID: "ctx-3",
+		Speech:    "bonjour",
+		Speechs: []internal_type.SpeechToTextPacket{
+			{ContextID: "ctx-3", Script: "??", Language: "xx"},
+			{ContextID: "ctx-3", Script: "bonjour", Language: "fr-FR"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if parser.calls != 0 {
+		t.Fatalf("expected parser not called when valid chunk language exists, got %d", parser.calls)
+	}
+
+	out := emitted[0].(internal_type.NormalizedTextPacket)
+	if out.Language.ISO639_1 != "fr" {
+		t.Fatalf("expected language fr, got %q", out.Language.ISO639_1)
+	}
+}
+
+func TestInputNormalizer_Normalize_ParserNoMatchFallsBackToEnglish(t *testing.T) {
+	parser := &parserStub{out: nil}
+	emitted := make([]internal_type.Packet, 0)
+	n := newTestNormalizer(t, func(pkts ...internal_type.Packet) error {
+		emitted = append(emitted, pkts...)
+		return nil
+	})
+	n.parser = parser
+
+	if err := n.Normalize(context.Background(), internal_type.UserTextPacket{ContextID: "ctx-4", Text: "??"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if parser.calls != 1 {
+		t.Fatalf("expected parser called once, got %d", parser.calls)
+	}
+	out := emitted[0].(internal_type.NormalizedTextPacket)
+	if out.Language.ISO639_1 != "en" {
+		t.Fatalf("expected fallback language en, got %q", out.Language.ISO639_1)
 	}
 }
 
@@ -159,7 +223,7 @@ func TestInputNormalizer_Pipeline_StopAtOutput(t *testing.T) {
 		emitted += len(pkts)
 		return nil
 	})
-	err := n.Pipeline(context.Background(), OutputPipeline{PipelinePacket: PipelinePacket{Stop: true, ContextID: "ctx", Speech: "hello"}, Language: rapida_types.GetLanguageByName("en")})
+	err := n.Pipeline(context.Background(), OutputPipeline{PipelinePacket: PipelinePacket{Stop: true, ContextID: "ctx", Speech: "hello"}, Language: mustLanguage(t, "en")})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -173,7 +237,7 @@ func TestInputNormalizer_Pipeline_OutputPropagatesOnPacketError(t *testing.T) {
 	n := newTestNormalizer(t, func(...internal_type.Packet) error {
 		return errExpected
 	})
-	err := n.Pipeline(context.Background(), OutputPipeline{PipelinePacket: PipelinePacket{ContextID: "ctx", Speech: "hello"}, Language: rapida_types.GetLanguageByName("en")})
+	err := n.Pipeline(context.Background(), OutputPipeline{PipelinePacket: PipelinePacket{ContextID: "ctx", Speech: "hello"}, Language: mustLanguage(t, "en")})
 	if !errors.Is(err, errExpected) {
 		t.Fatalf("expected onPacket error %v, got %v", errExpected, err)
 	}

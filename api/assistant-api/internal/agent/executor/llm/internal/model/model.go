@@ -294,12 +294,12 @@ func (e *modelAssistantExecutor) executeToolCalls(ctx context.Context, communica
 		return e.chatWithHistory(ctx, communication, contextID, map[string]interface{}{})
 	}
 	return e.Pipeline(ctx, communication, &ArgumentationPipeline{
-		InputPipeline: InputPipeline{
-			Packet: packet,
-			Mode:   "tool_followup",
+		PipelinePacket: PipelinePacket{
+			Packet:     packet,
+			Mode:       "tool_followup",
+			History:    history,
+			PromptArgs: map[string]interface{}{},
 		},
-		History:    history,
-		PromptArgs: map[string]interface{}{},
 	})
 }
 
@@ -308,24 +308,33 @@ func (e *modelAssistantExecutor) executeToolCalls(ctx context.Context, communica
 // Emits ConversationEventPacket: {type: "executing"} for UserTextPacket.
 func (e *modelAssistantExecutor) Execute(ctx context.Context, communication internal_type.Communication, pctk internal_type.Packet) error {
 	switch p := pctk.(type) {
+	case internal_type.NormalizedTextPacket:
+		return e.Execute(ctx, communication, internal_type.UserTextPacket{
+			ContextID: p.ContextID,
+			Text:      p.Text,
+			Language:  p.Language.ISO639_1,
+		})
 	case internal_type.UserTextPacket:
 		e.mu.Lock()
 		e.currentPacket = p
 		e.mu.Unlock()
 		return e.Pipeline(ctx,
 			communication,
-			&PrepareHistoryPipeline{
-				InputPipeline: InputPipeline{
+			&InputPipeline{
+				PipelinePacket: PipelinePacket{
 					Packet: p,
-				}},
+				},
+			},
 		)
 	case internal_type.StaticPacket:
 		return e.Pipeline(ctx, communication, &LocalHistoryPipeline{
-			Message: &protos.Message{
-				Role: "assistant",
-				Message: &protos.Message_Assistant{Assistant: &protos.AssistantMessage{
-					Contents: []string{p.Text},
-				}},
+			PipelinePacket: PipelinePacket{
+				Message: &protos.Message{
+					Role: "assistant",
+					Message: &protos.Message_Assistant{Assistant: &protos.AssistantMessage{
+						Contents: []string{p.Text},
+					}},
+				},
 			},
 		})
 	case internal_type.InterruptionPacket:

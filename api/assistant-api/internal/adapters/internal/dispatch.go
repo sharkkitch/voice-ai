@@ -469,7 +469,7 @@ func (talking *genericRequestor) handleNormalizedText(ctx context.Context, vl in
 	}
 	talking.OnPacket(ctx,
 		internal_type.SaveMessagePacket{ContextID: contextID, MessageRole: "user", Text: vl.Text, Language: vl.Language.ISO639_1},
-		internal_type.ExecuteLLMPacket{ContextID: contextID, Input: vl.Text, Language: vl.Language.ISO639_1})
+		internal_type.ExecuteLLMPacket{ContextID: contextID, Input: vl.Text, Language: vl.Language.ISO639_1, Normalized: &vl})
 }
 
 // =============================================================================
@@ -552,7 +552,15 @@ func (talking *genericRequestor) handleInterruptLLM(ctx context.Context, vl inte
 // is not blocked for the duration of the LLM response (which can be seconds).
 func (talking *genericRequestor) handleExecuteLLM(ctx context.Context, vl internal_type.ExecuteLLMPacket) {
 	utils.Go(ctx, func() {
-		if err := talking.assistantExecutor.Execute(ctx, talking, internal_type.UserTextPacket{ContextID: vl.ContextID, Text: vl.Input, Language: vl.Language}); err != nil {
+		packet := internal_type.Packet(internal_type.UserTextPacket{ContextID: vl.ContextID, Text: vl.Input, Language: vl.Language})
+		if vl.Normalized != nil {
+			norm := *vl.Normalized
+			if norm.ContextID == "" {
+				norm.ContextID = vl.ContextID
+			}
+			packet = norm
+		}
+		if err := talking.assistantExecutor.Execute(ctx, talking, packet); err != nil {
 			talking.logger.Errorf("assistant executor error: %v", err)
 			talking.OnPacket(ctx, internal_type.LLMErrorPacket{ContextID: vl.ContextID, Error: err})
 		}

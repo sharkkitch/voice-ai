@@ -12,91 +12,32 @@ import (
 	"github.com/rapidaai/protos"
 )
 
-type Pipeline interface {
+type PipelineType interface {
 	IsStop() bool
 }
 
-type InputPipeline struct {
-	Pipeline
-	Stop   bool
-	Packet internal_type.UserTextPacket
-	Mode   string
+// Pipeline remains the router contract consumed by Pipeline(...).
+type Pipeline interface {
+	PipelineType
 }
 
-func (p InputPipeline) IsStop() bool {
-	return p.Stop
-}
+// PipelinePacket carries shared request/response state across model-executor
+// pipeline stages. Stages only transform this packet and forward it.
+type PipelinePacket struct {
+	PipelineType
+	Stop bool
 
-// PrepareHistoryPipeline builds the user message and prepares validated history.
-type PrepareHistoryPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-}
-
-type ArgumentationPipeline struct {
-	InputPipeline
+	// request fields
+	Packet      internal_type.UserTextPacket
+	Mode        string
 	UserMessage *protos.Message
 	History     []*protos.Message
 	PromptArgs  map[string]interface{}
-}
 
-type AssistantArgumentationPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-	PromptArgs  map[string]interface{}
-}
-
-type ConversationArgumentationPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-	PromptArgs  map[string]interface{}
-}
-
-type MessageArgumentationPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-	PromptArgs  map[string]interface{}
-}
-
-type SessionArgumentationPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-	PromptArgs  map[string]interface{}
-}
-
-type LLMRequestPipeline struct {
-	InputPipeline
-	UserMessage *protos.Message
-	History     []*protos.Message
-	PromptArgs  map[string]interface{}
-}
-
-type ToolFollowUpExecutePipeline struct {
-	InputPipeline
-	History    []*protos.Message
-	PromptArgs map[string]interface{}
-}
-
-// LocalHistoryPipeline appends a message to local in-memory history.
-type LocalHistoryPipeline struct {
-	Pipeline
-	Stop    bool
+	// local-history append
 	Message *protos.Message
-}
 
-func (p LocalHistoryPipeline) IsStop() bool {
-	return p.Stop
-}
-
-// LLMResponsePipeline is the typed response state flowing through stages.
-type LLMResponsePipeline struct {
-	Pipeline
-	Stop         bool
+	// response fields
 	Response     *protos.ChatResponse
 	ContextID    string
 	Output       *protos.Message
@@ -106,6 +47,66 @@ type LLMResponsePipeline struct {
 	Now          time.Time
 }
 
-func (p LLMResponsePipeline) IsStop() bool {
+func (p PipelinePacket) IsStop() bool {
 	return p.Stop
 }
+
+// InputPipeline is the entry stage for user-turn execution.
+type InputPipeline struct {
+	PipelinePacket
+}
+
+// Process stages
+type PrepareHistoryProcessPipeline struct {
+	PipelinePacket
+}
+
+type ArgumentationProcessPipeline struct {
+	PipelinePacket
+}
+
+type AssistantArgumentationProcessPipeline struct {
+	PipelinePacket
+}
+
+type ConversationArgumentationProcessPipeline struct {
+	PipelinePacket
+}
+
+type MessageArgumentationProcessPipeline struct {
+	PipelinePacket
+}
+
+type SessionArgumentationProcessPipeline struct {
+	PipelinePacket
+}
+
+// Output stages
+type LLMRequestOutputPipeline struct {
+	PipelinePacket
+}
+
+type ToolFollowUpOutputPipeline struct {
+	PipelinePacket
+}
+
+// LocalHistoryOutputPipeline appends a message to local in-memory history.
+type LocalHistoryOutputPipeline struct {
+	PipelinePacket
+}
+
+// LLMResponsePipeline is the typed response state flowing through stages.
+type LLMResponsePipeline struct {
+	PipelinePacket
+}
+
+// Backward-compatible aliases used by existing tests and call sites.
+type PrepareHistoryPipeline = PrepareHistoryProcessPipeline
+type ArgumentationPipeline = ArgumentationProcessPipeline
+type AssistantArgumentationPipeline = AssistantArgumentationProcessPipeline
+type ConversationArgumentationPipeline = ConversationArgumentationProcessPipeline
+type MessageArgumentationPipeline = MessageArgumentationProcessPipeline
+type SessionArgumentationPipeline = SessionArgumentationProcessPipeline
+type LLMRequestPipeline = LLMRequestOutputPipeline
+type ToolFollowUpExecutePipeline = ToolFollowUpOutputPipeline
+type LocalHistoryPipeline = LocalHistoryOutputPipeline

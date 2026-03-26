@@ -30,7 +30,7 @@ type inputNormalizer struct {
 func NewInputNormalizer(logger commons.Logger) InputNormalizer {
 	return &inputNormalizer{
 		logger: logger,
-		parser: rapida_language.NewLinguaParser(rapida_language.Config{}),
+		parser: rapida_language.NewLinguaParser(logger),
 	}
 }
 
@@ -49,7 +49,6 @@ func (n *inputNormalizer) Normalize(ctx context.Context, packets ...internal_typ
 	if n.onPacket == nil {
 		return errInputNormalizerNotInitialized
 	}
-
 	for _, pkt := range packets {
 		switch p := pkt.(type) {
 		case internal_type.EndOfSpeechPacket:
@@ -120,14 +119,17 @@ func (n *inputNormalizer) Pipeline(ctx context.Context, v PipelineType) error {
 
 func (n *inputNormalizer) detectLanguage(p PipelinePacket) rapida_types.Language {
 	if code := consensusLanguageCode(p.Speechs); code != "" {
-		return rapida_types.GetLanguageByName(code)
+		if lang := rapida_types.LookupLanguage(code); lang != nil {
+			return *lang
+		}
 	}
-
 	if strings.TrimSpace(p.Speech) == "" {
-		return rapida_types.GetLanguageByName("en")
+		return fallbackEnglishLanguage()
 	}
-
-	return n.parser.Parse(p.Speech, nil)
+	if parsed := n.parser.Parse(p.Speech); parsed != nil {
+		return parsed.Language
+	}
+	return fallbackEnglishLanguage()
 }
 
 func consensusLanguageCode(speeches []internal_type.SpeechToTextPacket) string {
@@ -159,12 +161,19 @@ func normalizeLanguageCode(v string) string {
 	if idx := strings.Index(clean, "-"); idx > 0 {
 		clean = clean[:idx]
 	}
-	if len(clean) < 2 {
+	if len(clean) != 2 {
 		return ""
 	}
-	if len(clean) > 3 {
-		clean = clean[:3]
+	canonical := rapida_types.LookupLanguage(clean)
+	if canonical == nil {
+		return ""
 	}
-	canonical := rapida_types.GetLanguageByName(clean)
 	return canonical.ISO639_1
+}
+
+func fallbackEnglishLanguage() rapida_types.Language {
+	if lang := rapida_types.LookupLanguage("en"); lang != nil {
+		return *lang
+	}
+	return rapida_types.Language{Name: "English", ISO639_1: "en", ISO639_2: "eng"}
 }

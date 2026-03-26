@@ -220,6 +220,12 @@ func (e *websocketExecutor) handleResponse(ctx context.Context, resp *Response, 
 // Execute sends a packet to the WebSocket server.
 func (e *websocketExecutor) Execute(ctx context.Context, comm internal_type.Communication, packet internal_type.Packet) error {
 	switch p := packet.(type) {
+	case internal_type.NormalizedTextPacket:
+		return e.send(Request{
+			Type:      TypeUserMessage,
+			Timestamp: time.Now().UnixMilli(),
+			Data:      UserMessageData{ID: packet.ContextId(), Content: p.Text},
+		})
 	case internal_type.UserTextPacket:
 		return e.send(Request{
 			Type:      TypeUserMessage,

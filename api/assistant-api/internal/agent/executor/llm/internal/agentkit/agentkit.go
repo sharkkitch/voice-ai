@@ -406,6 +406,29 @@ func (e *agentkitExecutor) handleResponse(ctx context.Context, resp *protos.Talk
 // Emits ConversationEventPacket: {type: "executing"} for UserTextPacket.
 func (e *agentkitExecutor) Execute(ctx context.Context, comm internal_type.Communication, packet internal_type.Packet) error {
 	switch p := packet.(type) {
+	case internal_type.NormalizedTextPacket:
+		comm.OnPacket(ctx, internal_type.ConversationEventPacket{
+			ContextID: p.ContextID,
+			Name:      "agentkit",
+			Data: map[string]string{
+				"type":             "executing",
+				"script":           p.Text,
+				"input_char_count": fmt.Sprintf("%d", len(p.Text)),
+			},
+			Time: time.Now(),
+		})
+		return e.send(&protos.TalkInput{
+			Request: &protos.TalkInput_Message{
+				Message: &protos.ConversationUserMessage{
+					Message: &protos.ConversationUserMessage_Text{
+						Text: p.Text,
+					},
+					Id:        packet.ContextId(),
+					Completed: true,
+					Time:      timestamppb.Now(),
+				},
+			},
+		})
 	case internal_type.UserTextPacket:
 		comm.OnPacket(ctx, internal_type.ConversationEventPacket{
 			ContextID: p.ContextID,

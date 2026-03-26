@@ -57,11 +57,11 @@ var languages = map[string]Language{
 	"ks": {"Kashmiri", "ks", "kas"},
 }
 
-// Lookup function by long name
-func GetLanguageByName(name string) Language {
+// LookupLanguage returns a language by key without fallback.
+func LookupLanguage(name string) *Language {
 	lang, ok := languages[strings.ToLower(name)]
 	if !ok {
-		lang = languages["en"]
+		return nil
 	}
-	return lang
+	return &lang
 }
