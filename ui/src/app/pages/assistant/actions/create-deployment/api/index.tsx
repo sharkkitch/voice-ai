@@ -79,13 +79,14 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
   const { goToDeploymentAssistant } = useGlobalNavigation();
-  const { loading, showLoader, hideLoader } = useRapidaStore();
+  const { showLoader, hideLoader } = useRapidaStore();
   const { providerCredentials } = useAllProviderCredentials();
   const { authId, projectId, token } = useCurrentCredential();
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog({});
 
   const [activeTab, setActiveTab] = useState('experience');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
   const [voiceInputEnable, setVoiceInputEnable] = useState(false);
   const [voiceOutputEnable, setVoiceOutputEnable] = useState(true);
 
@@ -232,12 +233,12 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
   };
 
   const handleDeployApi = () => {
-    showLoader('block');
+    setIsDeploying(true);
     setErrorMessage('');
 
     if (voiceInputEnable) {
       if (!audioInputConfig.provider) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(
           'Please provide a provider for interpreting input audio.',
         );
@@ -249,7 +250,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
         getProviderCredentialIds(audioInputConfig.provider),
       );
       if (err) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(err);
         return;
       }
@@ -257,7 +258,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
 
     if (voiceOutputEnable) {
       if (!audioOutputConfig.provider) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(
           'Please provide a provider for interpreting output audio.',
         );
@@ -269,7 +270,7 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
         getProviderCredentialIds(audioOutputConfig.provider),
       );
       if (err) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(err);
         return;
       }
@@ -318,7 +319,6 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
       }),
     )
       .then(response => {
-        hideLoader();
         if (response?.getData() && response.getSuccess()) {
           toast.success('SDK / API deployment updated successfully.');
           goToDeploymentAssistant(assistantId);
@@ -330,10 +330,12 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
         }
       })
       .catch(err => {
-        hideLoader();
         setErrorMessage(
           err?.message || 'Error deploying as API. Please try again.',
         );
+      })
+      .finally(() => {
+        setIsDeploying(false);
       });
   };
 
@@ -478,7 +480,8 @@ const ConfigureAssistantApiDeployment: FC<{ assistantId: string }> = ({
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
-                  isLoading={loading}
+                  isLoading={isDeploying}
+                  disabled={isDeploying}
                   onClick={handleDeployApi}
                 >
                   Deploy API

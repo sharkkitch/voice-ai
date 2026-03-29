@@ -2,13 +2,13 @@ import { FormLabel } from '@/app/components/form-label';
 import { IBlueBGArrowButton } from '@/app/components/form/button';
 import { InputCheckbox } from '@/app/components/form/checkbox';
 import { FieldSet } from '@/app/components/form/fieldset';
-import { InputGroup } from '@/app/components/input-group';
 import { InputHelper } from '@/app/components/input-helper';
 import { connectionConfig } from '@/configs';
 import { RAPIDA_SYSTEM_NOTIFICATION } from '@/models/notification';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { PageActionButtonBlock } from '@/app/components/blocks/page-action-button-block';
+import { SectionDivider } from '@/app/components/blocks/section-divider';
 import {
   UpdateNotificationSettingRequest,
   NotificationSetting as Setting,
@@ -95,42 +95,43 @@ export const NotificationSetting = () => {
 
   return (
     <form
-      className="pb-20 pt-4"
+      className="flex-1 min-h-0 flex flex-col bg-white dark:bg-gray-900"
       onSubmit={handleSubmit(onSubmit)} // Use the onSubmit handler
     >
-      {RAPIDA_SYSTEM_NOTIFICATION.map(notificationCategory => (
-        <InputGroup
-          title={notificationCategory.category}
-          className="bg-white dark:bg-gray-900 mt-0"
-        >
-          <div className="space-y-6 grid grid-cols-4 gap-4">
-            {notificationCategory.items.map(item => (
-              <div className="flex gap-3" key={item.id}>
-                <div className="flex h-6 shrink-0 items-center">
-                  {/* Bind the checkbox with `register` */}
-                  <InputCheckbox
-                    {...register(item.id)} // Register the field
-                    checked={item.default} // Optional initial value
-                  />
-                </div>
-                <FieldSet className="text-sm/6">
-                  <FormLabel htmlFor={item.id}>{item.label}</FormLabel>
-                  <InputHelper id={`${item.id}-description`}>
-                    {item.description}
-                  </InputHelper>
-                </FieldSet>
+      <div className="overflow-auto flex-1">
+        <div className="px-8 pt-8 pb-12 flex flex-col gap-10 max-w-2xl">
+          {RAPIDA_SYSTEM_NOTIFICATION.map(notificationCategory => (
+            <div
+              className="flex flex-col gap-6"
+              key={notificationCategory.category}
+            >
+              <SectionDivider label={notificationCategory.category} />
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {notificationCategory.items.map(item => (
+                  <div className="flex gap-3" key={item.id}>
+                    <div className="flex h-6 shrink-0 items-center">
+                      {/* Bind the checkbox with `register` */}
+                      <InputCheckbox
+                        {...register(item.id)} // Register the field
+                        defaultChecked={item.default}
+                      />
+                    </div>
+                    <FieldSet className="text-sm/6">
+                      <FormLabel htmlFor={item.id}>{item.label}</FormLabel>
+                      <InputHelper id={`${item.id}-description`}>
+                        {item.description}
+                      </InputHelper>
+                    </FieldSet>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InputGroup>
-      ))}
+            </div>
+          ))}
+        </div>
+      </div>
       <PageActionButtonBlock errorMessage={error}>
-        <IBlueBGArrowButton
-          type="submit"
-          className="px-4 rounded-[2px]"
-          isLoading={loading}
-        >
-          Update Notification
+        <IBlueBGArrowButton type="submit" className="px-4" isLoading={loading}>
+          Save changes
         </IBlueBGArrowButton>
       </PageActionButtonBlock>
     </form>

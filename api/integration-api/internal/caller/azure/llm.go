@@ -304,7 +304,11 @@ func (llc *largeLanguageCaller) buildHistory(allMessages []*protos.Message) []op
 func (llc *largeLanguageCaller) getChatCompleteParameter(
 	opts *internal_callers.ChatCompletionOptions,
 ) openai.ChatCompletionNewParams {
-	options := openai.ChatCompletionNewParams{}
+	options := openai.ChatCompletionNewParams{
+		StreamOptions: openai.ChatCompletionStreamOptionsParam{
+			IncludeUsage: openai.Bool(true),
+		},
+	}
 	if len(opts.ToolDefinitions) > 0 {
 		fns := make([]openai.ChatCompletionToolParam, len(opts.ToolDefinitions))
 		for idx, tl := range opts.ToolDefinitions {

@@ -341,10 +341,10 @@ func (conversationService *assistantConversationService) ApplyMessageMetadata(
 			AssistantConversationId:        assistantConversationId,
 			AssistantConversationMessageId: assistantConversationMessageId,
 			Metadata: gorm_models.Metadata{
-				Key: m.GetKey(),
+				Key:   m.GetKey(),
+				Value: m.GetValue(),
 			},
 		}
-		_mtd.SetValue(m)
 		if auth.GetUserId() != nil {
 			_mtd.UpdatedBy = *auth.GetUserId()
 			_mtd.CreatedBy = *auth.GetUserId()

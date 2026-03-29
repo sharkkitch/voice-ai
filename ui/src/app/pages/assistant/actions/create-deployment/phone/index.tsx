@@ -86,12 +86,13 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
   const { goToDeploymentAssistant } = useGlobalNavigation();
-  const { loading, showLoader, hideLoader } = useRapidaStore();
+  const { showLoader, hideLoader } = useRapidaStore();
   const { providerCredentials } = useAllProviderCredentials();
   const { authId, projectId, token } = useCurrentCredential();
 
   const [activeTab, setActiveTab] = useState('telephony');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const [experienceConfig, setExperienceConfig] = useState<ExperienceConfig>({
     greeting: undefined,
@@ -255,7 +256,7 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
   };
 
   const handleDeployPhone = () => {
-    showLoader('block');
+    setIsDeploying(true);
     setErrorMessage('');
 
     if (
@@ -264,13 +265,13 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
         telephonyConfig.parameters,
       )
     ) {
-      hideLoader();
+      setIsDeploying(false);
       setErrorMessage('Please provide a valid telephony configuration.');
       return;
     }
 
     if (!audioInputConfig.provider) {
-      hideLoader();
+      setIsDeploying(false);
       setErrorMessage('Please provide a speech-to-text provider.');
       return;
     }
@@ -281,13 +282,13 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       getProviderCredentialIds(audioInputConfig.provider),
     );
     if (sttError) {
-      hideLoader();
+      setIsDeploying(false);
       setErrorMessage(sttError);
       return;
     }
 
     if (!audioOutputConfig.provider) {
-      hideLoader();
+      setIsDeploying(false);
       setErrorMessage('Please provide a text-to-speech provider.');
       return;
     }
@@ -298,7 +299,7 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       getProviderCredentialIds(audioOutputConfig.provider),
     );
     if (ttsError) {
-      hideLoader();
+      setIsDeploying(false);
       setErrorMessage(ttsError);
       return;
     }
@@ -346,7 +347,6 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
       }),
     )
       .then(response => {
-        hideLoader();
         if (response?.getData() && response.getSuccess()) {
           toast.success('Phone call deployment updated successfully.');
           goToDeploymentAssistant(assistantId);
@@ -358,10 +358,12 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
         }
       })
       .catch(err => {
-        hideLoader();
         setErrorMessage(
           err?.message || 'Error deploying phone call. Please try again.',
         );
+      })
+      .finally(() => {
+        setIsDeploying(false);
       });
   };
 
@@ -493,7 +495,8 @@ const ConfigureAssistantCallDeployment: FC<{ assistantId: string }> = ({
               <IBlueBGArrowButton
                 type="button"
                 className="w-full h-full"
-                isLoading={loading}
+                isLoading={isDeploying}
+                disabled={isDeploying}
                 onClick={handleDeployPhone}
               >
                 Deploy Phone

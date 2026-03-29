@@ -20,7 +20,9 @@ export const AssistantManageLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
             <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
             <span className="text-sm font-medium">Assistants</span>
           </div>
-          <span className="px-1 text-gray-300 dark:text-gray-600 shrink-0">/</span>
+          <span className="px-1 text-gray-300 dark:text-gray-600 shrink-0">
+            /
+          </span>
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono truncate">
             {assistantId}
           </span>
@@ -34,13 +36,19 @@ export const AssistantManageLayout: FC<HTMLAttributes<HTMLDivElement>> = () => {
           <TabLink to={`/deployment/assistant/${assistantId}/configure-tool`}>
             Tools & MCP
           </TabLink>
-          <TabLink to={`/deployment/assistant/${assistantId}/configure-analysis`}>
+          <TabLink
+            to={`/deployment/assistant/${assistantId}/configure-analysis`}
+          >
             Analysis
           </TabLink>
-          <TabLink to={`/deployment/assistant/${assistantId}/configure-webhook`}>
+          <TabLink
+            to={`/deployment/assistant/${assistantId}/configure-webhook`}
+          >
             Webhooks
           </TabLink>
-          <TabLink to={`/deployment/assistant/${assistantId}/configure-telemetry`}>
+          <TabLink
+            to={`/deployment/assistant/${assistantId}/configure-telemetry`}
+          >
             <span className="inline-flex items-center gap-1.5">
               <span>Telemetry</span>
               <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-blue-700 dark:text-blue-300 border border-blue-300/70 dark:border-blue-700/70">

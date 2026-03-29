@@ -1,7 +1,6 @@
 import { useAssistantProviderPageStore } from '@/hooks';
-import { useRapidaStore } from '@/hooks';
 import { useCredential } from '@/hooks/use-credential';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast/headless';
 import { Assistant, GetAllAssistantProviderResponse } from '@rapidaai/react';
 import { RevisionIndicator } from '@/app/components/indicators/revision';
@@ -22,11 +21,14 @@ interface VersionProps {
 
 export function Version(props: VersionProps) {
   const [userId, token, projectId] = useCredential();
-  const rapidaContext = useRapidaStore();
   const assistantProviderAction = useAssistantProviderPageStore();
+  const [isFetching, setIsFetching] = useState(true);
+  const [deployingProviderId, setDeployingProviderId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
-    rapidaContext.showLoader();
+    setIsFetching(true);
     assistantProviderAction.onChangeAssistant(props.assistant);
     assistantProviderAction.getAssistantProviders(
       props.assistant.getId(),
@@ -34,11 +36,11 @@ export function Version(props: VersionProps) {
       token,
       userId,
       (err: string) => {
-        rapidaContext.hideLoader();
+        setIsFetching(false);
         toast.error(err);
       },
       data => {
-        rapidaContext.hideLoader();
+        setIsFetching(false);
       },
     );
   }, [
@@ -53,7 +55,7 @@ export function Version(props: VersionProps) {
     assistantProvider: string,
     assistantProviderId: string,
   ) => {
-    rapidaContext.showLoader('overlay');
+    setDeployingProviderId(assistantProviderId);
     assistantProviderAction.onReleaseVersion(
       assistantProvider,
       assistantProviderId,
@@ -61,7 +63,7 @@ export function Version(props: VersionProps) {
       token,
       userId,
       error => {
-        rapidaContext.hideLoader();
+        setDeployingProviderId(null);
         toast.error(error);
       },
       e => {
@@ -70,11 +72,11 @@ export function Version(props: VersionProps) {
         );
         assistantProviderAction.onChangeAssistant(e);
         props.onReload();
-        rapidaContext.hideLoader();
+        setDeployingProviderId(null);
       },
     );
   };
-  if (rapidaContext.loading) {
+  if (isFetching) {
     return (
       <div className="h-full flex flex-col items-center justify-center">
         <SectionLoader />
@@ -106,24 +108,34 @@ export function Version(props: VersionProps) {
                       : 'Initial assistant version'}
                   </TableCell>
                   <TableCell>
+                    {(() => {
+                      const providerId =
+                        apm.getAssistantprovidermodel()?.getId()!;
+                      const isCurrent =
+                        assistantProviderAction.assistant?.getAssistantproviderid() ===
+                        providerId;
+                      const isDeploying = deployingProviderId === providerId;
+                      return (
                     <RevisionIndicator
                       status={
-                        assistantProviderAction.assistant?.getAssistantproviderid() ===
-                        apm.getAssistantprovidermodel()?.getId()
+                        isCurrent
                           ? 'DEPLOYED'
-                          : 'NOT_DEPLOYED'
+                          : isDeploying
+                            ? 'DEPLOYING'
+                            : 'NOT_DEPLOYED'
                       }
                       onClick={
-                        assistantProviderAction.assistant?.getAssistantproviderid() !==
-                        apm.getAssistantprovidermodel()?.getId()
+                        !isCurrent && !isDeploying
                           ? () =>
                               deployRevision(
                                 'MODEL',
-                                apm.getAssistantprovidermodel()?.getId()!,
+                                providerId,
                               )
                           : undefined
                       }
                     />
+                      );
+                    })()}
                   </TableCell>
                   <NameCell data-id={apm.getAssistantprovidermodel()?.getId()}>
                     {apm.getAssistantprovidermodel()?.getCreateduser() &&
@@ -153,24 +165,34 @@ export function Version(props: VersionProps) {
                       : 'Initial assistant version'}
                   </TableCell>
                   <TableCell>
+                    {(() => {
+                      const providerId =
+                        apm.getAssistantprovideragentkit()?.getId()!;
+                      const isCurrent =
+                        assistantProviderAction.assistant?.getAssistantproviderid() ===
+                        providerId;
+                      const isDeploying = deployingProviderId === providerId;
+                      return (
                     <RevisionIndicator
                       status={
-                        assistantProviderAction.assistant?.getAssistantproviderid() ===
-                        apm.getAssistantprovideragentkit()?.getId()
+                        isCurrent
                           ? 'DEPLOYED'
-                          : 'NOT_DEPLOYED'
+                          : isDeploying
+                            ? 'DEPLOYING'
+                            : 'NOT_DEPLOYED'
                       }
                       onClick={
-                        assistantProviderAction.assistant?.getAssistantproviderid() !==
-                        apm.getAssistantprovideragentkit()?.getId()
+                        !isCurrent && !isDeploying
                           ? () =>
                               deployRevision(
                                 'AGENTKIT',
-                                apm.getAssistantprovideragentkit()?.getId()!,
+                                providerId,
                               )
                           : undefined
                       }
                     />
+                      );
+                    })()}
                   </TableCell>
                   <NameCell>
                     {
@@ -201,24 +223,34 @@ export function Version(props: VersionProps) {
                       : 'Initial assistant version'}
                   </TableCell>
                   <TableCell>
+                    {(() => {
+                      const providerId =
+                        apm.getAssistantproviderwebsocket()?.getId()!;
+                      const isCurrent =
+                        assistantProviderAction.assistant?.getAssistantproviderid() ===
+                        providerId;
+                      const isDeploying = deployingProviderId === providerId;
+                      return (
                     <RevisionIndicator
                       status={
-                        assistantProviderAction.assistant?.getAssistantproviderid() ===
-                        apm.getAssistantproviderwebsocket()?.getId()
+                        isCurrent
                           ? 'DEPLOYED'
-                          : 'NOT_DEPLOYED'
+                          : isDeploying
+                            ? 'DEPLOYING'
+                            : 'NOT_DEPLOYED'
                       }
                       onClick={
-                        assistantProviderAction.assistant?.getAssistantproviderid() !==
-                        apm.getAssistantproviderwebsocket()?.getId()
+                        !isCurrent && !isDeploying
                           ? () =>
                               deployRevision(
                                 'WEBSOCKET',
-                                apm.getAssistantproviderwebsocket()?.getId()!,
+                                providerId,
                               )
                           : undefined
                       }
                     />
+                      );
+                    })()}
                   </TableCell>
                   <NameCell>
                     {apm.getAssistantproviderwebsocket()?.getCreateduser() &&

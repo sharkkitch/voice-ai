@@ -315,7 +315,7 @@ func (talking *genericRequestor) callEndOfSpeech(ctx context.Context, vl interna
 
 func (talking *genericRequestor) handleEndOfSpeech(ctx context.Context, vl internal_type.EndOfSpeechPacket) {
 	talking.OnPacket(ctx, internal_type.NormalizeInputPacket{
-		ContextID: vl.ContextID,
+		ContextID: talking.GetID(),
 		Speech:    vl.Speech,
 		Speechs:   vl.Speechs,
 	})
@@ -325,7 +325,7 @@ func (talking *genericRequestor) handleNormalizeInput(ctx context.Context, vl in
 	eos := internal_type.EndOfSpeechPacket{ContextID: vl.ContextID, Speech: vl.Speech, Speechs: vl.Speechs}
 	if err := talking.callInputNormalizer(ctx, eos); err != nil {
 		talking.OnPacket(ctx, internal_type.NormalizedUserTextPacket{
-			ContextID: talking.GetID(),
+			ContextID: vl.ContextID,
 			Text:      vl.Speech,
 		})
 	}

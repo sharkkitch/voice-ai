@@ -79,12 +79,13 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
   assistantId,
 }) => {
   const { goToDeploymentAssistant } = useGlobalNavigation();
-  const { loading, showLoader, hideLoader } = useRapidaStore();
+  const { showLoader, hideLoader } = useRapidaStore();
   const { providerCredentials } = useAllProviderCredentials();
   const { authId, projectId, token } = useCurrentCredential();
 
   const [activeTab, setActiveTab] = useState('experience');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
   const [voiceInputEnable, setVoiceInputEnable] = useState(false);
   const [voiceOutputEnable, setVoiceOutputEnable] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -230,12 +231,12 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
   };
 
   const handleDeployDebugger = () => {
-    showLoader('block');
+    setIsDeploying(true);
     setErrorMessage('');
 
     if (voiceInputEnable) {
       if (!audioInputConfig.provider) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(
           'Please select a speech-to-text provider for voice input.',
         );
@@ -247,7 +248,7 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
         getProviderCredentialIds(audioInputConfig.provider),
       );
       if (inputError) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(inputError);
         return;
       }
@@ -255,7 +256,7 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
 
     if (voiceOutputEnable) {
       if (!audioOutputConfig.provider) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(
           'Please select a text-to-speech provider for voice output.',
         );
@@ -267,7 +268,7 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
         getProviderCredentialIds(audioOutputConfig.provider),
       );
       if (outputError) {
-        hideLoader();
+        setIsDeploying(false);
         setErrorMessage(outputError);
         return;
       }
@@ -317,7 +318,6 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
       }),
     )
       .then(response => {
-        hideLoader();
         if (response?.getData() && response.getSuccess()) {
           toast.success('Debugger deployment updated successfully.');
           setSuccess(true);
@@ -329,10 +329,12 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
         }
       })
       .catch(() => {
-        hideLoader();
         setErrorMessage(
           'Error deploying as debugger. Please check and try again.',
         );
+      })
+      .finally(() => {
+        setIsDeploying(false);
       });
   };
 
@@ -485,7 +487,8 @@ const ConfigureAssistantDebuggerDeployment: FC<{ assistantId: string }> = ({
                 <IBlueBGArrowButton
                   type="button"
                   className="w-full h-full"
-                  isLoading={loading}
+                  isLoading={isDeploying}
+                  disabled={isDeploying}
                   onClick={handleDeployDebugger}
                 >
                   Deploy Debugger
