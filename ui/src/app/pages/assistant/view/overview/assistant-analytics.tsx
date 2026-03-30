@@ -330,7 +330,7 @@ const MetricCard: FC<{ label: string; value: number; unit?: string; trend?: 'up'
 }) => {
   const statusColor = status === 'active' ? 'bg-green-500' : status === 'warning' ? 'bg-yellow-500' : 'bg-gray-400';
   return (
-    <Tile className="!rounded-none !p-4">
+    <Tile className="!rounded-none !p-4 border border-gray-200 dark:border-gray-800">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold">{label}</h4>
         <span className={cn('w-2 h-2 rounded-full shrink-0', statusColor)} />
@@ -359,7 +359,7 @@ const MetricCard: FC<{ label: string; value: number; unit?: string; trend?: 'up'
 const ChartTile: FC<{ title: string; subtitle?: string; className?: string; children: React.ReactNode }> = ({
   title, subtitle, className, children,
 }) => (
-  <Tile className={cn('!rounded-none !p-0', className)}>
+  <Tile className={cn('!rounded-none !p-0 border border-gray-200 dark:border-gray-800', className)}>
     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
       <h3 className="text-base font-semibold">{title}</h3>
       {subtitle && (

@@ -1,13 +1,10 @@
 import { PrimaryButton, SecondaryButton } from '@/app/components/carbon/button';
-import { ErrorMessage } from '@/app/components/form/error-message';
 import { ModalProps } from '@/app/components/base/modal';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/app/components/carbon/modal';
+import { Notification } from '@/app/components/carbon/notification';
+import { Stack, TextInput, TextArea } from '@/app/components/carbon/form';
 import { useRapidaStore } from '@/hooks';
 import React, { useEffect, useState } from 'react';
-import { FieldSet } from '@/app/components/form/fieldset';
-import { Input } from '@/app/components/form/input';
-import { FormLabel } from '@/app/components/form-label';
-import { Textarea } from '@/app/components/form/textarea';
 
 interface UpdateDescriptionDialogProps extends ModalProps {
   title?: string;
@@ -49,40 +46,45 @@ export function UpdateDescriptionDialog(props: UpdateDescriptionDialogProps) {
   };
 
   return (
-    <Modal open={props.modalOpen} onClose={() => props.setModalOpen(false)} size="sm">
-      <ModalHeader title={props.title} onClose={() => props.setModalOpen(false)} />
-
+    <Modal
+      open={props.modalOpen}
+      onClose={() => props.setModalOpen(false)}
+      size="sm"
+      selectorPrimaryFocus="#edit-name"
+    >
+      <ModalHeader
+        label="Details"
+        title={props.title || 'Edit details'}
+        onClose={() => props.setModalOpen(false)}
+      />
       <ModalBody hasForm>
-        <FieldSet>
-          <FormLabel>Name</FormLabel>
-          <Input
-            name="usecase"
+        <Stack gap={6}>
+          <TextInput
+            id="edit-name"
+            labelText="Name"
             value={name}
             placeholder="e.g. emotion detector"
             onChange={e => setName(e.target.value)}
           />
-        </FieldSet>
-
-        <FieldSet>
-          <FormLabel>Description</FormLabel>
-          <Textarea
+          <TextArea
+            id="edit-description"
+            labelText="Description"
             rows={4}
             value={description}
             placeholder="Provide a readable description and how to use it."
-            onChange={v => setDescription(v.target.value)}
+            onChange={e => setDescription(e.target.value)}
           />
-        </FieldSet>
-
-        <ErrorMessage message={error} />
+          {error && (
+            <Notification kind="error" title="Error" subtitle={error} />
+          )}
+        </Stack>
       </ModalBody>
-
       <ModalFooter>
         <SecondaryButton size="lg" onClick={() => props.setModalOpen(false)}>
           Cancel
         </SecondaryButton>
         <PrimaryButton
           size="lg"
-          type="button"
           onClick={onUpdateDescription}
           isLoading={rapidaStore.loading}
         >

@@ -8,7 +8,8 @@ import { CostCell } from '@/app/components/base/tables/cost-cell';
 import { NumberCell } from '@/app/components/base/tables/number-cell';
 import { TableRow } from '@/app/components/base/tables/table-row';
 import { TableCell } from '@/app/components/base/tables/table-cell';
-import { ProviderPill } from '@/app/components/pill/provider-model-pill';
+import { OperationalTag } from '@carbon/react';
+import { allProvider } from '@/providers';
 import { LabelCell } from '@/app/components/base/tables/label-cell';
 import { cn } from '@/utils';
 import { CustomLink } from '@/app/components/custom-link';
@@ -131,15 +132,23 @@ export const SingleEndpoint: FC<SingleEndpointProps> = ({ endpoint }) => {
           {getErrorRate(endpoint)}%
         </LabelCell>
       )}
-      {endpointAction.visibleColumn('getCurrentModel') && (
-        <TableCell className="min-w-60">
-          <ProviderPill
-            provider={endpoint
-              .getEndpointprovidermodel()
-              ?.getModelprovidername()}
-          />
-        </TableCell>
-      )}
+      {endpointAction.visibleColumn('getCurrentModel') && (() => {
+        const providerCode = endpoint.getEndpointprovidermodel()?.getModelprovidername();
+        const provider = providerCode ? allProvider().find(p => p.code.toLowerCase() === providerCode.toLowerCase()) : null;
+        const ProviderIcon = provider?.image
+          ? () => <img src={provider.image} alt={provider.name} className="w-4 h-4" />
+          : undefined;
+        return (
+          <TableCell>
+            <OperationalTag
+              text={provider?.name || providerCode || '—'}
+              type="cool-gray"
+              size="md"
+              renderIcon={ProviderIcon}
+            />
+          </TableCell>
+        );
+      })()}
       {endpointAction.visibleColumn('getCost') && (
         <CostCell
           cost={

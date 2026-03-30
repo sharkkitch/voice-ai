@@ -15,18 +15,18 @@
                 "enable": true,
                 "providers": {
                     "password": true,
-                    "google": false,
-                    "linkedin": false,
-                    "github": false
+                    "google": true,
+                    "linkedin": true,
+                    "github": true
                 }
             },
             "signUp": {
                 "enable": true,
                 "providers": {
                     "password": true,
-                    "google": false,
-                    "linkedin": false,
-                    "github": false
+                    "google": true,
+                    "linkedin": true,
+                    "github": true
                 }
             }
         },

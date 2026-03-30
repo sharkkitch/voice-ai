@@ -1,4 +1,5 @@
 import type { FC, ReactNode, ChangeEvent, MouseEvent } from 'react';
+import { forwardRef } from 'react';
 import {
   Form as CarbonForm,
   Stack as CarbonStack,
@@ -131,15 +132,16 @@ export interface CarbonTextInputProps {
 }
 
 /** Carbon TextInput — single-line text field with label, helper, and validation. */
-export const TextInput: FC<CarbonTextInputProps> = ({
+export const TextInput = forwardRef<HTMLInputElement, CarbonTextInputProps>(({
   id,
   labelText,
   className,
   size = 'md',
   ...rest
-}) => {
+}, ref) => {
   return (
     <CarbonTextInput
+      ref={ref}
       id={id}
       labelText={labelText}
       className={cn(className)}
@@ -147,7 +149,7 @@ export const TextInput: FC<CarbonTextInputProps> = ({
       {...rest}
     />
   );
-};
+});
 
 /** Carbon TextInputSkeleton — loading placeholder for TextInput. */
 export const TextInputSkeleton: FC<{

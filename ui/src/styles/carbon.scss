@@ -12,6 +12,7 @@
 @use '@carbon/react/scss/components/dropdown';
 @use '@carbon/react/scss/components/multiselect';
 @use '@carbon/react/scss/components/search';
+@use '@carbon/react/scss/components/combo-box';
 @use '@carbon/react/scss/components/select';
 @use '@carbon/react/scss/components/pagination';
 @use '@carbon/react/scss/components/radio-button';
@@ -28,6 +29,7 @@
 @use '@carbon/react/scss/components/loading';
 @use '@carbon/react/scss/components/code-snippet';
 @use '@carbon/react/scss/components/content-switcher';
+@use '@carbon/react/scss/components/progress-indicator';
 @use '@carbon/react/scss/components/copy-button';
 @use '@carbon/react/scss/components/menu';
 @use '@carbon/styles/scss/components/combo-button';
@@ -98,6 +100,11 @@
   --cds-link-primary: var(--color-primary);
   --cds-link-primary-hover: color-mix(in oklab, var(--color-primary) 80%, black);
 
+  // Inverse
+  --cds-border-inverse: #161616;
+  --cds-layer-selected-inverse: #393939;
+  --cds-text-inverse: #ffffff;
+
   // Text
   --cds-text-primary: #161616;
   --cds-text-secondary: #525252;
@@ -141,7 +148,7 @@
 :root:is(.dark) {
   // Background / layer
   --cds-background: transparent;
-  --cds-layer: #161616;
+  --cds-layer: #262626;
   --cds-layer-hover: #353535;
   --cds-layer-active: #525252;
   --cds-layer-01: transparent;
@@ -197,6 +204,11 @@
   --cds-border-strong: #6f6f6f;
   --cds-border-strong-01: #6f6f6f;
 
+  // Inverse
+  --cds-border-inverse: #f4f4f4;
+  --cds-layer-selected-inverse: #f4f4f4;
+  --cds-text-inverse: #161616;
+
   // Link
   --cds-link-primary: #1062fe;
   --cds-link-primary-hover: color-mix(in oklab, #1062fe 80%, white);
@@ -243,7 +255,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     --cds-background: transparent;
-    --cds-layer: #161616;
+    --cds-layer: #262626;
     --cds-layer-hover: #353535;
     --cds-layer-active: #525252;
     --cds-layer-01: transparent;
@@ -462,4 +474,5 @@
   --cds-tag-color-gray: #e0e0e0;
   --cds-tag-hover-gray: #474747;
 }
+
 

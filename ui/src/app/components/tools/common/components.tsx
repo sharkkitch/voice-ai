@@ -1,18 +1,11 @@
 import { FC, useState, useCallback } from 'react';
-import { ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/utils';
-import { FormLabel } from '@/app/components/form-label';
-import { FieldSet } from '@/app/components/form/fieldset';
-import { Input } from '@/app/components/form/input';
-import { Select } from '@/app/components/form/select';
-import { Textarea } from '@/app/components/form/textarea';
 import { CodeEditor } from '@/app/components/form/editor/code-editor';
-import { InputGroup } from '@/app/components/input-group';
 import { DocNoticeBlock } from '@/app/components/container/message/notice-block/doc-notice-block';
-import {
-  IBlueBorderButton,
-  IRedBorderButton,
-} from '@/app/components/form/button';
+import { Add, TrashCan, ArrowRight } from '@carbon/icons-react';
+import { TertiaryButton, DangerTertiaryButton } from '@/app/components/carbon/button';
+import { Stack, TextInput, TextArea } from '@/app/components/carbon/form';
+import { Select, SelectItem, Button } from '@carbon/react';
 import {
   ToolDefinition,
   ParameterType,
@@ -37,9 +30,7 @@ export const DocumentationNotice: FC<DocumentationNoticeProps> = ({
   title = 'Know more about knowledge tool definition that can be supported by rapida',
   documentationUrl,
 }) => (
-  <div className="-mx-6 -mt-6">
-    <DocNoticeBlock docUrl={documentationUrl}>{title}</DocNoticeBlock>
-  </div>
+  <DocNoticeBlock docUrl={documentationUrl}>{title}</DocNoticeBlock>
 );
 
 // ============================================================================
@@ -69,47 +60,43 @@ export const ToolDefinitionForm: FC<ToolDefinitionFormProps> = ({
   };
 
   return (
-    <InputGroup title="Tool Definition">
+    <div>
       <DocumentationNotice
         title={documentationTitle}
         documentationUrl={documentationUrl}
       />
-      <div className={cn('mt-4 flex flex-col gap-8 max-w-6xl')}>
-        <FieldSet className="relative w-full">
-          <FormLabel>Name</FormLabel>
-          <Input
+      <div className="mt-4 max-w-6xl">
+        <Stack gap={6}>
+          <TextInput
+            id="tool-name"
+            labelText="Name"
             value={toolDefinition.name}
             onChange={e => handleChange('name', e.target.value)}
             placeholder="Enter tool name"
-            className={cn('bg-light-background', inputClass)}
           />
-        </FieldSet>
-
-        <FieldSet className="relative w-full">
-          <FormLabel>Description</FormLabel>
-          <Textarea
+          <TextArea
+            id="tool-description"
+            labelText="Description"
             value={toolDefinition.description}
             onChange={e => handleChange('description', e.target.value)}
-            className={cn('bg-light-background', inputClass)}
             placeholder="A tool description or definition of when this tool will get triggered."
             rows={2}
           />
-        </FieldSet>
-
-        <FieldSet className="relative w-full">
-          <FormLabel>Parameters</FormLabel>
-          <CodeEditor
-            placeholder="Provide a tool parameters that will be passed to llm"
-            value={toolDefinition.parameters}
-            onChange={value => handleChange('parameters', value)}
-            className={cn(
-              'min-h-40 max-h-dvh bg-light-background dark:bg-gray-950',
-              inputClass,
-            )}
-          />
-        </FieldSet>
+          <div>
+            <p className="text-xs font-medium mb-2">Parameters</p>
+            <CodeEditor
+              placeholder="Provide a tool parameters that will be passed to llm"
+              value={toolDefinition.parameters}
+              onChange={value => handleChange('parameters', value)}
+              className={cn(
+                'min-h-40 max-h-dvh bg-light-background dark:bg-gray-950',
+                inputClass,
+              )}
+            />
+          </div>
+        </Stack>
       </div>
-    </InputGroup>
+    </div>
   );
 };
 
@@ -130,46 +117,43 @@ export const TypeKeySelector: FC<TypeKeySelectorProps> = ({
   onChange,
   inputClass,
 }) => {
-  const selectClassName = cn('bg-light-background border-none', inputClass);
+  const options = (() => {
+    switch (type) {
+      case 'assistant': return ASSISTANT_KEY_OPTIONS;
+      case 'conversation': return CONVERSATION_KEY_OPTIONS;
+      case 'tool': return TOOL_KEY_OPTIONS;
+      default: return null;
+    }
+  })();
 
-  switch (type) {
-    case 'assistant':
-      return (
-        <Select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className={selectClassName}
-          options={[...ASSISTANT_KEY_OPTIONS]}
-        />
-      );
-    case 'conversation':
-      return (
-        <Select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className={selectClassName}
-          options={[...CONVERSATION_KEY_OPTIONS]}
-        />
-      );
-    case 'tool':
-      return (
-        <Select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className={selectClassName}
-          options={[...TOOL_KEY_OPTIONS]}
-        />
-      );
-    default:
-      return (
-        <Input
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="Key"
-          className={cn('bg-light-background w-full border-none', inputClass)}
-        />
-      );
+  if (options) {
+    return (
+      <Select
+        id={`key-${type}-${value}`}
+        labelText=""
+        hideLabel
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className={cn('flex-1', inputClass)}
+      >
+        {options.map(opt => (
+          <SelectItem key={opt.value} value={opt.value} text={opt.name} />
+        ))}
+      </Select>
+    );
   }
+
+  return (
+    <TextInput
+      id={`key-custom-${value}`}
+      labelText=""
+      hideLabel
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder="Key"
+      size="md"
+    />
+  );
 };
 
 // ============================================================================
@@ -199,43 +183,49 @@ export const ParameterRow: FC<ParameterRowProps> = ({
   onValueChange,
   onRemove,
 }) => (
-  <div className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700">
+  <div className="grid grid-cols-2 border-b border-gray-200 dark:border-gray-700">
     <div className="flex col-span-1 items-center">
       <Select
+        id={`type-${paramKey}`}
+        labelText=""
+        hideLabel
         value={type}
         onChange={e => onTypeChange(e.target.value)}
-        className={cn('bg-light-background border-none', inputClass)}
-        options={typeOptions}
-      />
+        className={cn('flex-shrink-0', inputClass)}
+      >
+        {typeOptions.map(opt => (
+          <SelectItem key={opt.value} value={opt.value} text={opt.name} />
+        ))}
+      </Select>
       <TypeKeySelector
         type={type}
         inputClass={inputClass}
         value={paramKey}
         onChange={onKeyChange}
       />
-      <div
-        className={cn(
-          'bg-light-background dark:bg-gray-950 h-full flex items-center justify-center',
-          inputClass,
-        )}
-      >
-        <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
+      <div className="h-10 flex items-center justify-center px-2">
+        <ArrowRight size={16} />
       </div>
     </div>
-    <div className="col-span-1 flex">
-      <Input
+    <div className="col-span-1 flex items-center">
+      <TextInput
+        id={`value-${paramKey}`}
+        labelText=""
+        hideLabel
         value={value}
         onChange={e => onValueChange(e.target.value)}
         placeholder="Value"
-        className={cn('bg-light-background w-full border-none', inputClass)}
+        size="md"
+        className="flex-1"
       />
-      <IRedBorderButton
-        className="border-none outline-hidden h-10"
+      <Button
+        hasIconOnly
+        renderIcon={TrashCan}
+        iconDescription="Remove"
+        kind="danger--ghost"
+        size="md"
         onClick={onRemove}
-        type="button"
-      >
-        <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-      </IRedBorderButton>
+      />
     </div>
   </div>
 );
@@ -245,12 +235,9 @@ export const ParameterRow: FC<ParameterRowProps> = ({
 // ============================================================================
 
 interface ParameterEditorProps {
-  /** JSON-serialised key-value map, e.g. '{"assistant.name":"Alice"}' */
   value: string;
   onChange: (value: string) => void;
-  /** Overrides the default full PARAMETER_TYPE_OPTIONS list */
   typeOptions?: Array<{ name: string; value: string }>;
-  /** Type prefix used for newly-added rows (default: 'assistant') */
   defaultNewType?: string;
   inputClass?: string;
 }
@@ -314,16 +301,16 @@ export const ParameterEditor: FC<ParameterEditorProps> = ({
   }, [params, commit, defaultNewType]);
 
   return (
-    <FieldSet>
-      <FormLabel>Parameters ({params.length})</FormLabel>
+    <div>
+      <p className="text-xs font-medium mb-2">Parameters ({params.length})</p>
       <div className="text-sm grid w-full">
         {params.map(({ key, value: val }, index) => {
-          const [type, paramKey] = key.split('.');
+          const [type, pk] = key.split('.');
           return (
             <ParameterRow
               key={index}
               type={type as ParameterType}
-              paramKey={paramKey}
+              paramKey={pk}
               value={val}
               inputClass={inputClass}
               typeOptions={typeOptions}
@@ -335,13 +322,14 @@ export const ParameterEditor: FC<ParameterEditorProps> = ({
           );
         })}
       </div>
-      <IBlueBorderButton
+      <TertiaryButton
+        size="md"
+        renderIcon={Add}
         onClick={handleAdd}
-        className="justify-between space-x-8"
+        className="mt-2"
       >
-        <span>Add parameter</span>
-        <Plus className="h-4 w-4 ml-1.5" />
-      </IBlueBorderButton>
-    </FieldSet>
+        Add parameter
+      </TertiaryButton>
+    </div>
   );
 };

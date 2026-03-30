@@ -1,7 +1,7 @@
 import { Tag } from '@rapidaai/react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/app/components/carbon/modal';
 import { PrimaryButton, SecondaryButton } from '@/app/components/carbon/button';
-import { ErrorMessage } from '@/app/components/form/error-message';
+import { Notification } from '@/app/components/carbon/notification';
 import { TagInput } from '@/app/components/form/tag-input';
 import { KnowledgeTags } from '@/app/components/form/tag-input/knowledge-tags';
 import { ModalProps } from '@/app/components/base/modal';
@@ -55,26 +55,34 @@ export const CreateTagDialog: FC<CreateTagDialogProps> = memo(
     };
 
     return (
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} size="sm">
-        <ModalHeader title={title} onClose={() => setModalOpen(false)} />
-
-        <ModalBody hasForm className="px-4 py-5">
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        size="sm"
+        preventCloseOnClickOutside
+      >
+        <ModalHeader
+          label="Tags"
+          title={title}
+          onClose={() => setModalOpen(false)}
+        />
+        <ModalBody hasForm>
           <TagInput
             tags={_tags}
             addTag={addTag}
             removeTag={removeTag}
             allTags={allTags ?? KnowledgeTags}
           />
-          <ErrorMessage message={error} />
+          {error && (
+            <Notification kind="error" title="Error" subtitle={error} />
+          )}
         </ModalBody>
-
         <ModalFooter>
           <SecondaryButton size="lg" onClick={() => setModalOpen(false)}>
             Cancel
           </SecondaryButton>
           <PrimaryButton
             size="lg"
-            type="button"
             onClick={createTag}
             isLoading={rapidaStore.loading}
           >

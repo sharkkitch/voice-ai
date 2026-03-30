@@ -4,16 +4,13 @@ import { InfoIcon } from 'lucide-react';
 import { cn } from '@/utils';
 import { Card } from '@/app/components/base/cards';
 import { KnowledgeDropdown } from '@/app/components/dropdown/knowledge-dropdown';
-import { FormLabel } from '@/app/components/form-label';
 import CheckboxCard from '@/app/components/form/checkbox-card';
-import { FieldSet } from '@/app/components/form/fieldset';
-import { Input } from '@/app/components/form/input';
 import { Slider } from '@/app/components/form/slider';
+import { TextInput } from '@/app/components/carbon/form';
 import { HybridSearchIcon } from '@/app/components/Icon/hybrid-search';
 import { TextSearchIcon } from '@/app/components/Icon/text-search';
 import { VectorSearchIcon } from '@/app/components/Icon/vector-search';
 import { Tooltip } from '@/app/components/tooltip';
-import { InputGroup } from '@/app/components/input-group';
 import { RETRIEVE_METHOD } from '@/models/datasets';
 import {
   ConfigureToolProps,
@@ -70,7 +67,7 @@ export const ConfigureKnowledgeRetrieval: FC<ConfigureToolProps> = ({
 
   return (
     <>
-      <InputGroup title="Action Definition">
+      <div className="space-y-4">
         <div className="flex flex-col gap-8 max-w-6xl">
           <KnowledgeDropdown
             className={cn('bg-light-background', inputClass)}
@@ -82,8 +79,8 @@ export const ConfigureKnowledgeRetrieval: FC<ConfigureToolProps> = ({
             }}
           />
 
-          <FieldSet>
-            <FormLabel>Retrieval setting</FormLabel>
+          <div>
+            <p className="text-xs font-medium mb-2">Retrieval setting</p>
             <div className="grid grid-cols-3 gap-3">
               {SEARCH_TYPE_CONFIG.map(config => (
                 <SearchTypeCard
@@ -99,7 +96,7 @@ export const ConfigureKnowledgeRetrieval: FC<ConfigureToolProps> = ({
                 />
               ))}
             </div>
-          </FieldSet>
+          </div>
 
           <div className="grid grid-cols-2 w-full gap-4">
             <SliderField
@@ -128,7 +125,7 @@ export const ConfigureKnowledgeRetrieval: FC<ConfigureToolProps> = ({
             />
           </div>
         </div>
-      </InputGroup>
+      </div>
 
       {toolDefinition && onChangeToolDefinition && (
         <ToolDefinitionForm
@@ -220,15 +217,14 @@ const SliderField: FC<SliderFieldProps> = ({
   inputStep,
   value,
   onChange,
-  inputClass,
 }) => (
-  <FieldSet className="flex justify-between">
-    <FormLabel htmlFor={id}>
+  <div className="flex flex-col gap-1">
+    <div className="flex items-center text-xs font-medium">
       {label}
       <Tooltip icon={<InfoIcon className="w-4 h-4 ml-1" />}>
         <p className={cn('font-normal text-sm p-1 w-64')}>{tooltip}</p>
       </Tooltip>
-    </FormLabel>
+    </div>
     <div className="flex justify-between items-center space-x-2">
       <Slider
         min={min}
@@ -237,19 +233,15 @@ const SliderField: FC<SliderFieldProps> = ({
         value={value}
         onSlide={(val: number) => onChange(val.toString())}
       />
-      <Input
+      <TextInput
         id={id}
-        className={cn(
-          'py-0 px-1 tabular-nums w-10 h-6 text-xs bg-light-background',
-          inputClass,
-        )}
-        min={min}
-        max={max}
+        labelText=""
+        hideLabel
         type="number"
-        step={inputStep ?? step}
         value={value}
         onChange={e => onChange(e.target.value)}
+        size="sm"
       />
     </div>
-  </FieldSet>
+  </div>
 );

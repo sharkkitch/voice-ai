@@ -63,6 +63,11 @@ export const assistantNavSections: AssistantNavSection[] = [
         label: 'Versions',
         icon: RecentlyViewed,
         path: 'version-history',
+        children: [
+          { key: 'versions-list', label: 'View all', path: 'version-history' },
+          { key: 'versions-create', label: 'Add new version', path: 'create-new-version' },
+          { key: 'versions-agentkit', label: 'Add AgentKit', path: 'create-agentkit-version' },
+        ],
       },
     ],
   },

@@ -119,30 +119,30 @@ export function SidebarNavigation(props: {}) {
           </div>
         </nav>
 
-      {/* ── Footer — lock/collapse button ── */}
+      {/* ── Footer — lock/collapse button (Carbon SideNav item style) ── */}
       <div className="shrink-0 border-t border-gray-200 dark:border-gray-800">
         <button
           type="button"
           onClick={() => setLocked(!locked)}
           className={cn(
-            'relative flex items-center h-8 w-full cursor-pointer',
-            'text-gray-500 dark:text-gray-400',
+            'relative flex items-center h-10 w-full cursor-pointer',
+            'text-gray-700 dark:text-gray-300',
             'hover:bg-gray-100 dark:hover:bg-gray-800',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+            'transition-colors duration-100',
           )}
           aria-label={locked ? 'Unlock sidebar' : 'Lock sidebar open'}
         >
-          {/* Icon cell — same 48px column as all nav icons */}
-          <span className="flex-shrink-0 flex items-center justify-center w-12 h-8">
+          <span className="flex-shrink-0 flex items-center justify-center w-12 h-10">
             {locked ? <SidePanelClose size={20} /> : <SidePanelOpen size={20} />}
           </span>
           <span
             className={cn(
-              'text-sm leading-none truncate flex-1 transition-all duration-200',
+              'text-sm font-semibold truncate flex-1 transition-all duration-200',
               open ? 'opacity-100' : 'opacity-0 w-0',
             )}
           >
-            {locked ? 'Collapse sidebar' : 'Lock sidebar open'}
+            {locked ? 'Collapse' : 'Expand'}
           </span>
         </button>
       </div>

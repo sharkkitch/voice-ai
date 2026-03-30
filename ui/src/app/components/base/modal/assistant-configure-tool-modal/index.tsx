@@ -9,7 +9,7 @@ import {
 } from '@/app/components/tools';
 import { ModalProps } from '@/app/components/base/modal';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/app/components/carbon/modal';
-import { ErrorMessage } from '@/app/components/form/error-message';
+import { Notification } from '@/app/components/carbon/notification';
 
 interface ConfigureAssistantToolDialogProps extends ModalProps {
   initialData: {
@@ -181,12 +181,11 @@ export const ConfigureAssistantToolDialog: FC<
   return (
     <Modal open={props.modalOpen} onClose={() => props.setModalOpen(false)} size="lg">
       <ModalHeader
+        label="Tools"
         title="Configure Assistant Tool"
-        onClose={() => {
-          props.setModalOpen(false);
-        }}
+        onClose={() => props.setModalOpen(false)}
       />
-      <ModalBody hasForm className="overflow-auto max-h-[80dvh] px-0 space-y-0">
+      <ModalBody hasForm hasScrollingContent>
         <BuildinTool
           onChangeToolDefinition={setToolDefinition}
           toolDefinition={toolDefinition}
@@ -195,9 +194,7 @@ export const ConfigureAssistantToolDialog: FC<
           config={buildinToolConfig}
         />
         {errorMessage && (
-          <div className="px-4 pb-4">
-            <ErrorMessage message={errorMessage} />
-          </div>
+          <Notification kind="error" title="Error" subtitle={errorMessage} />
         )}
       </ModalBody>
       <ModalFooter>
