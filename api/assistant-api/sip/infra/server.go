@@ -953,8 +953,14 @@ func (s *Server) handleAck(req *sip.Request, tx sip.ServerTransaction) {
 		}
 	}
 
-	session.SetState(CallStateConnected)
-	s.logger.Debugw("SIP call established (ACK received)", "call_id", callID)
+	// Only promote to connected for inbound calls. For outbound calls,
+	// handleOutboundDialog owns the state machine via WaitAnswer. ACK is also
+	// sent for non-2xx final responses (e.g. 407), and promoting to connected
+	// on those causes a spurious initializing→connected→failed transition.
+	if session.GetInfo().Direction == CallDirectionInbound {
+		session.SetState(CallStateConnected)
+		s.logger.Debugw("SIP call established (ACK received)", "call_id", callID)
+	}
 }
 
 func (s *Server) handleBye(req *sip.Request, tx sip.ServerTransaction) {
@@ -1499,8 +1505,7 @@ func (s *Server) MakeCall(ctx context.Context, cfg *Config, toURI, fromURI strin
 	}
 
 	// Build From header:
-	//   - User: determined by CallerID > fromURI > cfg.Username (auth identity).
-	//     Cloud providers (Twilio, Vonage, Telnyx) set CallerID to the E.164 DID number.
+	//   - User: CallerID if set (cloud providers use their DID), else cfg.Username (auth identity).
 	//     Self-hosted PBX (Asterisk/FreeSWITCH) should leave CallerID empty so that
 	//     the From user defaults to cfg.Username — this is critical because Asterisk
 	//     PJSIP resolves the endpoint from the From URI, and a mismatch between
@@ -1512,12 +1517,18 @@ func (s *Server) MakeCall(ctx context.Context, cfg *Config, toURI, fromURI strin
 		fromDomain = cfg.Server
 	}
 
-	// Use only assistant-resolved fromPhone as SIP From user.
-	fromUser := strings.TrimSpace(fromURI)
+	// Resolve the From header user identity:
+	// 1. Explicit CallerID from config (cloud providers set their DID here)
+	// 2. Auth username (correct for Asterisk/FreeSWITCH/Piopiy — matches provider account)
+	// The actual caller ID number (fromURI) goes in Display Name + P-Asserted-Identity.
+	fromUser := cfg.Username
+	if cfg.CallerID != "" {
+		fromUser = cfg.CallerID
+	}
 	if fromUser == "" {
 		rtpHandler.Stop()
 		s.rtpAllocator.Release(rtpPort)
-		return nil, fmt.Errorf("from URI is required for outbound SIP call")
+		return nil, fmt.Errorf("SIP From user is empty: either sip_username or sip_caller_id must be set")
 	}
 
 	fromHDR := &sip.FromHeader{
@@ -1531,10 +1542,19 @@ func (s *Server) MakeCall(ctx context.Context, cfg *Config, toURI, fromURI strin
 	}
 	fromHDR.Params.Add("tag", sip.GenerateTagN(16))
 
+	// Build headers for the INVITE. P-Asserted-Identity conveys the actual caller ID
+	// number independently of the From URI (which carries the auth username for provider
+	// account identification). Included on the initial INVITE so all providers see it.
+	inviteHeaders := []sip.Header{fromHDR}
+	if callerID := strings.TrimSpace(fromURI); callerID != "" {
+		pai := sip.NewHeader("P-Asserted-Identity", fmt.Sprintf("<%s:%s@%s>", scheme, callerID, fromDomain))
+		inviteHeaders = append(inviteHeaders, pai)
+	}
+
 	// Send INVITE via DialogClientCache — the cache stores the dialog once established
 	// so that incoming BYE/re-INVITE can be matched to it via dialogClientCache.ReadBye
 	// and dialogClientCache.MatchRequestDialog.
-	dialogSession, err := s.dialogClientCache.Invite(ctx, recipient, []byte(sdpBody), fromHDR)
+	dialogSession, err := s.dialogClientCache.Invite(ctx, recipient, []byte(sdpBody), inviteHeaders...)
 	if err != nil {
 		rtpHandler.Stop()
 		s.rtpAllocator.Release(rtpPort)
