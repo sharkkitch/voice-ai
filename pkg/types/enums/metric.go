@@ -29,12 +29,19 @@ func (m *MetricName) String() string {
 	return string(*m)
 }
 
-type MetricsValueType string
+type MetricsValue string
 
 var (
-	COMPLETE MetricsValueType = "complete"
+	CONVERSATION_DURATION     MetricName = "duration"
+	CONVERSATION_STT_DURATION MetricName = "stt_duration"
+	CONVERSATION_TTS_DURATION MetricName = "tts_duration"
+
+	//
+	CONVERSATION_STATUS      MetricName   = "status"
+	CONVERSATION_COMPLETE    MetricsValue = "complete"
+	CONVERSATION_IN_PROGRESS MetricsValue = "in_progress"
 )
 
-func (m MetricsValueType) String() string {
+func (m MetricsValue) String() string {
 	return string(m)
 }

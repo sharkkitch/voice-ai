@@ -385,8 +385,8 @@ func (r *genericRequestor) initSessionBackground(ctx context.Context, isNew bool
 
 	utils.Go(ctx, func() {
 		metrics := []*protos.Metric{{
-			Name:        type_enums.STATUS.String(),
-			Value:       type_enums.RECORD_IN_PROGRESS.String(),
+			Name:        type_enums.CONVERSATION_STATUS.String(),
+			Value:       type_enums.CONVERSATION_IN_PROGRESS.String(),
 			Description: "Conversation is currently in progress",
 		}}
 		r.onAddMetrics(ctx, metrics...)

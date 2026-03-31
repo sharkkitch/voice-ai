@@ -104,10 +104,9 @@ export const HomePage = () => {
               key={idx}
               href={item.route}
               className={cn(
-                '!rounded-none !h-[320px] !flex !flex-col !p-5 !border-r !border-gray-200 dark:!border-gray-800',
-                item.featured
-                  ? '!bg-gradient-to-b !from-blue-600 !to-indigo-700 !text-white [&_*]:!text-white'
-                  : '!border-t !border-b',
+                '!rounded-none !h-[320px] !flex !flex-col !p-5 !border-0 !bg-white dark:!bg-gray-950',
+                item.featured &&
+                  '!bg-gradient-to-b !from-blue-600 !to-indigo-700 dark:!from-blue-700 dark:!to-indigo-800 !text-white [&_*]:!text-white',
               )}
             >
               <h3 className={cn(
@@ -123,7 +122,7 @@ export const HomePage = () => {
                 {item.description}
               </p>
               <div className="mt-auto pt-4 flex items-center justify-between">
-                <Tag size="md" type={item.featured ? 'high-contrast' : 'outline'}>
+                <Tag size="md" type={item.featured ? 'blue' : 'cool-gray'}>
                   {item.tag}
                 </Tag>
                 <Launch size={16} className={item.featured ? 'opacity-70' : 'text-gray-400 dark:text-gray-500'} />

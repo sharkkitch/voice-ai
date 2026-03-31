@@ -21,6 +21,7 @@ import (
 	minimax_internal "github.com/rapidaai/api/assistant-api/internal/transformer/minimax/internal"
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
+	type_enums "github.com/rapidaai/pkg/types/enums"
 	"github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"
 )
@@ -30,9 +31,10 @@ type minimaxTTS struct {
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 
-	mu         sync.Mutex
-	contextId  string
-	textBuffer strings.Builder
+	mu             sync.Mutex
+	contextId      string
+	ttsConnectedAt time.Time
+	textBuffer     strings.Builder
 
 	ttsStartedAt  time.Time
 	ttsMetricSent bool
@@ -61,6 +63,9 @@ func NewMiniMaxTextToSpeech(ctx context.Context, logger commons.Logger, credenti
 
 func (ct *minimaxTTS) Initialize() error {
 	start := time.Now()
+	ct.mu.Lock()
+	ct.ttsConnectedAt = time.Now()
+	ct.mu.Unlock()
 	ct.onPacket(internal_type.ConversationEventPacket{
 		Name: "tts",
 		Data: map[string]string{
@@ -240,5 +245,32 @@ func (t *minimaxTTS) Transform(ctx context.Context, in internal_type.LLMPacket) 
 
 func (t *minimaxTTS) Close(ctx context.Context) error {
 	t.ctxCancel()
+	t.mu.Lock()
+	ctxID := t.contextId
+	connectedAt := t.ttsConnectedAt
+	t.ttsConnectedAt = time.Time{}
+	t.mu.Unlock()
+
+	if !connectedAt.IsZero() {
+		t.onPacket(
+			internal_type.ConversationEventPacket{
+				ContextID: ctxID,
+				Name:      "tts",
+				Data: map[string]string{
+					"type":     "closed",
+					"provider": t.Name(),
+				},
+				Time: time.Now(),
+			},
+			internal_type.ConversationMetricPacket{
+				ContextID: 0,
+				Metrics: []*protos.Metric{{
+					Name:        type_enums.CONVERSATION_TTS_DURATION.String(),
+					Value:       fmt.Sprintf("%d", time.Since(connectedAt).Nanoseconds()),
+					Description: "Total TTS connection duration in nanoseconds",
+				}},
+			},
+		)
+	}
 	return nil
 }

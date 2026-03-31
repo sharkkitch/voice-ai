@@ -68,7 +68,7 @@ export function AssistantPage() {
   ]);
 
   return (
-    <div className="h-full flex flex-col overflow-auto flex-1">
+    <div className="h-full flex flex-col overflow-hidden">
       <Helmet title="Assistant" />
       <PageHeaderBlock>
         <div className="flex items-center gap-3">
@@ -103,7 +103,7 @@ export function AssistantPage() {
 
       {/* Content */}
       {assistantAction.assistants && assistantAction.assistants.length > 0 ? (
-        <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 grow shrink-0 m-4">
+        <section className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 flex-1 overflow-auto p-4">
           {assistantAction.assistants.map((ast, idx) => (
             <SingleAssistant key={idx} assistant={ast} />
           ))}
@@ -139,6 +139,7 @@ export function AssistantPage() {
       {/* Pagination */}
       {assistantAction.assistants && assistantAction.assistants.length > 0 && (
         <Pagination
+          className="shrink-0"
           totalItems={assistantAction.totalCount}
           page={assistantAction.page}
           pageSize={assistantAction.pageSize}

@@ -382,10 +382,12 @@ func (r *genericRequestor) Transition(newState InteractionState) error {
 		// enqueuing into a dispatcher channel (which could stall if the channel
 		// is near capacity and the consumer goroutine is also waiting on msgMu).
 		utils.Go(context.Background(), func() {
-			r.OnPacket(context.Background(), internal_type.ConversationEventPacket{
-				Name: "behavior",
-				Data: map[string]string{"type": "eos", "turn_change": oldCtxID, "new": nCtxID},
-				Time: time.Now(),
+			r.OnPacket(context.Background(), internal_type.TurnChangePacket{
+				ContextID:         nCtxID,
+				PreviousContextID: oldCtxID,
+				Reason:            "interrupted",
+				Source:            "state_machine",
+				Time:              time.Now(),
 			})
 		})
 	}

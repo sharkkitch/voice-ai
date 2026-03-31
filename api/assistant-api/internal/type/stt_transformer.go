@@ -17,5 +17,5 @@ type SpeechToTextTransformer interface {
 	Name() string
 
 	//
-	Transformers[UserAudioReceivedPacket]
+	Transformers[Packet]
 }

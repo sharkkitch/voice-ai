@@ -109,8 +109,8 @@ func conversationMetricRecord(conversationID string) observe.ConversationMetricR
 		ConversationID: conversationID,
 		Metrics: []*protos.Metric{
 			{
-				Name:  type_enums.STATUS.String(),
-				Value: type_enums.RECORD_IN_PROGRESS.String(),
+				Name:  type_enums.CONVERSATION_STATUS.String(),
+				Value: type_enums.CONVERSATION_IN_PROGRESS.String(),
 			},
 		},
 	}

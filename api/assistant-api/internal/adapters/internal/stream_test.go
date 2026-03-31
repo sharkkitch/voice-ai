@@ -129,7 +129,7 @@ func TestNotify_ForwardsAllActionData(t *testing.T) {
 	a := &protos.ConversationEvent{Name: "alpha"}
 	b := &protos.ConversationMetric{
 		AssistantConversationId: 77,
-		Metrics: []*protos.Metric{{Name: "m1", Value: "v1"}},
+		Metrics:                 []*protos.Metric{{Name: "m1", Value: "v1"}},
 	}
 
 	err := r.Notify(context.Background(), a, b)

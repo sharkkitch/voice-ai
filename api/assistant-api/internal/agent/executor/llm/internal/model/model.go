@@ -91,7 +91,7 @@ type modelAssistantExecutor struct {
 	// (to send) and the listener goroutine (to receive); synchronized via mu.
 	stream grpc.BidiStreamingClient[protos.ChatRequest, protos.ChatResponse]
 
-	// mu guards currentPacket, history, and stream.
+	// mu guards currentPacket, history, stream, and turn timing fields.
 	mu            sync.RWMutex
 	currentPacket *internal_type.NormalizedUserTextPacket
 
@@ -580,10 +580,28 @@ func (e *modelAssistantExecutor) emitCompletion(ctx context.Context, communicati
 		},
 		internal_type.AssistantMessageMetricPacket{
 			ContextID: contextID,
-			Metrics:   e.prefixMetrics(pipeline.Metrics),
+			Metrics:   e.buildCompletionMetrics(pipeline.Metrics),
 		},
 	)
 	return nil
+}
+
+// buildCompletionMetrics prefixes provider metrics with "agent_" and derives
+// llm_latency_ms by converting time_to_first_token (nanoseconds) to milliseconds.
+func (e *modelAssistantExecutor) buildCompletionMetrics(providerMetrics []*protos.Metric) []*protos.Metric {
+	metrics := e.prefixMetrics(providerMetrics)
+	for _, m := range providerMetrics {
+		if m.GetName() == "time_to_first_token" {
+			if ns, err := strconv.ParseInt(m.GetValue(), 10, 64); err == nil {
+				metrics = append(metrics, &protos.Metric{
+					Name:  "llm_latency_ms",
+					Value: fmt.Sprintf("%d", ns/int64(time.Millisecond)),
+				})
+			}
+			break
+		}
+	}
+	return metrics
 }
 
 // prefixMetrics returns a copy of the metrics with each name prefixed by

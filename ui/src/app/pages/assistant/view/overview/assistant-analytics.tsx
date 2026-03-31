@@ -96,13 +96,25 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
     assistantTraceAction.getAssistantMessages(props.assistant.getId(), projectId, token, authId, () => {}, () => {});
   };
 
+  const getConversationDateCriteria = (range: string) => {
+    const now = new Date();
+    let startDate: Date;
+    switch (range) {
+      case 'last_24_hours': startDate = new Date(now.setDate(now.getDate() - 1)); break;
+      case 'last_3_days': startDate = new Date(now.setDate(now.getDate() - 3)); break;
+      case 'last_7_days': startDate = new Date(now.setDate(now.getDate() - 7)); break;
+      default: startDate = new Date(now.setDate(now.getDate() - 30));
+    }
+    return [{ key: 'assistant_conversations.created_date', value: toDateString(startDate), logic: '>=' }];
+  };
+
   const fetchConversations = () => {
     GetAllAssistantConversation(
       connectionConfig,
       props.assistant.getId(),
       1,
       0, // pageSize 0 = all
-      [],
+      getConversationDateCriteria(selectedRange),
       (err, res) => {
         if (res?.getSuccess()) setConvList(res.getDataList());
       },
@@ -125,15 +137,14 @@ export const AssistantAnalytics: FC<{ assistant: Assistant }> = props => {
   }, new Map<string, AssistantConversationMessage[]>());
 
   const conversations = Array.from(conversationsMap.values());
-  const totalSessions = conversations.length;
   const totalMessages = assistantTraceAction.assistantMessages.length;
 
-  // ── Status: from fetched conversation list (conversation-level metrics) ──
+  // ── All counts from conversations API for consistency ──
+  const totalSessions = convList.length;
   const completedConversations = convList.filter(c =>
     isConversationCompleted(c.getMetricsList?.() || []),
   ).length;
-
-  const activeConversations = convList.length - completedConversations;
+  const activeConversations = totalSessions - completedConversations;
 
   // ── Duration: from message-grouped conversations (message-level data) ──
   const durations = conversations.map(conv => {

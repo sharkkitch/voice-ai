@@ -18,6 +18,7 @@ import (
 	deepgram_internal "github.com/rapidaai/api/assistant-api/internal/transformer/deepgram/internal"
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
+	type_enums "github.com/rapidaai/pkg/types/enums"
 	utils "github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"
 )
@@ -29,10 +30,11 @@ Reference: https://developers.deepgram.com/reference/text-to-speech/speak-stream
 
 type deepgramTTS struct {
 	*deepgramOption
-	ctx       context.Context
-	ctxCancel context.CancelFunc
-	contextId string
-	mu        sync.Mutex
+	ctx            context.Context
+	ctxCancel      context.CancelFunc
+	contextId      string
+	ttsConnectedAt time.Time
+	mu             sync.Mutex
 
 	ttsStartedAt  time.Time
 	ttsMetricSent bool
@@ -78,6 +80,7 @@ func (t *deepgramTTS) Initialize() error {
 
 	t.mu.Lock()
 	t.connection = conn
+	t.ttsConnectedAt = time.Now()
 	t.mu.Unlock()
 
 	go t.readLoop(conn)
@@ -280,13 +283,38 @@ func (t *deepgramTTS) Transform(ctx context.Context, in internal_type.LLMPacket)
 func (t *deepgramTTS) Close(ctx context.Context) error {
 	t.ctxCancel()
 	t.mu.Lock()
-	defer t.mu.Unlock()
+	ctxID := t.contextId
+	connectedAt := t.ttsConnectedAt
+	t.ttsConnectedAt = time.Time{}
 
 	if t.connection != nil {
 		conn := t.connection
 		t.connection = nil // mark before Close so readLoop sees intentional
 		_ = conn.WriteJSON(map[string]string{"type": "Close"})
 		conn.Close()
+	}
+	t.mu.Unlock()
+
+	if !connectedAt.IsZero() {
+		t.onPacket(
+			internal_type.ConversationEventPacket{
+				ContextID: ctxID,
+				Name:      "tts",
+				Data: map[string]string{
+					"type":     "closed",
+					"provider": t.Name(),
+				},
+				Time: time.Now(),
+			},
+			internal_type.ConversationMetricPacket{
+				ContextID: 0,
+				Metrics: []*protos.Metric{{
+					Name:        type_enums.CONVERSATION_TTS_DURATION.String(),
+					Value:       fmt.Sprintf("%d", time.Since(connectedAt).Nanoseconds()),
+					Description: "Total TTS connection duration in nanoseconds",
+				}},
+			},
+		)
 	}
 	return nil
 }

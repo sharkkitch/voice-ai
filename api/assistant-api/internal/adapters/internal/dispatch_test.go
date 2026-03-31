@@ -73,12 +73,16 @@ type sttStub struct {
 	packets []internal_type.UserAudioReceivedPacket
 }
 
-func (s *sttStub) Name() string        { return "test-stt" }
-func (s *sttStub) Initialize() error    { return nil }
+func (s *sttStub) Name() string                { return "test-stt" }
+func (s *sttStub) Initialize() error           { return nil }
 func (s *sttStub) Close(context.Context) error { return nil }
-func (s *sttStub) Transform(_ context.Context, pkt internal_type.UserAudioReceivedPacket) error {
+func (s *sttStub) Transform(_ context.Context, pkt internal_type.Packet) error {
+	audio, ok := pkt.(internal_type.UserAudioReceivedPacket)
+	if !ok {
+		return nil
+	}
 	s.mu.Lock()
-	s.packets = append(s.packets, pkt)
+	s.packets = append(s.packets, audio)
 	s.mu.Unlock()
 	return nil
 }
@@ -300,6 +304,7 @@ func TestOnPacket_RoutesToCorrectChannel(t *testing.T) {
 		{"InterruptionDetectedPacket", internal_type.InterruptionDetectedPacket{ContextID: "c"}, "critical"},
 		{"InterruptTTSPacket", internal_type.InterruptTTSPacket{ContextID: "c"}, "critical"},
 		{"InterruptLLMPacket", internal_type.InterruptLLMPacket{ContextID: "c"}, "critical"},
+		{"TurnChangePacket", internal_type.TurnChangePacket{ContextID: "c", PreviousContextID: "p"}, "critical"},
 		{"DirectivePacket", internal_type.DirectivePacket{ContextID: "c"}, "critical"},
 		{"InjectMessagePacket", internal_type.InjectMessagePacket{ContextID: "c"}, "output"},
 
@@ -1639,9 +1644,9 @@ type ttsStub struct {
 	audio    []byte // if set, emits TextToSpeechAudioPacket + TextToSpeechEndPacket for each Transform
 }
 
-func (t *ttsStub) Name() string                   { return "test-tts" }
-func (t *ttsStub) Initialize() error               { return nil }
-func (t *ttsStub) Close(context.Context) error     { return nil }
+func (t *ttsStub) Name() string                { return "test-tts" }
+func (t *ttsStub) Initialize() error           { return nil }
+func (t *ttsStub) Close(context.Context) error { return nil }
 func (t *ttsStub) Transform(ctx context.Context, pkt internal_type.LLMPacket) error {
 	t.mu.Lock()
 	t.packets = append(t.packets, pkt)
@@ -1693,7 +1698,7 @@ type realisticTTSStub struct {
 	droppedCount   int // speaks dropped because state was "completed"
 }
 
-func (t *realisticTTSStub) Name() string               { return "realistic-tts" }
+func (t *realisticTTSStub) Name() string                { return "realistic-tts" }
 func (t *realisticTTSStub) Initialize() error           { return nil }
 func (t *realisticTTSStub) Close(context.Context) error { return nil }
 func (t *realisticTTSStub) Transform(ctx context.Context, pkt internal_type.LLMPacket) error {
@@ -1785,7 +1790,7 @@ func newStatefulTTSStub(audio []byte) *statefulTTSStub {
 	return &statefulTTSStub{audio: audio, state: "ready"}
 }
 
-func (t *statefulTTSStub) Name() string               { return "stateful-tts" }
+func (t *statefulTTSStub) Name() string                { return "stateful-tts" }
 func (t *statefulTTSStub) Initialize() error           { return nil }
 func (t *statefulTTSStub) Close(context.Context) error { return nil }
 func (t *statefulTTSStub) Transform(ctx context.Context, pkt internal_type.LLMPacket) error {

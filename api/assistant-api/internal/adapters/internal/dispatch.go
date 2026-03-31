@@ -42,6 +42,7 @@ func (r *genericRequestor) OnPacket(ctx context.Context, pkts ...internal_type.P
 		case internal_type.InterruptionDetectedPacket,
 			internal_type.InterruptTTSPacket,
 			internal_type.InterruptLLMPacket,
+			internal_type.TurnChangePacket,
 			internal_type.DirectivePacket:
 			r.criticalCh <- e
 
@@ -246,6 +247,8 @@ func (r *genericRequestor) dispatch(ctx context.Context, p internal_type.Packet)
 		r.handleInterruptTTS(ctx, vl)
 	case internal_type.InterruptLLMPacket:
 		r.handleInterruptLLM(ctx, vl)
+	case internal_type.TurnChangePacket:
+		r.handleContextChange(ctx, vl)
 
 		// LLM pipeline
 	case internal_type.ExecuteLLMPacket:
@@ -526,7 +529,7 @@ func (talking *genericRequestor) handleNormalizedText(ctx context.Context, vl in
 				Key:   "language_code",
 				Value: vl.Language.ISO639_1,
 			}}},
-		internal_type.UserMessageMetricPacket{ContextID: contextID, Metrics: []*protos.Metric{{Name: "user_turn", Value: "completed"}}},
+		internal_type.UserMessageMetricPacket{ContextID: contextID, Metrics: []*protos.Metric{{Name: "user_turn", Value: type_enums.CONVERSATION_COMPLETE.String(), Description: "User turn started"}}},
 		internal_type.ExecuteLLMPacket{ContextID: contextID, Input: vl.Text, Normalized: vl})
 }
 
@@ -535,6 +538,15 @@ func (talking *genericRequestor) handleNormalizedText(ctx context.Context, vl in
 // =============================================================================
 
 func (talking *genericRequestor) handleInterruption(ctx context.Context, vl internal_type.InterruptionDetectedPacket) {
+	if vl.ContextID == "" {
+		vl.ContextID = talking.GetID()
+	}
+	if talking.speechToTextTransformer != nil {
+		if err := talking.speechToTextTransformer.Transform(ctx, vl); err != nil {
+			talking.logger.Errorf("stt interruption update failed: %v", err)
+		}
+	}
+
 	switch vl.Source {
 	case internal_type.InterruptionSourceWord:
 		talking.stopIdleTimeoutTimer()
@@ -576,6 +588,39 @@ func (talking *genericRequestor) handleInterruption(ctx context.Context, vl inte
 			})
 		})
 	}
+}
+
+func (talking *genericRequestor) handleContextChange(ctx context.Context, vl internal_type.TurnChangePacket) {
+	if vl.ContextID == "" {
+		vl.ContextID = talking.GetID()
+	}
+	if vl.Time.IsZero() {
+		vl.Time = time.Now()
+	}
+
+	if talking.speechToTextTransformer != nil {
+		if err := talking.speechToTextTransformer.Transform(ctx, vl); err != nil {
+			talking.logger.Errorf("stt context-change update failed: %v", err)
+		}
+	}
+	if talking.textToSpeechTransformer != nil {
+		if err := talking.textToSpeechTransformer.Transform(ctx, vl); err != nil {
+			talking.logger.Errorf("tts context-change update failed: %v", err)
+		}
+	}
+
+	talking.OnPacket(ctx, internal_type.ConversationEventPacket{
+		ContextID: vl.ContextID,
+		Name:      "turn",
+		Data: map[string]string{
+			"type":           "change",
+			"old_context_id": vl.PreviousContextID,
+			"new_context_id": vl.ContextID,
+			"reason":         vl.Reason,
+			"source":         vl.Source,
+		},
+		Time: vl.Time,
+	})
 }
 
 func (talking *genericRequestor) handleInterruptTTS(ctx context.Context, vl internal_type.InterruptTTSPacket) {
@@ -652,7 +697,7 @@ func (talking *genericRequestor) handleLLMDone(ctx context.Context, vl internal_
 		internal_type.SaveMessagePacket{ContextID: vl.ContextID, MessageRole: "assistant", Text: vl.Text},
 		internal_type.AssistantMessageMetricPacket{
 			ContextID: vl.ContextID,
-			Metrics:   []*protos.Metric{{Name: "assistant_turn", Value: "completed", Description: fmt.Sprintf("LLM response completed")}},
+			Metrics:   []*protos.Metric{{Name: "assistant_turn", Value: type_enums.CONVERSATION_COMPLETE.String(), Description: fmt.Sprintf("LLM response completed")}},
 		},
 		internal_type.AggregateTextPacket{ContextID: vl.ContextID, Text: vl.Text, IsFinal: true},
 	)
@@ -815,14 +860,14 @@ func (talking *genericRequestor) handleSaveMessage(ctx context.Context, vl inter
 func (talking *genericRequestor) handleConversationMetric(ctx context.Context, vl internal_type.ConversationMetricPacket) {
 	if len(vl.Metrics) > 0 {
 		_ = talking.Notify(ctx, &protos.ConversationMetric{
-			AssistantConversationId: vl.ContextID,
+			AssistantConversationId: talking.Conversation().Id,
 			Metrics:                 vl.Metrics,
 		})
 		if err := talking.onAddMetrics(ctx, vl.Metrics...); err != nil {
 			talking.logger.Errorf("Error in onAddMetrics: %v", err)
 		}
 		talking.metrics.Collect(ctx, observe.ConversationMetricRecord{
-			ConversationID: vl.ContextId(),
+			ConversationID: fmt.Sprintf("%d", talking.Conversation().Id),
 			Metrics:        vl.Metrics,
 			Time:           time.Now(),
 		})

@@ -1,3 +1,7 @@
+@use '@carbon/react/scss/themes' as themes;
+@use '@carbon/react/scss/theme' as carbon-theme with (
+  $theme: themes.$white
+);
 @use '@carbon/react/scss/components/button';
 @use '@carbon/react/scss/components/tooltip';
 @use '@carbon/react/scss/components/toggletip';
@@ -39,6 +43,43 @@
 @use '@carbon/styles/scss/components/menu-button';
 @use '@carbon/react/scss/components/ui-shell';
 @use '@carbon/react/scss/components/popover';
+@use '@carbon/react/scss/components/date-picker';
+
+// ─── DatePicker calendar background ─────────────────────────────────────────
+.flatpickr-calendar,
+.flatpickr-months,
+.flatpickr-month,
+.flatpickr-weekdays,
+.flatpickr-weekday {
+  background: var(--cds-field, var(--cds-layer, #ffffff));
+}
+
+.dark .flatpickr-calendar,
+.dark .flatpickr-months,
+.dark .flatpickr-month,
+.dark .flatpickr-weekdays,
+.dark .flatpickr-weekday {
+  background: #393939;
+}
+
+.flatpickr-day {
+  color: var(--cds-text-primary);
+}
+
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: var(--cds-text-disabled);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  color: var(--cds-text-primary);
+}
+
+.flatpickr-months .flatpickr-prev-month svg,
+.flatpickr-months .flatpickr-next-month svg {
+  fill: var(--cds-icon-primary);
+}
 
 // ─── Popover width override ─────────────────────────────────────────────────
 .cds--popover-content {
@@ -58,289 +99,61 @@
   box-shadow: none;
 }
 
-// ─── Light theme (default) ───────────────────────────────────────────────────
+// ─── Light theme (default) — Carbon white ───────────────────────────────────
 :root {
-  // Background / layer
-  --cds-background: #ffffff;
-  --cds-layer: #ffffff;
-  --cds-layer-hover: #e8e8e8;
-  --cds-layer-active: #c6c6c6;
-  --cds-layer-01: #f4f4f4;
-  --cds-layer-02: #ffffff;
-  --cds-layer-accent: #e0e0e0;
-  --cds-layer-accent-hover: #d1d1d1;
-  --cds-layer-accent-active: #a8a8a8;
-  --cds-layer-selected: #e0e0e0;
-  --cds-layer-selected-hover: #cacaca;
-  --cds-field: #f4f4f4;
-  --cds-field-hover: #e8e8e8;
-  --cds-field-01: #f4f4f4;
-  --cds-field-02: #ffffff;
-  --cds-background-hover: rgba(0, 0, 0, 0.05);
-  --cds-background-active: rgba(0, 0, 0, 0.08);
-  --cds-background-selected: rgba(0, 0, 0, 0.06);
-  --cds-background-selected-hover: rgba(0, 0, 0, 0.1);
-  --cds-background-inverse: #393939;
-  --cds-background-inverse-hover: #474747;
+  @include carbon-theme.theme(themes.$white);
 
-  // Primary / interactive
+  // Custom primary overrides
   --cds-interactive: var(--color-primary);
   --cds-button-primary: var(--color-primary);
   --cds-button-primary-hover: color-mix(in oklab, var(--color-primary) 85%, black);
   --cds-button-primary-active: color-mix(in oklab, var(--color-primary) 70%, black);
-
-  // Secondary
-  --cds-button-secondary: #393939;
-  --cds-button-secondary-hover: #474747;
-  --cds-button-secondary-active: #6f6f6f;
-
-  // Tertiary
   --cds-button-tertiary: var(--color-primary);
   --cds-button-tertiary-hover: var(--color-primary);
   --cds-button-tertiary-active: color-mix(in oklab, var(--color-primary) 70%, black);
-
-  // Danger
-  --cds-button-danger-primary: #da1e28;
-  --cds-button-danger-secondary: #da1e28;
-  --cds-button-danger-hover: #b81921;
-  --cds-button-danger-active: #750e13;
-
-  // Focus
   --cds-focus: var(--color-primary);
-  --cds-focus-inset: #ffffff;
-
-  // Border
   --cds-border-interactive: var(--color-primary);
-  --cds-border-subtle: #e0e0e0;
-  --cds-border-subtle-00: #e0e0e0;
-  --cds-border-subtle-01: #c6c6c6;
-  --cds-border-subtle-02: #e0e0e0;
-  --cds-border-strong: #8d8d8d;
-  --cds-border-strong-01: #8d8d8d;
-
-  // Link
   --cds-link-primary: var(--color-primary);
   --cds-link-primary-hover: color-mix(in oklab, var(--color-primary) 80%, black);
-
-  // Inverse
-  --cds-border-inverse: #161616;
-  --cds-layer-selected-inverse: #393939;
-  --cds-text-inverse: #ffffff;
-
-  // Text
-  --cds-text-primary: #161616;
-  --cds-text-secondary: #525252;
-  --cds-text-placeholder: #a8a8a8;
-  --cds-text-on-color: #ffffff;
-  --cds-text-on-color-disabled: #8d8d8d;
-  --cds-text-inverse: #ffffff;
-  --cds-text-disabled: #c6c6c6;
-
-  // Icon
-  --cds-icon-primary: #161616;
-  --cds-icon-secondary: #525252;
-  --cds-icon-on-color: #ffffff;
-  --cds-icon-on-color-disabled: #8d8d8d;
-  --cds-icon-disabled: #c6c6c6;
-  --cds-icon-inverse: #ffffff;
-
-  // Support
-  --cds-support-error: #da1e28;
-  --cds-support-success: #198038;
-  --cds-support-warning: #f1c21b;
-  --cds-support-info: #0043ce;
-
-  // Notification backgrounds (low contrast)
-  --cds-notification-background-error: #fff1f1;
-  --cds-notification-background-success: #defbe6;
-  --cds-notification-background-info: #edf5ff;
-  --cds-notification-background-warning: #fdf6dd;
-  --cds-notification-action-hover: #ffffff;
-  --cds-notification-action-tertiary-inverse: #0f62fe;
-  --cds-notification-action-tertiary-inverse-hover: #0353e9;
-  --cds-notification-action-tertiary-inverse-text: #ffffff;
-
-  // Overlay / popover
-  --cds-overlay: rgba(22, 22, 22, 0.5);
-  --cds-shadow: rgba(0, 0, 0, 0.3);
 }
 
-// ─── Dark theme ──────────────────────────────────────────────────────────────
+// ─── Dark theme — Carbon g100 ───────────────────────────────────────────────
 :is(.dark *),
 :root:is(.dark) {
-  // Background / layer
-  --cds-background: transparent;
-  --cds-layer: #262626;
-  --cds-layer-hover: #353535;
-  --cds-layer-active: #525252;
-  --cds-layer-01: transparent;
-  --cds-layer-02: #353535;
-  --cds-layer-accent: #393939;
-  --cds-layer-accent-hover: #474747;
-  --cds-layer-accent-active: #6f6f6f;
-  --cds-layer-selected: #393939;
-  --cds-layer-selected-hover: #474747;
-  --cds-field: #393939;
-  --cds-field-hover: #474747;
-  --cds-field-01: #262626;
-  --cds-field-02: #393939;
-  --cds-background-hover: rgba(255, 255, 255, 0.08);
-  --cds-background-active: rgba(255, 255, 255, 0.12);
-  --cds-background-selected: rgba(255, 255, 255, 0.1);
-  --cds-background-selected-hover: rgba(255, 255, 255, 0.16);
-  --cds-background-inverse: #f4f4f4;
-  --cds-background-inverse-hover: #e8e8e8;
+  @include carbon-theme.theme(themes.$g100);
 
-  // Primary / interactive
-  --cds-interactive: #1062fe;
-  --cds-button-primary: #1062fe;
-  --cds-button-primary-hover: color-mix(in oklab, #1062fe 80%, white);
-  --cds-button-primary-active: color-mix(in oklab, #1062fe 65%, white);
+  // Background — use page bg color, not transparent
+  --cds-background: #0a0a0a;
+  --cds-layer-01: #161616;
 
-  // Secondary
-  --cds-button-secondary: #6f6f6f;
-  --cds-button-secondary-hover: #606060;
-  --cds-button-secondary-active: #393939;
-
-  // Tertiary
-  --cds-button-tertiary: #1062fe;
-  --cds-button-tertiary-hover: #1062fe;
-  --cds-button-tertiary-active: color-mix(in oklab, #1062fe 65%, white);
-
-  // Danger
-  --cds-button-danger-primary: #da1e28;
-  --cds-button-danger-secondary: #ff8389;
-  --cds-button-danger-hover: #b81921;
-  --cds-button-danger-active: #750e13;
-
-  // Focus
-  --cds-focus: #1062fe;
-  --cds-focus-inset: #161616;
-
-  // Border
-  --cds-border-interactive: #1062fe;
-  --cds-border-subtle: #393939;
-  --cds-border-subtle-00: #393939;
-  --cds-border-subtle-01: #525252;
-  --cds-border-subtle-02: #393939;
-  --cds-border-strong: #6f6f6f;
-  --cds-border-strong-01: #6f6f6f;
-
-  // Inverse
-  --cds-border-inverse: #f4f4f4;
-  --cds-layer-selected-inverse: #f4f4f4;
-  --cds-text-inverse: #161616;
-
-  // Link
-  --cds-link-primary: #1062fe;
-  --cds-link-primary-hover: color-mix(in oklab, #1062fe 80%, white);
-
-  // Text
-  --cds-text-primary: #f4f4f4;
-  --cds-text-secondary: #c6c6c6;
-  --cds-text-placeholder: #6f6f6f;
-  --cds-text-on-color: #ffffff;
-  --cds-text-on-color-disabled: #8d8d8d;
-  --cds-text-inverse: #161616;
-  --cds-text-disabled: #525252;
-
-  // Icon
-  --cds-icon-primary: #f4f4f4;
-  --cds-icon-secondary: #c6c6c6;
-  --cds-icon-on-color: #ffffff;
-  --cds-icon-on-color-disabled: #8d8d8d;
-  --cds-icon-disabled: #525252;
-  --cds-icon-inverse: #161616;
-
-  // Support
-  --cds-support-error: #ff8389;
-  --cds-support-success: #42be65;
-  --cds-support-warning: #f1c21b;
-  --cds-support-info: #4589ff;
-
-  // Notification backgrounds (low contrast)
-  --cds-notification-background-error: #393939;
-  --cds-notification-background-success: #393939;
-  --cds-notification-background-info: #393939;
-  --cds-notification-background-warning: #393939;
-  --cds-notification-action-hover: #474747;
-  --cds-notification-action-tertiary-inverse: #ffffff;
-  --cds-notification-action-tertiary-inverse-hover: #e8e8e8;
-  --cds-notification-action-tertiary-inverse-text: #161616;
-
-  // Overlay / popover
-  --cds-overlay: rgba(0, 0, 0, 0.65);
-  --cds-shadow: rgba(0, 0, 0, 0.8);
+  // Focus / interactive — use primary instead of g100 default white
+  --cds-focus: #4589ff;
+  --cds-border-interactive: #4589ff;
+  --cds-interactive: #4589ff;
+  --cds-link-primary: #4589ff;
+  --cds-link-primary-hover: color-mix(in oklab, #4589ff 80%, white);
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0353e9;
+  --cds-button-tertiary: #4589ff;
+  --cds-button-tertiary-hover: #4589ff;
 }
 
 // ─── System preference dark (when no .dark class) ────────────────────────────
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --cds-background: transparent;
-    --cds-layer: #262626;
-    --cds-layer-hover: #353535;
-    --cds-layer-active: #525252;
-    --cds-layer-01: transparent;
-    --cds-layer-02: #353535;
-    --cds-layer-accent: #393939;
-    --cds-layer-accent-hover: #474747;
-    --cds-layer-accent-active: #6f6f6f;
-    --cds-layer-selected: #393939;
-    --cds-layer-selected-hover: #474747;
-    --cds-field: #393939;
-    --cds-field-hover: #474747;
-    --cds-field-01: #262626;
-    --cds-field-02: #393939;
-    --cds-background-hover: rgba(255, 255, 255, 0.08);
-    --cds-background-active: rgba(255, 255, 255, 0.12);
-    --cds-background-selected: rgba(255, 255, 255, 0.1);
-    --cds-background-selected-hover: rgba(255, 255, 255, 0.16);
-    --cds-background-inverse: #f4f4f4;
-    --cds-background-inverse-hover: #e8e8e8;
-    --cds-interactive: #1062fe;
-    --cds-button-primary: #1062fe;
-    --cds-button-primary-hover: color-mix(in oklab, #1062fe 80%, white);
-    --cds-button-primary-active: color-mix(in oklab, #1062fe 65%, white);
-    --cds-button-secondary: #6f6f6f;
-    --cds-button-secondary-hover: #606060;
-    --cds-button-secondary-active: #393939;
-    --cds-button-tertiary: #1062fe;
-    --cds-button-tertiary-hover: #1062fe;
-    --cds-button-tertiary-active: color-mix(in oklab, #1062fe 65%, white);
-    --cds-button-danger-primary: #da1e28;
-    --cds-button-danger-secondary: #ff8389;
-    --cds-button-danger-hover: #b81921;
-    --cds-button-danger-active: #750e13;
-    --cds-focus: #1062fe;
-    --cds-focus-inset: #161616;
-    --cds-border-interactive: #1062fe;
-    --cds-border-subtle: #393939;
-    --cds-border-subtle-00: #393939;
-    --cds-border-subtle-01: #525252;
-    --cds-border-subtle-02: #393939;
-    --cds-border-strong: #6f6f6f;
-    --cds-border-strong-01: #6f6f6f;
-    --cds-link-primary: #1062fe;
-    --cds-link-primary-hover: color-mix(in oklab, #1062fe 80%, white);
-    --cds-text-primary: #f4f4f4;
-    --cds-text-secondary: #c6c6c6;
-    --cds-text-placeholder: #6f6f6f;
-    --cds-text-on-color: #ffffff;
-    --cds-text-on-color-disabled: #8d8d8d;
-    --cds-text-inverse: #161616;
-    --cds-text-disabled: #525252;
-    --cds-icon-primary: #f4f4f4;
-    --cds-icon-secondary: #c6c6c6;
-    --cds-icon-on-color: #ffffff;
-    --cds-icon-on-color-disabled: #8d8d8d;
-    --cds-icon-disabled: #525252;
-    --cds-icon-inverse: #161616;
-    --cds-support-error: #ff8389;
-    --cds-support-success: #42be65;
-    --cds-support-warning: #f1c21b;
-    --cds-support-info: #4589ff;
-    --cds-overlay: rgba(0, 0, 0, 0.65);
-    --cds-shadow: rgba(0, 0, 0, 0.8);
+    @include carbon-theme.theme(themes.$g100);
+
+    --cds-background: #0a0a0a;
+    --cds-layer-01: #161616;
+    --cds-focus: #4589ff;
+    --cds-border-interactive: #4589ff;
+    --cds-interactive: #4589ff;
+    --cds-link-primary: #4589ff;
+    --cds-link-primary-hover: color-mix(in oklab, #4589ff 80%, white);
+    --cds-button-primary: #0f62fe;
+    --cds-button-primary-hover: #0353e9;
+    --cds-button-tertiary: #4589ff;
+    --cds-button-tertiary-hover: #4589ff;
   }
 }
 

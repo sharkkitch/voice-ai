@@ -160,7 +160,10 @@ export function IconOnlyButton({
   onClick,
   tooltipPosition,
   ...rest
-}: Omit<CarbonButtonProps, 'size'> & { kind: IconButtonKind; size: IconButtonSize }) {
+}: Omit<CarbonButtonProps, 'size'> & {
+  kind: IconButtonKind;
+  size: IconButtonSize;
+}) {
   return (
     <CarbonIconButton
       label={iconDescription}
@@ -198,7 +201,10 @@ export function IconButtonWithBadge({
   kind,
   onClick,
   ...rest
-}: Omit<IconButtonWithBadgeProps, 'size'> & { kind: IconButtonKind; size: IconButtonSize }) {
+}: Omit<IconButtonWithBadgeProps, 'size'> & {
+  kind: IconButtonKind;
+  size: IconButtonSize;
+}) {
   return (
     <span className="relative inline-flex">
       <CarbonIconButton
@@ -261,11 +267,7 @@ export function LabeledIconButton({
       renderIcon={renderIcon}
       iconDescription={iconDescription}
     >
-      {isLoading ? (
-        <Spinner className="w-4 h-4" size="xs" />
-      ) : (
-        children
-      )}
+      {isLoading ? <Spinner className="w-4 h-4" size="xs" /> : children}
     </CarbonButton>
   );
 }

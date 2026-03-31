@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/speech/apiv2/speechpb"
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
+	type_enums "github.com/rapidaai/pkg/types/enums"
 	"github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"
 )
@@ -38,7 +39,9 @@ type googleSpeechToText struct {
 	ctxCancel context.CancelFunc
 
 	// observability: time when speech started
-	startedAt time.Time
+	startedAt      time.Time
+	contextId      string
+	sttConnectedAt time.Time
 }
 
 // Name implements internal_transformer.SpeechToTextTransformer.
@@ -81,23 +84,49 @@ func NewGoogleSpeechToText(ctx context.Context, logger commons.Logger, credentia
 }
 
 // Transform implements internal_transformer.SpeechToTextTransformer.
-func (google *googleSpeechToText) Transform(c context.Context, in internal_type.UserAudioReceivedPacket) error {
-	google.mu.Lock()
-	if google.startedAt.IsZero() {
-		google.startedAt = time.Now()
-	}
-	strm := google.stream
-	google.mu.Unlock()
+func (google *googleSpeechToText) Transform(c context.Context, in internal_type.Packet) error {
+	switch pkt := in.(type) {
+	case internal_type.TurnChangePacket:
+		google.mu.Lock()
+		google.contextId = pkt.ContextID
+		google.mu.Unlock()
+		return nil
+	case internal_type.InterruptionDetectedPacket:
+		google.mu.Lock()
+		if pkt.Source == internal_type.InterruptionSourceVad && google.startedAt.IsZero() {
+			google.startedAt = time.Now()
+		}
+		google.mu.Unlock()
+		return nil
+	case internal_type.UserAudioReceivedPacket:
+		google.mu.Lock()
+		strm := google.stream
+		google.mu.Unlock()
 
-	if strm == nil {
-		return fmt.Errorf("google-stt: connection is not initialized")
-	}
+		// If the stream was lost (e.g. Google timed out waiting for audio during
+		// slow boot, or reinit failed), re-establish it transparently.
+		if strm == nil {
+			google.logger.Infof("google-stt: stream not available, re-initializing")
+			google.mu.Lock()
+			if err := google.initializeStreamLocked(); err != nil {
+				google.mu.Unlock()
+				return fmt.Errorf("google-stt: re-initialize failed: %w", err)
+			}
+			strm = google.stream
+			google.mu.Unlock()
+			if strm == nil {
+				return fmt.Errorf("google-stt: stream not initialized after re-initialize")
+			}
+		}
 
-	return strm.Send(&speechpb.StreamingRecognizeRequest{
-		StreamingRequest: &speechpb.StreamingRecognizeRequest_Audio{
-			Audio: in.Audio,
-		},
-	})
+		return strm.Send(&speechpb.StreamingRecognizeRequest{
+			StreamingRequest: &speechpb.StreamingRecognizeRequest_Audio{
+				Audio: pkt.Audio,
+			},
+		})
+	default:
+		return nil
+	}
 }
 
 // recvLoop reads responses from the gRPC stream for the lifetime of the STT session.
@@ -124,9 +153,10 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 				g.mu.Unlock()
 				g.logger.Errorf("google-stt: re-initialize failed: %v", reinitErr)
 				g.onPacket(internal_type.ConversationEventPacket{
-					Name: "stt",
-					Data: map[string]string{"type": "error", "error": err.Error()},
-					Time: time.Now(),
+					ContextID: g.contextId,
+					Name:      "stt",
+					Data:      map[string]string{"type": "error", "error": err.Error()},
+					Time:      time.Now(),
 				})
 				return
 			}
@@ -143,6 +173,9 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 			if len(result.Alternatives) == 0 {
 				continue
 			}
+			g.mu.Lock()
+			ctxID := g.contextId
+			g.mu.Unlock()
 			alt := result.Alternatives[0]
 			if len(alt.GetTranscript()) == 0 {
 				continue
@@ -150,24 +183,25 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 			confStr := fmt.Sprintf("%.4f", float64(alt.GetConfidence()))
 			transcript := alt.GetTranscript()
 
-			if v, err := g.mdlOpts.GetFloat64("listen.threshold"); err == nil {
-				if alt.GetConfidence() < float32(v) {
-					g.onPacket(
-						internal_type.ConversationEventPacket{
-							Name: "stt",
-							Data: map[string]string{
-								"type":       "low_confidence",
-								"script":     transcript,
-								"confidence": confStr,
-								"threshold":  fmt.Sprintf("%.4f", v),
-							},
-							Time: time.Now(),
-						},
-					)
-					continue
-				}
-			}
 			if result.GetIsFinal() {
+				if v, err := g.mdlOpts.GetFloat64("listen.threshold"); err == nil {
+					if alt.GetConfidence() < float32(v) {
+						g.onPacket(
+							internal_type.ConversationEventPacket{
+								ContextID: ctxID,
+								Name:      "stt",
+								Data: map[string]string{
+									"type":       "low_confidence",
+									"script":     transcript,
+									"confidence": confStr,
+									"threshold":  fmt.Sprintf("%.4f", v),
+								},
+								Time: time.Now(),
+							},
+						)
+						continue
+					}
+				}
 				now := time.Now()
 				var latencyMs int64
 				g.mu.Lock()
@@ -177,15 +211,17 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 				}
 				g.mu.Unlock()
 				g.onPacket(
-					internal_type.InterruptionDetectedPacket{Source: internal_type.InterruptionSourceWord},
+					internal_type.InterruptionDetectedPacket{ContextID: ctxID, Source: internal_type.InterruptionSourceWord},
 					internal_type.SpeechToTextPacket{
+						ContextID:  ctxID,
 						Script:     transcript,
 						Confidence: float64(alt.GetConfidence()),
 						Language:   result.GetLanguageCode(),
 						Interim:    false,
 					},
 					internal_type.ConversationEventPacket{
-						Name: "stt",
+						ContextID: ctxID,
+						Name:      "stt",
 						Data: map[string]string{
 							"type":       "completed",
 							"script":     transcript,
@@ -197,20 +233,23 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 						Time: now,
 					},
 					internal_type.UserMessageMetricPacket{
-						Metrics: []*protos.Metric{{Name: "stt_latency_ms", Value: fmt.Sprintf("%d", latencyMs)}},
+						ContextID: ctxID,
+						Metrics:   []*protos.Metric{{Name: "stt_latency_ms", Value: fmt.Sprintf("%d", latencyMs)}},
 					},
 				)
 			} else {
 				g.onPacket(
-					internal_type.InterruptionDetectedPacket{Source: internal_type.InterruptionSourceWord},
+					internal_type.InterruptionDetectedPacket{ContextID: ctxID, Source: internal_type.InterruptionSourceWord},
 					internal_type.SpeechToTextPacket{
+						ContextID:  ctxID,
 						Script:     transcript,
 						Confidence: float64(result.GetStability()),
 						Language:   result.GetLanguageCode(),
 						Interim:    true,
 					},
 					internal_type.ConversationEventPacket{
-						Name: "stt",
+						ContextID: ctxID,
+						Name:      "stt",
 						Data: map[string]string{
 							"type":       "interim",
 							"script":     transcript,
@@ -227,13 +266,15 @@ func (g *googleSpeechToText) recvLoop(stream speechpb.Speech_StreamingRecognizeC
 func (google *googleSpeechToText) Initialize() error {
 	start := time.Now()
 	google.mu.Lock()
+	google.sttConnectedAt = time.Now()
 	err := google.initializeStreamLocked()
 	google.mu.Unlock()
 	if err != nil {
 		return err
 	}
 	google.onPacket(internal_type.ConversationEventPacket{
-		Name: "stt",
+		ContextID: google.contextId,
+		Name:      "stt",
 		Data: map[string]string{
 			"type":     "initialized",
 			"provider": google.Name(),
@@ -278,7 +319,9 @@ func (g *googleSpeechToText) Close(ctx context.Context) error {
 	g.ctxCancel()
 
 	g.mu.Lock()
-	defer g.mu.Unlock()
+	ctxID := g.contextId
+	connectedAt := g.sttConnectedAt
+	g.sttConnectedAt = time.Time{}
 
 	var combinedErr error
 	if g.stream != nil {
@@ -294,6 +337,29 @@ func (g *googleSpeechToText) Close(ctx context.Context) error {
 			combinedErr = fmt.Errorf("error closing Client: %v", err)
 			g.logger.Errorf(combinedErr.Error())
 		}
+	}
+	g.mu.Unlock()
+
+	if !connectedAt.IsZero() {
+		g.onPacket(
+			internal_type.ConversationEventPacket{
+				ContextID: ctxID,
+				Name:      "stt",
+				Data: map[string]string{
+					"type":     "closed",
+					"provider": g.Name(),
+				},
+				Time: time.Now(),
+			},
+			internal_type.ConversationMetricPacket{
+				ContextID: 0,
+				Metrics: []*protos.Metric{{
+					Name:        type_enums.CONVERSATION_STT_DURATION.String(),
+					Value:       fmt.Sprintf("%d", time.Since(connectedAt).Nanoseconds()),
+					Description: "Total STT connection duration in nanoseconds",
+				}},
+			},
+		)
 	}
 	return combinedErr
 }

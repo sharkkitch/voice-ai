@@ -18,6 +18,7 @@ import (
 	cartesia_internal "github.com/rapidaai/api/assistant-api/internal/transformer/cartesia/internal"
 	internal_type "github.com/rapidaai/api/assistant-api/internal/type"
 	"github.com/rapidaai/pkg/commons"
+	type_enums "github.com/rapidaai/pkg/types/enums"
 	"github.com/rapidaai/pkg/utils"
 	"github.com/rapidaai/protos"
 )
@@ -28,7 +29,8 @@ type cartesiaTTS struct {
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 
-	contextId string
+	contextId      string
+	ttsConnectedAt time.Time
 
 	ttsStartedAt  time.Time
 	ttsMetricSent bool
@@ -70,6 +72,7 @@ func (ct *cartesiaTTS) Initialize() error {
 
 	ct.mu.Lock()
 	ct.connection = conn
+	ct.ttsConnectedAt = time.Now()
 	ct.mu.Unlock()
 
 	go ct.readLoop(conn)
@@ -269,12 +272,37 @@ func (ct *cartesiaTTS) Transform(ctx context.Context, in internal_type.LLMPacket
 func (ct *cartesiaTTS) Close(ctx context.Context) error {
 	ct.ctxCancel()
 	ct.mu.Lock()
-	defer ct.mu.Unlock()
+	ctxID := ct.contextId
+	connectedAt := ct.ttsConnectedAt
+	ct.ttsConnectedAt = time.Time{}
 
 	if ct.connection != nil {
 		conn := ct.connection
 		ct.connection = nil // mark before Close so readLoop sees intentional
 		_ = conn.Close()
+	}
+	ct.mu.Unlock()
+
+	if !connectedAt.IsZero() {
+		ct.onPacket(
+			internal_type.ConversationEventPacket{
+				ContextID: ctxID,
+				Name:      "tts",
+				Data: map[string]string{
+					"type":     "closed",
+					"provider": ct.Name(),
+				},
+				Time: time.Now(),
+			},
+			internal_type.ConversationMetricPacket{
+				ContextID: 0,
+				Metrics: []*protos.Metric{{
+					Name:        type_enums.CONVERSATION_TTS_DURATION.String(),
+					Value:       fmt.Sprintf("%d", time.Since(connectedAt).Nanoseconds()),
+					Description: "Total TTS connection duration in nanoseconds",
+				}},
+			},
+		)
 	}
 	return nil
 }

@@ -60,7 +60,7 @@ func (pc *packetCollector) Clear() {
 func createTestCallback(opts utils.Option) (*packetCollector, commons.Logger, msginterfaces.LiveMessageCallback) {
 	logger, _ := commons.NewApplicationLogger()
 	collector := newPacketCollector()
-	callback := NewDeepgramSttCallback(logger, collector.OnPacket, opts, new(atomic.Int64))
+	callback := NewDeepgramSttCallback(logger, collector.OnPacket, opts, new(atomic.Int64), func() string { return "ctx-test" })
 	return collector, logger, callback
 }
 

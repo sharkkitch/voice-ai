@@ -46,10 +46,14 @@ export function formatDurationSeconds(secs: number): string {
   return `${Math.round(secs)}s`;
 }
 
-/** Read time_taken metric (seconds) or fallback to TIME_TAKEN (nanoseconds) */
+/** Read conversation_duration metric (seconds) or fallback to TIME_TAKEN (nanoseconds) */
 export function getConversationDuration(metrics: any[]): string {
-  const timeTaken = findMetricByName(metrics, 'time_taken');
-  if (timeTaken) return formatDurationSeconds(Number(timeTaken));
+  const conversationDuration = findMetricByName(
+    metrics,
+    'duration',
+  );
+  if (conversationDuration)
+    return formatDurationSeconds(Number(conversationDuration) / 1e9);
   const timeTakenNano = findMetricByName(metrics, TIME_TAKEN);
   if (timeTakenNano) return formatDurationSeconds(Number(timeTakenNano) / 1e9);
   return '–';

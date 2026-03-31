@@ -63,6 +63,10 @@ const statusMap: Record<string, { kind: string; label: string }> = {
   // Error — critical (red diamond)
   ERROR: { kind: 'critical', label: 'Error' },
   error: { kind: 'critical', label: 'Error' },
+
+  // Interrupted — high (orange)
+  INTERRUPTED: { kind: 'high', label: 'Interrupted' },
+  interrupted: { kind: 'high', label: 'Interrupted' },
 };
 
 const defaultStatus = { kind: 'undefined', label: 'Unknown' };

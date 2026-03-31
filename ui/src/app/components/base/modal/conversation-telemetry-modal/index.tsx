@@ -21,8 +21,6 @@ import {
   TableHeader,
   TableBody,
   TableCell,
-  TableExpandRow,
-  TableExpandHeader,
   TableExpandedRow,
   TableToolbar,
   TableToolbarContent,
@@ -33,6 +31,7 @@ import {
   CodeSnippet,
 } from '@carbon/react';
 import { TableToolbarFilter } from '@/app/components/carbon/table-toolbar-filter';
+import { ChevronRight } from '@carbon/icons-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -348,9 +347,9 @@ export function ConversationTelemetryDialog(
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableExpandHeader />
-                  <TableHeader>Time</TableHeader>
-                  <TableHeader>Type</TableHeader>
+                  <TableHeader className="!w-8" />
+                  <TableHeader className="!w-[180px]">Time</TableHeader>
+                  <TableHeader className="!w-[120px]">Type</TableHeader>
                   <TableHeader>Preview</TableHeader>
                 </TableRow>
               </TableHead>
@@ -360,25 +359,30 @@ export function ConversationTelemetryDialog(
                   const isExpanded = expandedRows.has(row.key);
                   return (
                     <React.Fragment key={row.key}>
-                      <TableExpandRow
-                        aria-label=""
-                        isExpanded={isExpanded}
-                        onExpand={() => toggleRow(row.key)}
+                      <TableRow
+                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        onClick={() => toggleRow(row.key)}
                       >
+                        <TableCell className="!w-8 !px-2">
+                          <ChevronRight
+                            size={16}
+                            className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                          />
+                        </TableCell>
                         <TableCell className="!font-mono !text-xs tabular-nums whitespace-nowrap">
                           {formatDateTime(row.ts)}
                         </TableCell>
-                        <TableCell>
-                          <Tag size="md" type={tagType as any}>
+                        <TableCell className="!w-[120px]">
+                          <Tag size="sm" type={tagType as any}>
                             {typeLabel}
                           </Tag>
                         </TableCell>
                         <TableCell className="!text-xs !text-gray-500 dark:!text-gray-400 truncate max-w-[300px]">
                           {JSON.stringify(json)}
                         </TableCell>
-                      </TableExpandRow>
+                      </TableRow>
                       {isExpanded && (
-                        <TableExpandedRow colSpan={4}>
+                        <TableExpandedRow colSpan={5}>
                           <CodeSnippet
                             type="multi"
                             feedback="Copied!"

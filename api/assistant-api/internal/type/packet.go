@@ -200,6 +200,17 @@ type InterruptLLMPacket struct {
 
 func (f InterruptLLMPacket) ContextId() string { return f.ContextID }
 
+// TurnChangePacket notifies components that active context changed to a new turn.
+type TurnChangePacket struct {
+	ContextID         string
+	PreviousContextID string
+	Reason            string
+	Source            string
+	Time              time.Time
+}
+
+func (f TurnChangePacket) ContextId() string { return f.ContextID }
+
 // DirectivePacket carries a typed control action (e.g. end conversation).
 type DirectivePacket struct {
 	ContextID string

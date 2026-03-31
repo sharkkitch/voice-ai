@@ -44,12 +44,12 @@ func (t *genericRequestor) Talk(_ context.Context, auth types.SimplePrinciple) e
 				// the final state is persisted.
 				completionMetrics := []*protos.Metric{
 					{
-						Name:        type_enums.STATUS.String(),
-						Value:       type_enums.COMPLETE.String(),
+						Name:        type_enums.CONVERSATION_STATUS.String(),
+						Value:       type_enums.CONVERSATION_COMPLETE.String(),
 						Description: "Status of current conversation",
 					},
 					{
-						Name:        type_enums.TIME_TAKEN.String(),
+						Name:        type_enums.CONVERSATION_DURATION.String(),
 						Value:       fmt.Sprintf("%d", time.Since(totalTime)),
 						Description: "Time taken to complete the conversation from the first message received to the end of the conversation.",
 					},
