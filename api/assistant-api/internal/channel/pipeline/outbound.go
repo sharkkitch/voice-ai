@@ -59,7 +59,7 @@ func (d *Dispatcher) runOutbound(ctx context.Context, v OutboundRequestedPipelin
 	if d.onSaveCallContext == nil {
 		return &PipelineResult{Error: ErrCallbackNotConfigured}
 	}
-	callInfo := &internal_type.CallInfo{CallerNumber: v.ToPhone, Provider: provider, Status: "queued"}
+	callInfo := &internal_type.CallInfo{CallerNumber: v.ToPhone, FromNumber: fromPhone, Direction: "outbound", Provider: provider, Status: "queued"}
 	contextID, err := d.onSaveCallContext(ctx, v.Auth, assistant, conversationID, callInfo, provider)
 	if err != nil {
 		return &PipelineResult{Error: fmt.Errorf("failed to save call context: %w", err)}

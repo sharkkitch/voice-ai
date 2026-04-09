@@ -12,14 +12,6 @@ import { MessagingAction } from '@/app/pages/preview-agent/voice-agent/actions';
 import { ConversationMessages } from '@/app/pages/preview-agent/voice-agent/text/conversations';
 import { cn } from '@/utils';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import {
-  JsonTextarea,
-  NumberTextarea,
-  ParagraphTextarea,
-  TextTextarea,
-  UrlTextarea,
-} from '@/app/components/form/textarea';
-import { InputVarForm } from '@/app/pages/endpoint/view/try-playground/experiment-prompt/components/input-var-form';
 import { InputVarType } from '@/models/common';
 import {
   Notification,
@@ -28,13 +20,11 @@ import {
 import { GhostButton, IconOnlyButton } from '@/app/components/carbon/button';
 import { EmptyState } from '@/app/components/carbon/empty-state';
 import { Activity, FilterRemove } from '@carbon/icons-react';
-import {
-  DismissibleTag,
-  Tag,
-} from '@carbon/react';
+import { DismissibleTag, Tag } from '@carbon/react';
 import { Tabs } from '@/app/components/carbon/tabs';
 import { Text } from '@/app/components/carbon/text';
 import { ArrowLeft } from '@carbon/icons-react';
+import { TextArea } from '@/app/components/carbon/form';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -571,54 +561,32 @@ export const VoiceAgentDebugger: FC<{
           {variables.length > 0 ? (
             <div className="divide-y border-b">
               {variables.map((x, idx) => (
-                <InputVarForm key={idx} var={x}>
-                  {(x.getType() === InputVarType.stringInput ||
-                    x.getType() === InputVarType.textInput) && (
-                    <TextTextarea
+                <div key={idx} className="px-4 py-3">
+                  {[
+                    InputVarType.stringInput,
+                    InputVarType.textInput,
+                    InputVarType.paragraph,
+                    InputVarType.number,
+                    InputVarType.json,
+                    InputVarType.url,
+                  ].includes(x.getType() as InputVarType) && (
+                    <TextArea
                       id={x.getName()}
+                      labelText={`{{${x.getName()}}}`}
+                      rows={
+                        x.getType() === InputVarType.paragraph ||
+                        x.getType() === InputVarType.json
+                          ? 4
+                          : 2
+                      }
                       defaultValue={x.getDefaultvalue()}
+                      placeholder="Enter variable value..."
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         onChangeArgument(x.getName(), e.target.value)
                       }
                     />
                   )}
-                  {x.getType() === InputVarType.paragraph && (
-                    <ParagraphTextarea
-                      id={x.getName()}
-                      defaultValue={x.getDefaultvalue()}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        onChangeArgument(x.getName(), e.target.value)
-                      }
-                    />
-                  )}
-                  {x.getType() === InputVarType.number && (
-                    <NumberTextarea
-                      id={x.getName()}
-                      defaultValue={x.getDefaultvalue()}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        onChangeArgument(x.getName(), e.target.value)
-                      }
-                    />
-                  )}
-                  {x.getType() === InputVarType.json && (
-                    <JsonTextarea
-                      id={x.getName()}
-                      defaultValue={x.getDefaultvalue()}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        onChangeArgument(x.getName(), e.target.value)
-                      }
-                    />
-                  )}
-                  {x.getType() === InputVarType.url && (
-                    <UrlTextarea
-                      id={x.getName()}
-                      defaultValue={x.getDefaultvalue()}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        onChangeArgument(x.getName(), e.target.value)
-                      }
-                    />
-                  )}
-                </InputVarForm>
+                </div>
               ))}
             </div>
           ) : (

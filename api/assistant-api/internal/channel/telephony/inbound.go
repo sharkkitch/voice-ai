@@ -178,14 +178,19 @@ func (d *InboundDispatcher) CreateConversation(ctx context.Context, auth types.S
 
 // SaveCallContext stores the call context in Postgres and returns the contextID.
 func (d *InboundDispatcher) SaveCallContext(ctx context.Context, auth types.SimplePrinciple, assistant *internal_assistant_entity.Assistant, conversationID uint64, callInfo *internal_type.CallInfo, provider string) (string, error) {
+	direction := callInfo.Direction
+	if direction == "" {
+		direction = "inbound"
+	}
 	cc := &callcontext.CallContext{
 		AssistantID:         assistant.Id,
 		ConversationID:      conversationID,
 		AssistantProviderId: assistant.AssistantProviderId,
 		AuthToken:           auth.GetCurrentToken(),
 		AuthType:            auth.Type(),
-		Direction:           "inbound",
+		Direction:           direction,
 		CallerNumber:        callInfo.CallerNumber,
+		FromNumber:          callInfo.FromNumber,
 		Provider:            provider,
 		ChannelUUID:         callInfo.ChannelUUID,
 	}

@@ -93,12 +93,15 @@ export const SourceIndicator: React.FC<SourceIndicatorProps> = ({
   withLabel = true,
 }) => {
   const config = sourceConfig[source] || defaultConfig;
-  console.log('SourceIndicator config:', { source, config });
   if (!withLabel) {
     return (
       <Tooltip label={config.label} align="bottom">
-        <Tag size="md" type={config.tagType as any}>
-          <span className="inline-flex items-center leading-none">
+        <Tag
+          size="md"
+          type={config.tagType as any}
+          className="!inline-flex !items-center"
+        >
+          <span className="inline-flex items-center justify-center leading-none [&>svg]:block">
             {config.icon}
           </span>
         </Tag>
@@ -107,8 +110,12 @@ export const SourceIndicator: React.FC<SourceIndicatorProps> = ({
   }
 
   return (
-    <Tag size="md" type={config.tagType as any}>
-      <span className="inline-flex items-center gap-1.5 leading-none">
+    <Tag
+      size="md"
+      type={config.tagType as any}
+      className="!inline-flex !items-center"
+    >
+      <span className="inline-flex items-center gap-1.5 leading-none [&>svg]:block">
         {config.icon}
         {config.label}
       </span>

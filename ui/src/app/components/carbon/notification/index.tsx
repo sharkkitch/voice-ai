@@ -106,6 +106,7 @@ export const LinkNotification: FC<LinkNotificationProps> = ({
   hideCloseButton = true,
 }) => (
   <ActionableNotification
+    role="none"
     kind={kind}
     title={title}
     subtitle={subtitle}

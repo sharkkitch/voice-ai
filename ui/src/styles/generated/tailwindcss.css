@@ -2663,6 +2663,9 @@
   .min-h-\[400px\] {
     min-height: 400px;
   }
+  .min-h-\[420px\] {
+    min-height: 420px;
+  }
   .min-h-\[calc\(50\%-96px\)\] {
     min-height: calc(50% - 96px);
   }
@@ -2930,6 +2933,9 @@
   .max-w-\[42rem\] {
     max-width: 42rem;
   }
+  .max-w-\[70\%\] {
+    max-width: 70%;
+  }
   .max-w-\[120px\] {
     max-width: 120px;
   }
@@ -2950,6 +2956,9 @@
   }
   .max-w-full {
     max-width: 100%;
+  }
+  .max-w-full\! {
+    max-width: 100% !important;
   }
   .max-w-lg {
     max-width: var(--container-lg);
@@ -3830,6 +3839,12 @@
   }
   .bg-gray-50 {
     background-color: var(--color-gray-50);
+  }
+  .bg-gray-50\/50 {
+    background-color: color-mix(in srgb, #fcfcfc 50%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-gray-50) 50%, transparent);
+    }
   }
   .bg-gray-100 {
     background-color: var(--color-gray-100);
@@ -9999,6 +10014,11 @@
   .\[\&\>div\]\:h-full {
     &>div {
       height: 100%;
+    }
+  }
+  .\[\&\>svg\]\:block {
+    &>svg {
+      display: block;
     }
   }
 }

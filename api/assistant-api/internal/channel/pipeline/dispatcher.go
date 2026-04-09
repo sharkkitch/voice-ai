@@ -254,4 +254,3 @@ func (d *Dispatcher) dispatch(e callEnvelope) {
 		d.logger.Warnw("dispatch: unknown pipeline type", "type", fmt.Sprintf("%T", e.p))
 	}
 }
-
