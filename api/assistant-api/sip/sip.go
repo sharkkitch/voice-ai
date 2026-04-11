@@ -585,6 +585,12 @@ func (m *SIPEngine) reconcileRegistrations(ctx context.Context) {
 			continue
 		}
 
+		// Only register DIDs that opted into inbound calls
+		sipInbound, _ := opts.GetString("rapida.sip_inbound")
+		if sipInbound != "true" {
+			continue
+		}
+
 		desired[did] = desiredDID{
 			DID:          did,
 			CredentialID: credentialID,
@@ -787,9 +793,15 @@ func (m *SIPEngine) RegisterAssistant(ctx context.Context, auth types.SimplePrin
 		return nil // Not a SIP deployment
 	}
 
-	did, _ := assistant.AssistantPhoneDeployment.GetOptions().GetString("phone")
+	opts := assistant.AssistantPhoneDeployment.GetOptions()
+	did, _ := opts.GetString("phone")
 	if did == "" {
 		return fmt.Errorf("phone deployment has no DID configured")
+	}
+
+	sipInbound, _ := opts.GetString("rapida.sip_inbound")
+	if sipInbound != "true" {
+		return nil // Outbound-only — skip registration
 	}
 
 	sipConfig, _, err := m.fetchSIPConfigAndVaultCredential(auth, assistant)
