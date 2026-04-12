@@ -44,6 +44,12 @@ func main() {
 		sig := <-sigCh
 		log.Printf("received signal %s — shutting down", sig)
 		cancel()
+
+		// If a second signal arrives, exit immediately instead of waiting
+		// for the graceful shutdown to complete. Handy during local dev.
+		<-sigCh
+		log.Println("second signal received — forcing exit")
+		os.Exit(1)
 	}()
 
 	// Build and start the HTTP server
