@@ -36,7 +36,9 @@ func main() {
 
 	// Handle graceful shutdown on SIGINT / SIGTERM
 	// Also handle SIGHUP so the process can be cleanly stopped by some process managers
-	sigCh := make(chan os.Signal, 1)
+	// Note: using a buffered channel of 2 so that a second signal during shutdown
+	// doesn't block the sender goroutine.
+	sigCh := make(chan os.Signal, 2)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	go func() {
 		sig := <-sigCh
