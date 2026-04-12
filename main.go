@@ -12,7 +12,6 @@ import (
 	"github.com/voice-ai/internal/server"
 )
 
- -ldflags
 var (
 	Version   = "dev"
 	BuildTime = "unknown"
