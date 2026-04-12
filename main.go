@@ -12,14 +12,15 @@ import (
 	"github.com/voice-ai/internal/server"
 )
 
-// Version is set at build time via -ldflags
+ -ldflags
 var (
 	Version   = "dev"
 	BuildTime = "unknown"
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// Include date/time, file name, and line number in log output
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
 	// Print version info
 	fmt.Printf("voice-ai %s (built %s)\n", Version, BuildTime)
@@ -35,8 +36,9 @@ func main() {
 	defer cancel()
 
 	// Handle graceful shutdown on SIGINT / SIGTERM
+	// Also handle SIGHUP so the process can be cleanly stopped by some process managers
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	go func() {
 		sig := <-sigCh
 		log.Printf("received signal %s — shutting down", sig)
