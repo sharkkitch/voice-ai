@@ -18,7 +18,7 @@ var (
 )
 
 func main() {
-	// Include date/time, file name, and line number in log output
+	// Include date/time, file
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
 	// Print version info
@@ -38,7 +38,10 @@ func main() {
 	// Also handle SIGHUP so the process can be cleanly stopped by some process managers
 	// Note: using a buffered channel of 2 so that a second signal during shutdown
 	// doesn't block the sender goroutine.
-	sigCh := make(chan os.Signal, 2)
+	//
+	// Personal note: bumped buffer to 3 so rapid Ctrl-C spam during local dev
+	// doesn't occasionally deadlock before the second-signal exit path is reached.
+	sigCh := make(chan os.Signal, 3)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	go func() {
 		sig := <-sigCh
