@@ -41,7 +41,7 @@ func Load() (*Config, error) {
 		// Defaults
 		Port:            8080,
 		Host:            "0.0.0.0",
-		LogLevel:        "info",
+		LogLevel:        "debug", // personal preference: default to debug for easier local development
 		OpenAIModel:     "gpt-4o-realtime-preview",
 		OpenAIBaseURL:   "https://api.openai.com/v1",
 		SampleRate:      24000,
@@ -49,7 +49,7 @@ func Load() (*Config, error) {
 		BitDepth:        16,
 		MaxAudioSeconds: 300,
 		SessionTimeout:  30 * time.Minute,
-		MaxSessions:     100,
+		MaxSessions:     10, // lowered from 100 since this is just for personal use
 		TLSEnabled:      false,
 	}
 
