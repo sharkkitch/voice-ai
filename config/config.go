@@ -95,6 +95,9 @@ func Load() (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid SESSION_TIMEOUT_MINUTES value %q: %w", v, err)
 		}
+		if m <= 0 {
+			return nil, fmt.Errorf("SESSION_TIMEOUT_MINUTES must be a positive integer, got %d", m)
+		}
 		cfg.SessionTimeout = time.Duration(m) * time.Minute
 	}
 
