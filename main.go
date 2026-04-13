@@ -52,7 +52,9 @@ func main() {
 		// for the graceful shutdown to complete. Handy during local dev.
 		<-sigCh
 		log.Println("second signal received — forcing exit")
-		os.Exit(1)
+		// Use exit code 130 (128 + SIGINT) to signal interrupted-by-signal
+		// to the shell, which is more semantically correct than a generic 1.
+		os.Exit(130)
 	}()
 
 	// Build and start the HTTP server
