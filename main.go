@@ -8,12 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/voicen	"github.com/voice-ai/internal/server"
+	"github.com/voice-ai/internal/config"
+	"github.com/voice-ai/internal/server"
 )
 
 var (
 	Version   = "dev"
-	Buildn
+	BuildTime = "unknown"
+)
+
 func main() {
 	// Include date/time, file
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
