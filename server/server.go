@@ -8,9 +8,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	t"github.com/rapidatype Server struct {
-	hfg        *config.Config
-	logger     *log the provided configuration.
+	"time"
+
+	"github.com/rapidaai/voice-ai/config"
+)
+
+// Server holds the HTTP server and its dependencies.
+type Server struct {
+	cfg        *config.Config
+	logger     *log.Logger
+	httpServer *http.Server
+}
+
+// New creates and configures a new Server using the provided configuration.
 func New(cfg *config.Config) *Server {
 	logger := log.New(os.Stdout, "[voice-ai] ", log.LstdFlags|log.Lshortfile)
 
@@ -21,8 +31,8 @@ func New(cfg *config.Config) *Server {
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 			Handler:      mux,
-			ReadTimeout:  60 * time.Second, // increased further for my local testing with large audio files
-			WriteTimeout: 60  ReadTimeout
+			ReadTimeout:  90 * time.Second, // bumped up for my local testing with large audio files
+			WriteTimeout: 90 * time.Second,
 			IdleTimeout:  120 * time.Second, // doubled to keep connections alive longer during dev sessions
 		},
 	}
