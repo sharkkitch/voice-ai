@@ -87,6 +87,9 @@ func Load() (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid MAX_SESSIONS value %q: %w", v, err)
 		}
+		if n <= 0 {
+			return nil, fmt.Errorf("MAX_SESSIONS must be a positive integer, got %d", n)
+		}
 		cfg.MaxSessions = n
 	}
 
