@@ -47,7 +47,7 @@ func Load() (*Config, error) {
 		SampleRate:      24000,
 		Channels:        1,
 		BitDepth:        16,
-		MaxAudioSeconds: 300,
+		MaxAudioSeconds: 120, // reduced from 300 — 2 min is plenty for my use cases
 		SessionTimeout:  30 * time.Minute,
 		MaxSessions:     10, // lowered from 100 since this is just for personal use
 		TLSEnabled:      false,
