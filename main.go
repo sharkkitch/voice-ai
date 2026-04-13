@@ -8,15 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/voice-ai/internal/config"
-	"github.com/voice-ai/internal/server"
+	"github.com/voicen	"github.com/voice-ai/internal/server"
 )
 
 var (
 	Version   = "dev"
-	BuildTime = "unknown"
-)
-
+	Buildn
 func main() {
 	// Include date/time, file
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
@@ -54,6 +51,8 @@ func main() {
 		log.Println("second signal received — forcing exit")
 		// Use exit code 130 (128 + SIGINT) to signal interrupted-by-signal
 		// to the shell, which is more semantically correct than a generic 1.
+		// Personal note: some shells (fish, zsh) display a cleaner "Terminated"
+		// message when the exit code matches the signal convention.
 		os.Exit(130)
 	}()
 
