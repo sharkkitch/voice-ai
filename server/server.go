@@ -10,17 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rapidaai/voice-ai/config"
+"
 )
 
-// Server holds the HTTP server and its dependencies.
-type Server struct {
-	cfg        *config.Config
-	logger     *log.Logger
-	httpServer *http.Server
-}
-
-// New creates and configures a new Server using the provided configuration.
+//*log.Logger
+	h configures a new Server using the provided configuration.
 func New(cfg *config.Config) *Server {
 	logger := log.New(os.Stdout, "[voice-ai] ", log.LstdFlags|log.Lshortfile)
 
@@ -51,6 +45,11 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 
 // handleHealth responds with a simple JSON health-check payload.
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	// Only allow GET requests for the health endpoint.
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"status":"ok"}`))
