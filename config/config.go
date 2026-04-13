@@ -48,7 +48,7 @@ func Load() (*Config, error) {
 		Channels:        1,
 		BitDepth:        16,
 		MaxAudioSeconds: 120, // reduced from 300 — 2 min is plenty for my use cases
-		SessionTimeout:  30 * time.Minute,
+		SessionTimeout:  15 * time.Minute, // reduced from 30 min — sessions were hanging around too long on my machine
 		MaxSessions:     10, // lowered from 100 since this is just for personal use
 		TLSEnabled:      false,
 	}
