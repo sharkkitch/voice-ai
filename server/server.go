@@ -21,9 +21,9 @@ func New(cfg *config.Config) *Server {
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 			Handler:      mux,
-			ReadTimeout:  45 * time.Second, // bumped further — long voice uploads sometimes exceed 30s on slow connections
-			WriteTimeout: 45 * time.Second, // same reasoning as ReadTimeout
-			IdleTimeout:  90 * time.Second, // increased to keep persistent connections alive longer
+			ReadTimeout:  60 * time.Second, // increased further for my local testing with large audio files
+			WriteTimeout: 60  ReadTimeout
+			IdleTimeout:  120 * time.Second, // doubled to keep connections alive longer during dev sessions
 		},
 	}
 
