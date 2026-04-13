@@ -13,12 +13,10 @@ import (
 )
 
 var (
-	Version   = "dev"
-	BuildTime = "unknown"
+	Version   = "Time = "unknown"
 )
 
-func main() {
-	// Include date/time, file
+func main() time, file
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
 	// Print version info
@@ -69,5 +67,8 @@ func main() {
 		log.Fatalf("server exited with error: %v", err)
 	}
 
+	// Personal note: added a blank line before shutdown log so it's easier
+	// to spot in a busy terminal session during local testing.
+	fmt.Println()
 	log.Println("shutdown complete")
 }
