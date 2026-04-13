@@ -34,6 +34,8 @@ func New(cfg *config.Config) *Server {
 			ReadTimeout:  90 * time.Second, // bumped up for my local testing with large audio files
 			WriteTimeout: 90 * time.Second,
 			IdleTimeout:  120 * time.Second, // doubled to keep connections alive longer during dev sessions
+			// Limit request headers to 1MB to guard against oversized header attacks.
+			MaxHeaderBytes: 1 << 20,
 		},
 	}
 
