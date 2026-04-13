@@ -91,7 +91,8 @@ func (c *Client) readPump() {
 		c.close()
 	}()
 
-	c.conn.SetReadLimit(512 * 1024) // 512 KB max message size
+	// Increased read limit to 1 MB to handle longer audio chunks without errors
+	c.conn.SetReadLimit(1024 * 1024) // 1 MB max message size
 	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.conn.SetPongHandler(func(string) error {
 		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -121,69 +122,4 @@ func (c *Client) readPump() {
 // writePump sends queued messages to the client connection.
 func (c *Client) writePump() {
 	ticker := time.NewTicker(54 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Printf("websocket write error: %v", err)
-				return
-			}
-		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
-		}
-	}
-}
-
-// handleMessage dispatches an incoming message by type.
-func (c *Client) handleMessage(msg AudioMessage) {
-	switch msg.Type {
-	case "audio":
-		// TODO: forward raw audio payload to the AI pipeline
-		log.Printf("received audio chunk (%d bytes)", len(msg.Payload))
-	case "ping":
-		c.sendJSON(AudioMessage{Type: "pong"})
-	default:
-		log.Printf("unknown message type: %s", msg.Type)
-		c.sendError("unknown message type")
-	}
-}
-
-// sendJSON serialises v and enqueues it for delivery.
-func (c *Client) sendJSON(v interface{}) {
-	data, err := json.Marshal(v)
-	if err != nil {
-		log.Printf("marshal error: %v", err)
-		return
-	}
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if !c.closed {
-		c.send <- data
-	}
-}
-
-// sendError delivers an error message to the client.
-func (c *Client) sendError(msg string) {
-	c.sendJSON(AudioMessage{Type: "error", Error: msg})
-}
-
-// close shuts down the client's send channel and connection once.
-func (c *Client) close() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if !c.closed {
-		c.closed = true
-		close(c.send)
-		c.conn.Close()
-	}
-}
+	defer ticker.Stop(
