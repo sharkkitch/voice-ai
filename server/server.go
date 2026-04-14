@@ -8,13 +8,12 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-"
-)
-
-//*log.Logger
-	h configures a new Server using the provided configuration.
+		"githubn
+// Server holds server and its dependencies.
+type Server struct {
+fg        *config.Config
+	n	hn
+// New configures a new Server using the provided configuration.
 func New(cfg *config.Config) *Server {
 	logger := log.New(os.Stdout, "[voice-ai] ", log.LstdFlags|log.Lshortfile)
 
@@ -25,9 +24,9 @@ func New(cfg *config.Config) *Server {
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 			Handler:      mux,
-			ReadTimeout:  90 * time.Second, // bumped up for my local testing with large audio files
-			WriteTimeout: 90 * time.Second,
-			IdleTimeout:  120 * time.Second, // doubled to keep connections alive longer during dev sessions
+			ReadTimeout:  120 * time.Second, // bumped up further for large audio files on slow local network
+			WriteTimeout: 120 * time.Second,
+			IdleTimeout:  180 * time.Second, // extended to reduce reconnect churn during dev sessions
 			// Limit request headers to 1MB to guard against oversized header attacks.
 			MaxHeaderBytes: 1 << 20,
 		},
