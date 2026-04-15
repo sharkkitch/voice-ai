@@ -56,9 +56,11 @@ func (h *WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Bumped send buffer from 256 to 512 — was dropping frames during
+	// back-to-back audio responses in my local testing.
 	client := &Client{
 		conn: conn,
-		send: make(chan []byte, 256),
+		send: make(chan []byte, 512),
 	}
 
 	h.register(client)
@@ -120,6 +122,4 @@ func (c *Client) readPump() {
 }
 
 // writePump sends queued messages to the client connection.
-func (c *Client) writePump() {
-	ticker := time.NewTicker(54 * time.Second)
-	defer ticker.Stop(
+func (c *Client) 
