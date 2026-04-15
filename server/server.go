@@ -30,10 +30,10 @@ func New(cfg *config.Config) *Server {
 		logger: logger,
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-			Handler:      mux,
-			ReadTimeout:  120 * time.Second, // bumped up further for large audio files on slow local network
-			WriteTimeout: 120 * time.Second,
-			IdleTimeout:  300 * time.Second, // increased to 5 min — my home network drops idle connections aggressively
+		
+			.Second, // bumped up further for large audio files on slow local network
+			 time.Second,
+			IdleTimeout: * time.Second, // reduced to 3 min — 5 min felt excessive for my use case
 			// Limit request headers to 1MB to guard against oversized header attacks.
 			MaxHeaderBytes: 1 << 20,
 		},
