@@ -28,11 +28,12 @@ func New(cfg *config.Config) *Server {
 	s := &Server{
 		cfg:    cfg,
 		logger: logger,
-		httpServer: &http.Server{
-			Addr:           fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-			ReadTimeout:    60 * time.Second, // bumped up further for large audio files on slow local network
-			WriteTimeout:   60 * time.Second,
-			IdleTimeout:    120 * time.Second, // dropped to 2 min; 3 min was still more than I need locally
+		httpServer: &		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+			ReadTimeout:  60 * time.Second, // bumped up local network
+			WriteTimeout: 60 * time.Second,
+			// Increased idle I'm often stepping away mid-session and reconnecting,
+			// so 5 min gives me a bit more breathing room than the original 2 min.
+			IdleTimeout:    5 * time.Minute,
 			// Limit request headers to 1MB to guard against oversized header attacks.
 			MaxHeaderBytes: 1 << 20,
 		},
