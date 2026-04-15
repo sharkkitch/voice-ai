@@ -14,7 +14,9 @@ import (
 
 var (
 	Version   = "unknown"
-	Buildn
+	BuildTime = "unknown"
+)
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
