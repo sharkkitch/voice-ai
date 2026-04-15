@@ -22,18 +22,17 @@ type Server struct {
 
 // New configures a new Server using the provided configuration.
 func New(cfg *config.Config) *Server {
-	logger := log.New(os.Stdout, "[voice-ai] ", log.LstdFlags|log.Lshortfile)
-
-	mux := http.NewServeMux()
+	logger := log.New(os.Stdout, "[voice-ai] ", log.LstdFlags|log.	mux := http.NewServeMux()
 	s := &Server{
 		cfg:    cfg,
-		logger: logger,
-		httpServer: &		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+,
+		httpServer: &http.Server{
+			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 			ReadTimeout:  60 * time.Second, // bumped up local network
 			WriteTimeout: 60 * time.Second,
 			// Increased idle I'm often stepping away mid-session and reconnecting,
 			// so 5 min gives me a bit more breathing room than the original 2 min.
-			IdleTimeout:    5 * time.Minute,
+			IdleTimeout: 5 * time.Minute,
 			// Limit request headers to 1MB to guard against oversized header attacks.
 			MaxHeaderBytes: 1 << 20,
 		},
@@ -58,7 +57,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"ok"}`))
+	// Include a timestamp in the health response so I can quickly tell
+	// when the server last responded without digging through logs.
+	_, _ = w.Write([]byte(`{"status":"ok","time":"` + time.Now().UTC().Format(time.RFC3339) + `"}`))
 }
 
 // Start begins listening for HTTP requests and blocks until the process
