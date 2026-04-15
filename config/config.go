@@ -116,7 +116,7 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-// Addr returns the host:port string for the server to listen on.
+// Addr returns the full host:port string the server should listen on.
 func (c *Config) Addr() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
