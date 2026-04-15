@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	Version   = "Time = "unknown"
+	Version   = "unknown"
+	BuildTime = "unknown"
 )
 
-func main() time, file
+func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
 	// Print version info
