@@ -14,9 +14,7 @@ import (
 
 var (
 	Version   = "unknown"
-	BuildTime = "unknown"
-)
-
+	Buildn
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
@@ -72,4 +70,8 @@ func main() {
 	// to spot in a busy terminal session during local testing.
 	fmt.Println()
 	log.Println("shutdown complete")
+
+	// Personal note: print a final newline so the shell prompt appears on its
+	// own line after the process exits — minor QoL when running interactively.
+	fmt.Println()
 }
