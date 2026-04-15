@@ -29,11 +29,10 @@ func New(cfg *config.Config) *Server {
 		cfg:    cfg,
 		logger: logger,
 		httpServer: &http.Server{
-			Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		
-			.Second, // bumped up further for large audio files on slow local network
-			 time.Second,
-			IdleTimeout: * time.Second, // reduced to 3 min — 5 min felt excessive for my use case
+			Addr:           fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+			ReadTimeout:    60 * time.Second, // bumped up further for large audio files on slow local network
+			WriteTimeout:   60 * time.Second,
+			IdleTimeout:    180 * time.Second, // reduced to 3 min — 5 min felt excessive for my use case
 			// Limit request headers to 1MB to guard against oversized header attacks.
 			MaxHeaderBytes: 1 << 20,
 		},
