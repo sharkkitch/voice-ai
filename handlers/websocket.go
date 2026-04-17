@@ -93,8 +93,9 @@ func (c *Client) readPump() {
 		c.close()
 	}()
 
-	// Increased read limit to 1 MB to handle longer audio chunks without errors
-	c.conn.SetReadLimit(1024 * 1024) // 1 MB max message size
+	// Increased read limit to 2 MB — 1 MB was occasionally too tight when
+	// testing with longer voice prompts on my end.
+	c.conn.SetReadLimit(2 * 1024 * 1024) // 2 MB max message size
 	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.conn.SetPongHandler(func(string) error {
 		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -114,12 +115,4 @@ func (c *Client) readPump() {
 		if err := json.Unmarshal(message, &msg); err != nil {
 			log.Printf("invalid message format: %v", err)
 			c.sendError("invalid message format")
-			continue
-		}
-
-		c.handleMessage(msg)
-	}
-}
-
-// writePump sends queued messages to the client connection.
-func (c *Client) 
+	
